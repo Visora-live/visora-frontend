@@ -37,6 +37,10 @@ export class TopbarComponent {
     this.menuToggle.emit();
   }
 
+  protected logout(): void {
+    void this.router.navigate(['/login']);
+  }
+
   private titleFromUrl(url: string): string {
     const segment = url.split('?')[0].split('/')[1];
     return PAGE_TITLES[segment] ?? '';

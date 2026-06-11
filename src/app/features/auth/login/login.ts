@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   protected readonly form = this.fb.nonNullable.group({
     identifier: ['', Validators.required],
@@ -42,12 +43,16 @@ export class LoginComponent {
     this.isLoading.set(true);
     this.submitError.set('');
 
-    // Simulated auth — no backend yet
+    const { identifier, password } = this.form.getRawValue();
     setTimeout(() => {
       this.isLoading.set(false);
-      this.submitError.set(
-        'Credenciales incorrectas. Verifica tus datos e intenta de nuevo.',
-      );
+      if (identifier === 'admin' && password === 'visora2026') {
+        void this.router.navigate(['/stores']);
+      } else {
+        this.submitError.set(
+          'Credenciales incorrectas. Verifica tus datos e intenta de nuevo.',
+        );
+      }
     }, 1500);
   }
 }

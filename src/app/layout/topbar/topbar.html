@@ -26,11 +26,11 @@
   </button>
 
   <mat-menu #userMenu="matMenu">
-    <button mat-menu-item>
+    <button mat-menu-item disabled aria-disabled="true">
       <mat-icon>person</mat-icon>
-      <span>Perfil</span>
+      <span>Perfil próximamente</span>
     </button>
-    <button mat-menu-item>
+    <button mat-menu-item (click)="logout()">
       <mat-icon>logout</mat-icon>
       <span>Cerrar sesión</span>
     </button>
