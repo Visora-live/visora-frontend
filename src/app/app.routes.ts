@@ -91,6 +91,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'events/:id',
+        loadComponent: () =>
+          import('./features/events/event-detail/event-detail').then(
+            (m) => m.EventDetailComponent,
+          ),
+      },
+      {
         path: 'alerts',
         loadComponent: () =>
           import('./features/alerts/alert-list/alert-list').then(
