@@ -32,7 +32,13 @@ export class StoreDetailComponent {
   protected readonly storeId = this.route.snapshot.paramMap.get('id') ?? '';
   protected readonly store = MOCK_STORES.find((s) => s.id === this.storeId) ?? null;
 
-  protected readonly mockAlerts = MOCK_ALERTS.filter((a) => a.status === 'open').length;
-  protected readonly mockEvents = MOCK_EVENTS.length;
-  protected readonly mockResolved = MOCK_ALERTS.filter((a) => a.status === 'resolved').length;
+  protected readonly mockAlerts = MOCK_ALERTS.filter(
+    (a) => a.storeId === this.storeId && a.status === 'open',
+  ).length;
+  protected readonly mockEvents = MOCK_EVENTS.filter(
+    (e) => e.storeId === this.storeId,
+  ).length;
+  protected readonly mockResolved = MOCK_ALERTS.filter(
+    (a) => a.storeId === this.storeId && a.status === 'resolved',
+  ).length;
 }

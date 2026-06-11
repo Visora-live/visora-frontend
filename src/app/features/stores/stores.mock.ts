@@ -2,7 +2,7 @@ import type { Store } from '../../core/models/store.model';
 
 export const MOCK_STORES: Store[] = [
   {
-    id: '1',
+    id: 'store-001',
     name: 'Tienda Miraflores Centro',
     address: 'Av. Larco 234, Piso 2',
     city: 'Miraflores',
@@ -16,7 +16,7 @@ export const MOCK_STORES: Store[] = [
       'Tienda principal de la zona de Miraflores. Cuenta con acceso biométrico en la entrada principal.',
   },
   {
-    id: '2',
+    id: 'store-002',
     name: 'Tienda San Isidro',
     address: 'Calle Las Begonias 521',
     city: 'San Isidro',
@@ -29,7 +29,7 @@ export const MOCK_STORES: Store[] = [
     notes: '',
   },
   {
-    id: '3',
+    id: 'store-003',
     name: 'Tienda Surco Principal',
     address: 'Av. Javier Prado Este 3200',
     city: 'Santiago de Surco',
@@ -43,7 +43,7 @@ export const MOCK_STORES: Store[] = [
       'Sede con mayor flujo de clientes. Requiere revisión periódica de las cámaras del patio trasero.',
   },
   {
-    id: '4',
+    id: 'store-004',
     name: 'Tienda Callao Norte',
     address: 'Jr. Inca 456',
     city: 'Callao',
@@ -56,7 +56,7 @@ export const MOCK_STORES: Store[] = [
     notes: 'Temporalmente cerrada por refacción del local.',
   },
   {
-    id: '5',
+    id: 'store-005',
     name: 'Tienda Barranco',
     address: 'Av. Grau 189, Loc. 3',
     city: 'Barranco',
@@ -69,7 +69,7 @@ export const MOCK_STORES: Store[] = [
     notes: '',
   },
   {
-    id: '6',
+    id: 'store-006',
     name: 'Tienda La Molina',
     address: 'Av. La Molina 1500',
     city: 'La Molina',
@@ -82,7 +82,7 @@ export const MOCK_STORES: Store[] = [
     notes: '',
   },
   {
-    id: '7',
+    id: 'store-007',
     name: 'Tienda Chorrillos Sur',
     address: 'Av. Defensores del Morro 800',
     city: 'Chorrillos',
@@ -95,7 +95,7 @@ export const MOCK_STORES: Store[] = [
     notes: 'Local en proceso de reactivación. Pendiente revisión técnica de cámaras.',
   },
   {
-    id: '8',
+    id: 'store-008',
     name: 'Tienda Lince',
     address: 'Av. Iquitos 1240',
     city: 'Lince',
