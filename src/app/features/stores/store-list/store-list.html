@@ -1,0 +1,188 @@
+<app-page-header
+  title="Tiendas"
+  subtitle="Gestiona los establecimientos conectados al sistema de videovigilancia inteligente."
+>
+  <button mat-flat-button class="register-btn">
+    <mat-icon>add</mat-icon>
+    Registrar tienda
+  </button>
+</app-page-header>
+
+<!-- Stat cards -->
+<div class="stats-grid">
+  <app-stat-card title="Tiendas activas" [value]="activeCount()" icon="store" />
+  <app-stat-card title="Cámaras registradas" [value]="totalCameras()" icon="videocam" />
+  <app-stat-card title="Alertas abiertas" [value]="openAlerts" icon="notifications_active" />
+  <app-stat-card title="Eventos de hoy" [value]="todayEvents" icon="event_note" />
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
+    <mat-label>Buscar tienda</mat-label>
+    <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+    <input
+      matInput
+      type="search"
+      [value]="searchQuery()"
+      (input)="onSearch($event)"
+      placeholder="Nombre, dirección o ciudad..."
+    />
+    @if (searchQuery()) {
+      <button
+        matSuffix
+        mat-icon-button
+        type="button"
+        (click)="clearSearch()"
+        aria-label="Limpiar búsqueda"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="status-field">
+    <mat-label>Estado</mat-label>
+    <mat-select [value]="statusFilter()" (valueChange)="statusFilter.set($event)">
+      <mat-option value="all">Todas</mat-option>
+      <mat-option value="active">Activas</mat-option>
+      <mat-option value="inactive">Inactivas</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<!-- Results count -->
+<p class="results-info" aria-live="polite" aria-atomic="true">
+  @if (isFiltered()) {
+    Mostrando {{ filteredStores().length }} de {{ stores().length }}
+    tienda{{ stores().length !== 1 ? 's' : '' }}
+  } @else {
+    {{ stores().length }} tienda{{ stores().length !== 1 ? 's' : '' }}
+    registrada{{ stores().length !== 1 ? 's' : '' }}
+  }
+</p>
+
+<!-- Table / Empty states -->
+@if (filteredStores().length > 0) {
+  <div class="table-card">
+    <div class="table-scroll">
+      <table
+        mat-table
+        [dataSource]="filteredStores()"
+        class="stores-table"
+        aria-label="Lista de tiendas"
+      >
+
+        <!-- Tienda -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Tienda</th>
+          <td mat-cell *matCellDef="let store">
+            <div class="cell-name">
+              <div class="store-avatar" aria-hidden="true">{{ store.name.charAt(0) }}</div>
+              <span class="store-name-text">{{ store.name }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Ubicación -->
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef>Ubicación</th>
+          <td mat-cell *matCellDef="let store">
+            <div class="cell-location">
+              <span class="location-address">{{ store.address }}</span>
+              <span class="location-city">{{ store.city }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let store">
+            <app-status-badge
+              [status]="store.status === 'active' ? 'normal' : 'inactive'"
+              [label]="store.status === 'active' ? 'Activa' : 'Inactiva'"
+            />
+          </td>
+        </ng-container>
+
+        <!-- Cámaras -->
+        <ng-container matColumnDef="cameras">
+          <th mat-header-cell *matHeaderCellDef>Cámaras</th>
+          <td mat-cell *matCellDef="let store">
+            <div class="cell-cameras">
+              <mat-icon aria-hidden="true">videocam</mat-icon>
+              <span>{{ store.cameraCount }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Fecha registro -->
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef>Registro</th>
+          <td mat-cell *matCellDef="let store" class="date-cell">
+            {{ store.createdAt | date : 'dd/MM/yyyy' }}
+          </td>
+        </ng-container>
+
+        <!-- Acciones (sticky derecha) -->
+        <ng-container matColumnDef="actions" stickyEnd>
+          <th mat-header-cell *matHeaderCellDef class="actions-header"></th>
+          <td mat-cell *matCellDef="let store">
+            <div class="cell-actions">
+              <button
+                mat-icon-button
+                matTooltip="Ver detalle"
+                [attr.aria-label]="'Ver ' + store.name"
+              >
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                matTooltip="Editar tienda"
+                [attr.aria-label]="'Editar ' + store.name"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns()"
+          class="store-row"
+        ></tr>
+      </table>
+    </div>
+  </div>
+
+} @else if (isFiltered()) {
+  <div class="empty-wrap">
+    <app-empty-state
+      icon="search_off"
+      title="Sin resultados"
+      description="No hay tiendas que coincidan con tu búsqueda. Intenta otros términos o limpia los filtros."
+    >
+      <button mat-stroked-button (click)="clearFilters()">
+        <mat-icon>filter_alt_off</mat-icon>
+        Limpiar filtros
+      </button>
+    </app-empty-state>
+  </div>
+
+} @else {
+  <div class="empty-wrap">
+    <app-empty-state
+      icon="store"
+      title="No hay tiendas registradas"
+      description="Registra tu primera tienda para comenzar a monitorear el establecimiento con VISORA."
+    >
+      <button mat-flat-button>
+        <mat-icon>add</mat-icon>
+        Registrar tienda
+      </button>
+    </app-empty-state>
+  </div>
+}

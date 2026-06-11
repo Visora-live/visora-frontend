@@ -19,9 +19,9 @@ const STATUS_CONFIG: Record<BadgeStatus, BadgeConfig> = {
   selector: 'app-status-badge',
   imports: [MatIconModule],
   template: `
-    <span [class]="badgeClass()" role="status" [attr.aria-label]="config().label">
+    <span [class]="badgeClass()" role="status" [attr.aria-label]="displayLabel()">
       <mat-icon class="badge-icon" aria-hidden="true">{{ config().icon }}</mat-icon>
-      <span class="badge-text">{{ config().label }}</span>
+      <span class="badge-text">{{ displayLabel() }}</span>
     </span>
   `,
   styles: [
@@ -72,7 +72,9 @@ const STATUS_CONFIG: Record<BadgeStatus, BadgeConfig> = {
 })
 export class StatusBadgeComponent {
   readonly status = input.required<BadgeStatus>();
+  readonly label = input<string>('');
 
   protected readonly config = computed(() => STATUS_CONFIG[this.status()]);
   protected readonly badgeClass = computed(() => `badge badge--${this.status()}`);
+  protected readonly displayLabel = computed(() => this.label() || this.config().label);
 }
