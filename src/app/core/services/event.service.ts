@@ -26,16 +26,16 @@ export class EventService {
       suspiciousCount: MOCK_EVENTS.filter((e) => e.severity === 'suspicious').length,
       evidenceCount: MOCK_EVENTS.reduce((acc, e) => acc + e.evidence.length, 0),
     };
-    return of(response).pipe(delay(300));
+    return of(response);
   }
 
   getById(id: string) {
-    return of(MOCK_EVENTS.find((e) => e.id === id) ?? null).pipe(delay(300));
+    return of(MOCK_EVENTS.find((e) => e.id === id) ?? null);
   }
 
   updateStatus(id: string, status: EventStatus) {
     const event = MOCK_EVENTS.find((e) => e.id === id);
-    if (!event) return of(null).pipe(delay(300));
-    return of({ ...event, status }).pipe(delay(300));
+    const updated: VisoraEvent | null = event ? { ...event, status } : null;
+    return of(updated).pipe(delay(300));
   }
 }

@@ -19,7 +19,7 @@ import type {
   VisoraEvent,
 } from '../../../core/models/event.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
-import { MOCK_EVENTS } from '../events.mock';
+import { EventService } from '../../../core/services/event.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -52,31 +52,25 @@ type StatusFilter = 'all' | EventStatus;
 })
 export class EventListComponent {
   private readonly bp = inject(BreakpointObserver);
+  private readonly eventService = inject(EventService);
+
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 768px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
-  protected readonly events = signal(MOCK_EVENTS);
+  private readonly listRes = toSignal(this.eventService.list(), { requireSync: true });
+
+  protected readonly events = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
   protected readonly severityFilter = signal<SeverityFilter>('all');
   protected readonly typeFilter = signal<TypeFilter>('all');
   protected readonly statusFilter = signal<StatusFilter>('all');
 
-  private readonly today = new Date().toISOString().slice(0, 10);
-
-  protected readonly todayCount = computed(
-    () => this.events().filter((e) => e.timestamp.startsWith(this.today)).length,
-  );
-  protected readonly criticalCount = computed(
-    () => this.events().filter((e) => e.severity === 'critical').length,
-  );
-  protected readonly suspiciousCount = computed(
-    () => this.events().filter((e) => e.severity === 'suspicious').length,
-  );
-  protected readonly evidenceCount = computed(
-    () => this.events().reduce((acc, e) => acc + e.evidence.length, 0),
-  );
+  protected readonly todayCount = computed(() => this.listRes().todayCount);
+  protected readonly criticalCount = computed(() => this.listRes().criticalCount);
+  protected readonly suspiciousCount = computed(() => this.listRes().suspiciousCount);
+  protected readonly evidenceCount = computed(() => this.listRes().evidenceCount);
 
   protected readonly filteredEvents = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -125,32 +119,32 @@ export class EventListComponent {
   }
 
   protected typeLabel(t: EventType): string {
-    const map: Record<EventType, string> = {
+    const m: Record<EventType, string> = {
       facial_recognition: 'Reconocimiento facial',
       weapon_detection: 'Objeto crítico',
       suspicious_activity: 'Actividad sospechosa',
       system: 'Sistema',
     };
-    return map[t];
+    return m[t];
   }
 
   protected typeIcon(t: EventType): string {
-    const map: Record<EventType, string> = {
+    const m: Record<EventType, string> = {
       facial_recognition: 'face',
       weapon_detection: 'security',
       suspicious_activity: 'warning',
       system: 'settings',
     };
-    return map[t];
+    return m[t];
   }
 
   protected statusLabel(s: EventStatus): string {
-    const map: Record<EventStatus, string> = {
+    const m: Record<EventStatus, string> = {
       pending: 'Pendiente',
       reviewed: 'Revisado',
       dismissed: 'Descartado',
     };
-    return map[s];
+    return m[s];
   }
 
   protected statusBadge(s: EventStatus): BadgeStatus {
