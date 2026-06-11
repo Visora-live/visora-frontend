@@ -31,15 +31,11 @@ export interface StorePayload {
 @Injectable({ providedIn: 'root' })
 export class StoreService {
   list() {
-    const response: StoreListResponse = {
-      items: MOCK_STORES,
-      total: MOCK_STORES.length,
-    };
-    return of(response).pipe(delay(300));
+    return of<StoreListResponse>({ items: MOCK_STORES, total: MOCK_STORES.length });
   }
 
   getById(id: string) {
-    return of(MOCK_STORES.find((s) => s.id === id) ?? null).pipe(delay(300));
+    return of(MOCK_STORES.find((s) => s.id === id) ?? null);
   }
 
   create(payload: StorePayload) {
@@ -55,7 +51,15 @@ export class StoreService {
   update(id: string, payload: StorePayload) {
     const existing = MOCK_STORES.find((s) => s.id === id);
     const updated: Store = {
-      ...(existing ?? { id, cameraCount: 0, createdAt: '', name: '', address: '', city: '', status: 'active' as StoreStatus }),
+      ...(existing ?? {
+        id,
+        cameraCount: 0,
+        createdAt: '',
+        name: '',
+        address: '',
+        city: '',
+        status: 'active' as StoreStatus,
+      }),
       ...payload,
     };
     return of(updated).pipe(delay(300));
@@ -67,6 +71,6 @@ export class StoreService {
       alertsResolved: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'resolved').length,
       eventsTotal: MOCK_EVENTS.filter((e) => e.storeId === id).length,
     };
-    return of(metrics).pipe(delay(300));
+    return of(metrics);
   }
 }

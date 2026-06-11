@@ -7,6 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import type { StoreStatus } from '../../../core/models/store.model';
+import { StoreService } from '../../../core/services/store.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
 @Component({
@@ -27,6 +29,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 })
 export class StoreNewComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly storeService = inject(StoreService);
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -48,9 +51,23 @@ export class StoreNewComponent {
       return;
     }
     this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.isSuccess.set(true);
-    }, 1200);
+    const raw = this.form.getRawValue();
+    this.storeService
+      .create({
+        name: raw.name,
+        address: raw.address,
+        city: raw.city,
+        status: raw.status as StoreStatus,
+        manager: raw.manager || undefined,
+        email: raw.email || undefined,
+        phone: raw.phone || undefined,
+        notes: raw.notes || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.isSuccess.set(true);
+        },
+      });
   }
 }

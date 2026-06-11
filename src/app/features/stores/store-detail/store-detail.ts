@@ -1,11 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MOCK_STORES } from '../stores.mock';
-import { MOCK_ALERTS } from '../../alerts/alerts.mock';
-import { MOCK_EVENTS } from '../../events/events.mock';
+import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -28,17 +27,19 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 })
 export class StoreDetailComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly storeService = inject(StoreService);
 
   protected readonly storeId = this.route.snapshot.paramMap.get('id') ?? '';
-  protected readonly store = MOCK_STORES.find((s) => s.id === this.storeId) ?? null;
 
-  protected readonly mockAlerts = MOCK_ALERTS.filter(
-    (a) => a.storeId === this.storeId && a.status === 'open',
-  ).length;
-  protected readonly mockEvents = MOCK_EVENTS.filter(
-    (e) => e.storeId === this.storeId,
-  ).length;
-  protected readonly mockResolved = MOCK_ALERTS.filter(
-    (a) => a.storeId === this.storeId && a.status === 'resolved',
-  ).length;
+  protected readonly store = toSignal(this.storeService.getById(this.storeId), {
+    requireSync: true,
+  });
+
+  private readonly metricsRes = toSignal(this.storeService.getMetricsByStore(this.storeId), {
+    requireSync: true,
+  });
+
+  protected readonly mockAlerts = computed(() => this.metricsRes().alertsOpen);
+  protected readonly mockEvents = computed(() => this.metricsRes().eventsTotal);
+  protected readonly mockResolved = computed(() => this.metricsRes().alertsResolved);
 }

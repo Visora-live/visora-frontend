@@ -12,9 +12,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { map } from 'rxjs';
 import type { Store, StoreStatus } from '../../../core/models/store.model';
-import { MOCK_STORES } from '../stores.mock';
 import { MOCK_ALERTS } from '../../alerts/alerts.mock';
 import { MOCK_EVENTS } from '../../events/events.mock';
+import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -44,13 +44,18 @@ type StatusFilter = 'all' | StoreStatus;
 })
 export class StoreListComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly storeService = inject(StoreService);
 
   private readonly isNarrow = toSignal(
     this.breakpointObserver.observe('(max-width: 768px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
-  protected readonly stores = signal<Store[]>(MOCK_STORES);
+  private readonly listRes = toSignal(this.storeService.list(), {
+    initialValue: { items: [] as Store[], total: 0 },
+  });
+
+  protected readonly stores = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
 

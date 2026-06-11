@@ -1,8 +1,9 @@
-@if (store) {
+@let s = store();
+@if (s) {
 
   <app-page-header
-    [title]="store.name"
-    [subtitle]="store.address + ' · ' + store.city"
+    [title]="s.name"
+    [subtitle]="s.address + ' · ' + s.city"
   >
     <button mat-stroked-button routerLink="/stores">
       <mat-icon>arrow_back</mat-icon>
@@ -12,7 +13,7 @@
       <mat-icon>videocam</mat-icon>
       Ver cámaras
     </button>
-    <button mat-flat-button [routerLink]="['/stores', store.id, 'edit']">
+    <button mat-flat-button [routerLink]="['/stores', s.id, 'edit']">
       <mat-icon>edit</mat-icon>
       Editar tienda
     </button>
@@ -22,22 +23,22 @@
   <div class="stats-grid">
     <app-stat-card
       title="Cámaras registradas"
-      [value]="store.cameraCount"
+      [value]="s.cameraCount"
       icon="videocam"
     />
     <app-stat-card
       title="Alertas abiertas"
-      [value]="mockAlerts"
+      [value]="mockAlerts()"
       icon="notifications_active"
     />
     <app-stat-card
       title="Eventos registrados"
-      [value]="mockEvents"
+      [value]="mockEvents()"
       icon="event_note"
     />
     <app-stat-card
       title="Alertas resueltas"
-      [value]="mockResolved"
+      [value]="mockResolved()"
       icon="check_circle"
     />
   </div>
@@ -47,8 +48,8 @@
     <div class="detail-card-header">
       <h2 class="detail-card-title">Información del establecimiento</h2>
       <app-status-badge
-        [status]="store.status === 'active' ? 'normal' : 'inactive'"
-        [label]="store.status === 'active' ? 'Activa' : 'Inactiva'"
+        [status]="s.status === 'active' ? 'normal' : 'inactive'"
+        [label]="s.status === 'active' ? 'Activa' : 'Inactiva'"
       />
     </div>
     <div class="detail-card-body">
@@ -59,7 +60,7 @@
             <mat-icon aria-hidden="true">location_on</mat-icon>
             Dirección
           </span>
-          <span class="info-value">{{ store.address }}</span>
+          <span class="info-value">{{ s.address }}</span>
         </div>
 
         <div class="info-item">
@@ -67,7 +68,7 @@
             <mat-icon aria-hidden="true">apartment</mat-icon>
             Ciudad / Distrito
           </span>
-          <span class="info-value">{{ store.city }}</span>
+          <span class="info-value">{{ s.city }}</span>
         </div>
 
         <div class="info-item">
@@ -75,7 +76,7 @@
             <mat-icon aria-hidden="true">person</mat-icon>
             Responsable
           </span>
-          <span class="info-value">{{ store.manager || '—' }}</span>
+          <span class="info-value">{{ s.manager || '—' }}</span>
         </div>
 
         <div class="info-item">
@@ -83,9 +84,9 @@
             <mat-icon aria-hidden="true">email</mat-icon>
             Correo electrónico
           </span>
-          @if (store.email) {
-            <a class="info-value info-link" [href]="'mailto:' + store.email">
-              {{ store.email }}
+          @if (s.email) {
+            <a class="info-value info-link" [href]="'mailto:' + s.email">
+              {{ s.email }}
             </a>
           } @else {
             <span class="info-value">—</span>
@@ -97,7 +98,7 @@
             <mat-icon aria-hidden="true">phone</mat-icon>
             Teléfono
           </span>
-          <span class="info-value">{{ store.phone || '—' }}</span>
+          <span class="info-value">{{ s.phone || '—' }}</span>
         </div>
 
         <div class="info-item">
@@ -105,16 +106,16 @@
             <mat-icon aria-hidden="true">calendar_today</mat-icon>
             Fecha de registro
           </span>
-          <span class="info-value">{{ store.createdAt | date : 'dd/MM/yyyy' }}</span>
+          <span class="info-value">{{ s.createdAt | date : 'dd/MM/yyyy' }}</span>
         </div>
 
-        @if (store.notes) {
+        @if (s.notes) {
           <div class="info-item info-item--full">
             <span class="info-label">
               <mat-icon aria-hidden="true">notes</mat-icon>
               Notas
             </span>
-            <span class="info-value info-value--notes">{{ store.notes }}</span>
+            <span class="info-value info-value--notes">{{ s.notes }}</span>
           </div>
         }
 

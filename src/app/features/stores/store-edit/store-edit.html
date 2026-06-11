@@ -1,4 +1,5 @@
-@if (!store) {
+@let s = store();
+@if (!s) {
 
   <div class="not-found-wrap">
     <app-empty-state
@@ -40,7 +41,7 @@
 } @else {
 
   <app-page-header
-    [title]="'Editar: ' + store.name"
+    [title]="'Editar: ' + s.name"
     subtitle="Actualiza los datos del establecimiento registrado en el sistema."
   >
     <button mat-stroked-button [routerLink]="['/stores', storeId]">Cancelar</button>
