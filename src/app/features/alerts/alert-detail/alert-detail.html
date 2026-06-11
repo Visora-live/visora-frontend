@@ -1,4 +1,5 @@
-@if (!alert) {
+@let a = alert();
+@if (!a) {
 
   <div class="not-found-wrap">
     <app-empty-state
@@ -16,18 +17,18 @@
 } @else {
 
   <app-page-header
-    [title]="alert.title"
-    [subtitle]="alert.storeName + ' · ' + alert.cameraName + ' · ' + (alert.createdAt | date:'dd/MM/yyyy HH:mm:ss')"
+    [title]="a.title"
+    [subtitle]="a.storeName + ' · ' + a.cameraName + ' · ' + (a.createdAt | date:'dd/MM/yyyy HH:mm:ss')"
   >
     <button mat-stroked-button routerLink="/alerts">
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
-    <button mat-stroked-button [routerLink]="['/events', alert.eventId]">
+    <button mat-stroked-button [routerLink]="['/events', a.eventId]">
       <mat-icon>event</mat-icon>
       Ver evento
     </button>
-    <button mat-stroked-button [routerLink]="['/cameras', alert.cameraId]">
+    <button mat-stroked-button [routerLink]="['/cameras', a.cameraId]">
       <mat-icon>videocam</mat-icon>
       Ver cámara
     </button>
@@ -36,24 +37,24 @@
   <!-- Status bar -->
   <div
     class="alert-status-bar"
-    [class.alert-status-bar--critical]="alert.severity === 'critical'"
-    [class.alert-status-bar--suspicious]="alert.severity === 'suspicious'"
+    [class.alert-status-bar--critical]="a.severity === 'critical'"
+    [class.alert-status-bar--suspicious]="a.severity === 'suspicious'"
     role="status"
   >
     <app-status-badge
-      [status]="severityToBadge(alert.severity)"
-      [label]="severityLabel(alert.severity)"
+      [status]="severityToBadge(a.severity)"
+      [label]="severityLabel(a.severity)"
     />
     <span class="alert-status-sep" aria-hidden="true">·</span>
     <app-status-badge
       [status]="statusBadge(currentStatus())"
       [label]="statusLabel(currentStatus())"
     />
-    @if (alert.assignedTo) {
+    @if (a.assignedTo) {
       <span class="alert-status-sep" aria-hidden="true">·</span>
       <span class="alert-status-assigned" aria-label="Responsable asignado">
         <mat-icon aria-hidden="true">person</mat-icon>
-        {{ alert.assignedTo }}
+        {{ a.assignedTo }}
       </span>
     }
     <span class="alert-status-spacer"></span>
@@ -96,14 +97,14 @@
             <mat-icon aria-hidden="true">photo_library</mat-icon>
             Evidencia
           </h2>
-          @if (alert.evidence.length > 0) {
-            <span class="alrt-ev-count">{{ alert.evidence.length }}</span>
+          @if (a.evidence.length > 0) {
+            <span class="alrt-ev-count">{{ a.evidence.length }}</span>
           }
         </div>
 
-        @if (alert.evidence.length > 0) {
+        @if (a.evidence.length > 0) {
           <div class="alrt-ev-grid">
-            @for (ev of alert.evidence; track ev.id) {
+            @for (ev of a.evidence; track ev.id) {
               <div
                 class="alrt-ev-thumb"
                 [class.alrt-ev-thumb--video]="ev.type === 'video'"
@@ -147,7 +148,7 @@
           </h2>
         </div>
         <ol class="alrt-timeline" role="list">
-          @for (entry of alert.timeline; track entry.timestamp; let last = $last) {
+          @for (entry of a.timeline; track entry.timestamp; let last = $last) {
             <li class="alrt-timeline-item" [class.alrt-timeline-item--last]="last" role="listitem">
               <div class="alrt-timeline-dot" aria-hidden="true">
                 <mat-icon>{{ entry.icon }}</mat-icon>
@@ -168,7 +169,7 @@
       </section>
 
       <!-- Recommended actions -->
-      @if (alert.recommendedActions.length > 0) {
+      @if (a.recommendedActions.length > 0) {
         <section class="alrt-actions-card" aria-label="Acciones recomendadas">
           <div class="alrt-actions-header">
             <h2 class="alrt-actions-title">
@@ -177,7 +178,7 @@
             </h2>
           </div>
           <ul class="alrt-actions-list" role="list">
-            @for (action of alert.recommendedActions; track action.label) {
+            @for (action of a.recommendedActions; track action.label) {
               <li
                 class="alrt-action-item"
                 [class.alrt-action-item--critical]="action.severity === 'critical'"
@@ -210,7 +211,7 @@
               Fecha / Hora
             </dt>
             <dd class="alrt-info-value alrt-info-value--mono">
-              {{ alert.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              {{ a.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
             </dd>
           </div>
 
@@ -219,7 +220,7 @@
               <mat-icon aria-hidden="true">store</mat-icon>
               Tienda
             </dt>
-            <dd class="alrt-info-value">{{ alert.storeName }}</dd>
+            <dd class="alrt-info-value">{{ a.storeName }}</dd>
           </div>
 
           <div class="alrt-info-item">
@@ -227,7 +228,7 @@
               <mat-icon aria-hidden="true">videocam</mat-icon>
               Cámara
             </dt>
-            <dd class="alrt-info-value">{{ alert.cameraName }}</dd>
+            <dd class="alrt-info-value">{{ a.cameraName }}</dd>
           </div>
 
           <div class="alrt-info-item">
@@ -235,15 +236,15 @@
               <mat-icon aria-hidden="true">location_on</mat-icon>
               Ubicación
             </dt>
-            <dd class="alrt-info-value">{{ alert.location }}</dd>
+            <dd class="alrt-info-value">{{ a.location }}</dd>
           </div>
 
           <div class="alrt-info-item">
             <dt class="alrt-info-label">
-              <mat-icon aria-hidden="true">{{ eventTypeIcon(alert.eventType) }}</mat-icon>
+              <mat-icon aria-hidden="true">{{ eventTypeIcon(a.eventType) }}</mat-icon>
               Tipo de evento
             </dt>
-            <dd class="alrt-info-value">{{ eventTypeLabel(alert.eventType) }}</dd>
+            <dd class="alrt-info-value">{{ eventTypeLabel(a.eventType) }}</dd>
           </div>
 
           <div class="alrt-info-item">
@@ -253,8 +254,8 @@
             </dt>
             <dd class="alrt-info-value">
               <app-status-badge
-                [status]="severityToBadge(alert.severity)"
-                [label]="severityLabel(alert.severity)"
+                [status]="severityToBadge(a.severity)"
+                [label]="severityLabel(a.severity)"
               />
             </dd>
           </div>
@@ -272,13 +273,13 @@
             </dd>
           </div>
 
-          @if (alert.assignedTo) {
+          @if (a.assignedTo) {
             <div class="alrt-info-item">
               <dt class="alrt-info-label">
                 <mat-icon aria-hidden="true">person</mat-icon>
                 Responsable
               </dt>
-              <dd class="alrt-info-value">{{ alert.assignedTo }}</dd>
+              <dd class="alrt-info-value">{{ a.assignedTo }}</dd>
             </div>
           }
 
@@ -287,17 +288,17 @@
               <mat-icon aria-hidden="true">description</mat-icon>
               Descripción
             </dt>
-            <dd class="alrt-info-value alrt-info-value--desc">{{ alert.description }}</dd>
+            <dd class="alrt-info-value alrt-info-value--desc">{{ a.description }}</dd>
           </div>
 
-          @if (alert.resolvedAt) {
+          @if (a.resolvedAt) {
             <div class="alrt-info-item">
               <dt class="alrt-info-label">
                 <mat-icon aria-hidden="true">check_circle</mat-icon>
                 Resuelta el
               </dt>
               <dd class="alrt-info-value alrt-info-value--mono">
-                {{ alert.resolvedAt | date:'dd/MM/yyyy HH:mm:ss' }}
+                {{ a.resolvedAt | date:'dd/MM/yyyy HH:mm:ss' }}
               </dd>
             </div>
           }

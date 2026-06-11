@@ -13,9 +13,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { EventSeverity, EventType } from '../../../core/models/event.model';
-import type { AlertStatus } from '../../../core/models/alert.model';
+import type { Alert, AlertStatus } from '../../../core/models/alert.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
-import { MOCK_ALERTS } from '../alerts.mock';
+import { AlertService } from '../../../core/services/alert.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -47,25 +47,25 @@ type StatusFilter = 'all' | AlertStatus;
 })
 export class AlertListComponent {
   private readonly bp = inject(BreakpointObserver);
+  private readonly alertService = inject(AlertService);
 
-  protected readonly alerts = signal(MOCK_ALERTS);
+  private readonly isMobile = toSignal(
+    this.bp.observe(['(max-width: 768px)']).pipe(map((s) => s.matches)),
+    { initialValue: false },
+  );
+
+  private readonly listRes = toSignal(this.alertService.list(), { requireSync: true });
+
+  protected readonly alerts = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
   protected readonly severityFilter = signal<SeverityFilter>('all');
   protected readonly statusFilter = signal<StatusFilter>('all');
   protected readonly storeFilter = signal('all');
 
-  protected readonly openCount = computed(
-    () => this.alerts().filter((a) => a.status === 'open').length,
-  );
-  protected readonly criticalCount = computed(
-    () => this.alerts().filter((a) => a.severity === 'critical').length,
-  );
-  protected readonly acknowledgedCount = computed(
-    () => this.alerts().filter((a) => a.status === 'acknowledged').length,
-  );
-  protected readonly resolvedCount = computed(
-    () => this.alerts().filter((a) => a.status === 'resolved').length,
-  );
+  protected readonly openCount = computed(() => this.listRes().openCount);
+  protected readonly criticalCount = computed(() => this.listRes().criticalCount);
+  protected readonly acknowledgedCount = computed(() => this.listRes().acknowledgedCount);
+  protected readonly resolvedCount = computed(() => this.listRes().resolvedCount);
 
   protected readonly storeOptions = computed(() => {
     const seen = new Set<string>();
@@ -107,11 +107,6 @@ export class AlertListComponent {
       this.storeFilter() !== 'all',
   );
 
-  private readonly isMobile = toSignal(
-    this.bp.observe(['(max-width: 768px)']).pipe(map((s) => s.matches)),
-    { initialValue: false },
-  );
-
   protected readonly displayedColumns = computed(() =>
     this.isMobile()
       ? ['createdAt', 'description', 'severity', 'actions']
@@ -130,21 +125,21 @@ export class AlertListComponent {
   }
 
   protected severityLabel(s: EventSeverity): string {
-    const map: Record<EventSeverity, string> = {
+    const m: Record<EventSeverity, string> = {
       normal: 'Normal',
       suspicious: 'Sospechosa',
       critical: 'Crítica',
     };
-    return map[s];
+    return m[s];
   }
 
   protected statusLabel(s: AlertStatus): string {
-    const map: Record<AlertStatus, string> = {
+    const m: Record<AlertStatus, string> = {
       open: 'Abierta',
       acknowledged: 'En revisión',
       resolved: 'Resuelta',
     };
-    return map[s];
+    return m[s];
   }
 
   protected statusBadge(s: AlertStatus): BadgeStatus {
@@ -152,26 +147,26 @@ export class AlertListComponent {
   }
 
   protected eventTypeLabel(t: EventType): string {
-    const map: Record<EventType, string> = {
+    const m: Record<EventType, string> = {
       facial_recognition: 'Reconocimiento facial',
       weapon_detection: 'Objeto crítico',
       suspicious_activity: 'Actividad sospechosa',
       system: 'Sistema',
     };
-    return map[t];
+    return m[t];
   }
 
   protected eventTypeIcon(t: EventType): string {
-    const map: Record<EventType, string> = {
+    const m: Record<EventType, string> = {
       facial_recognition: 'face',
       weapon_detection: 'security',
       suspicious_activity: 'warning',
       system: 'settings',
     };
-    return map[t];
+    return m[t];
   }
 
-  protected trackAlert(_: number, a: { id: string }): string {
+  protected trackAlert(_: number, a: Alert): string {
     return a.id;
   }
 }

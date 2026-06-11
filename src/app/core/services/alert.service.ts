@@ -24,34 +24,36 @@ export class AlertService {
       acknowledgedCount: MOCK_ALERTS.filter((a) => a.status === 'acknowledged').length,
       resolvedCount: MOCK_ALERTS.filter((a) => a.status === 'resolved').length,
     };
-    return of(response).pipe(delay(300));
+    return of(response);
   }
 
   getById(id: string) {
-    return of(MOCK_ALERTS.find((a) => a.id === id) ?? null).pipe(delay(300));
+    return of(MOCK_ALERTS.find((a) => a.id === id) ?? null);
   }
 
   acknowledge(id: string, assignedTo?: string) {
-    const alert = MOCK_ALERTS.find((a) => a.id === id);
-    if (!alert) return of(null).pipe(delay(300));
-    const updated: Alert = {
-      ...alert,
-      status: 'acknowledged',
-      updatedAt: new Date().toISOString(),
-      ...(assignedTo ? { assignedTo } : {}),
-    };
+    const found = MOCK_ALERTS.find((a) => a.id === id);
+    const updated: Alert | null = found
+      ? {
+          ...found,
+          status: 'acknowledged',
+          updatedAt: new Date().toISOString(),
+          ...(assignedTo ? { assignedTo } : {}),
+        }
+      : null;
     return of(updated).pipe(delay(300));
   }
 
   resolve(id: string) {
-    const alert = MOCK_ALERTS.find((a) => a.id === id);
-    if (!alert) return of(null).pipe(delay(300));
-    const updated: Alert = {
-      ...alert,
-      status: 'resolved',
-      updatedAt: new Date().toISOString(),
-      resolvedAt: new Date().toISOString(),
-    };
+    const found = MOCK_ALERTS.find((a) => a.id === id);
+    const updated: Alert | null = found
+      ? {
+          ...found,
+          status: 'resolved',
+          updatedAt: new Date().toISOString(),
+          resolvedAt: new Date().toISOString(),
+        }
+      : null;
     return of(updated).pipe(delay(300));
   }
 }
