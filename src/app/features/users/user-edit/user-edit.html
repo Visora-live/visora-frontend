@@ -1,4 +1,5 @@
-@if (!user) {
+@let u = user();
+@if (!u) {
 
   <div class="not-found-wrap">
     <app-empty-state
@@ -40,7 +41,7 @@
 } @else {
 
   <app-page-header
-    [title]="'Editar: ' + user.fullName"
+    [title]="'Editar: ' + u.fullName"
     subtitle="Actualiza los datos de acceso y configuración del usuario."
   >
     <button mat-stroked-button [routerLink]="['/users', userId]">Cancelar</button>

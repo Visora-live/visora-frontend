@@ -12,7 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { map } from 'rxjs';
 import type { User, UserRole, UserStatus } from '../../../core/models/user.model';
-import { MOCK_USERS } from '../users.mock';
+import { UserService } from '../../../core/services/user.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -43,13 +43,16 @@ type StatusFilterType = 'all' | UserStatus;
 })
 export class UserListComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly userService = inject(UserService);
 
   private readonly isNarrow = toSignal(
     this.breakpointObserver.observe('(max-width: 768px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
-  protected readonly users = signal<User[]>(MOCK_USERS);
+  private readonly listRes = toSignal(this.userService.list(), { requireSync: true });
+
+  protected readonly users = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
   protected readonly roleFilter = signal<RoleFilter>('all');
   protected readonly statusFilter = signal<StatusFilterType>('all');
@@ -70,18 +73,10 @@ export class UserListComponent {
     });
   });
 
-  protected readonly activeCount = computed(
-    () => this.users().filter((u) => u.status === 'active').length,
-  );
-  protected readonly adminCount = computed(
-    () => this.users().filter((u) => u.role === 'admin').length,
-  );
-  protected readonly operatorCount = computed(
-    () => this.users().filter((u) => u.role === 'operator').length,
-  );
-  protected readonly inactiveCount = computed(
-    () => this.users().filter((u) => u.status === 'inactive').length,
-  );
+  protected readonly activeCount = computed(() => this.listRes().activeCount);
+  protected readonly adminCount = computed(() => this.listRes().adminCount);
+  protected readonly operatorCount = computed(() => this.listRes().operatorCount);
+  protected readonly inactiveCount = computed(() => this.listRes().inactiveCount);
 
   protected readonly isFiltered = computed(
     () =>
@@ -97,12 +92,12 @@ export class UserListComponent {
   );
 
   protected roleLabel(role: UserRole): string {
-    const map: Record<UserRole, string> = {
+    const m: Record<UserRole, string> = {
       admin: 'Administrador',
       operator: 'Operador',
       viewer: 'Visualizador',
     };
-    return map[role];
+    return m[role];
   }
 
   protected onSearch(event: Event): void {
@@ -117,5 +112,9 @@ export class UserListComponent {
     this.searchQuery.set('');
     this.roleFilter.set('all');
     this.statusFilter.set('all');
+  }
+
+  protected trackUser(_: number, u: User): string {
+    return u.id;
   }
 }

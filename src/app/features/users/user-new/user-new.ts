@@ -7,7 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import type { UserRole, UserStatus } from '../../../core/models/user.model';
 import { MOCK_STORES } from '../../stores/stores.mock';
+import { UserService } from '../../../core/services/user.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
 @Component({
@@ -28,6 +30,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 })
 export class UserNewComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly userService = inject(UserService);
 
   protected readonly stores = MOCK_STORES;
 
@@ -50,9 +53,22 @@ export class UserNewComponent {
       return;
     }
     this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.isSuccess.set(true);
-    }, 1200);
+    const raw = this.form.getRawValue();
+    const selectedStore = this.stores.find((s) => s.id === raw.storeId);
+    this.userService.create({
+      fullName: raw.fullName,
+      email: raw.email,
+      role: raw.role as UserRole,
+      status: raw.status as UserStatus,
+      storeId: raw.storeId || undefined,
+      storeName: selectedStore?.name || undefined,
+      phone: raw.phone || undefined,
+      notes: raw.notes || undefined,
+    }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.isSuccess.set(true);
+      },
+    });
   }
 }

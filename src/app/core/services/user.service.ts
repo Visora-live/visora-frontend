@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import type { User, UserRole, UserStatus } from '../models/user.model';
 import { MOCK_USERS } from '../../features/users/users.mock';
+import { MOCK_STORES } from '../../features/stores/stores.mock';
 
 export interface UserListResponse {
   items: User[];
@@ -16,7 +17,7 @@ export interface UserListResponse {
 export interface UserCreatePayload {
   fullName: string;
   email: string;
-  password: string;
+  password?: string;
   role: UserRole;
   status: UserStatus;
   storeId?: string;
@@ -38,6 +39,8 @@ export interface UserUpdatePayload {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
+  readonly stores = MOCK_STORES;
+
   list() {
     const response: UserListResponse = {
       items: MOCK_USERS,
@@ -47,11 +50,11 @@ export class UserService {
       operatorCount: MOCK_USERS.filter((u) => u.role === 'operator').length,
       inactiveCount: MOCK_USERS.filter((u) => u.status === 'inactive').length,
     };
-    return of(response).pipe(delay(300));
+    return of(response);
   }
 
   getById(id: string) {
-    return of(MOCK_USERS.find((u) => u.id === id) ?? null).pipe(delay(300));
+    return of(MOCK_USERS.find((u) => u.id === id) ?? null);
   }
 
   create(payload: UserCreatePayload) {
@@ -73,7 +76,7 @@ export class UserService {
 
   update(id: string, payload: UserUpdatePayload) {
     const existing = MOCK_USERS.find((u) => u.id === id);
-    if (!existing) return of(null).pipe(delay(300));
-    return of({ ...existing, ...payload }).pipe(delay(300));
+    const updated: User | null = existing ? { ...existing, ...payload } : null;
+    return of(updated).pipe(delay(300));
   }
 }

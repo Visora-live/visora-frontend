@@ -1,4 +1,5 @@
-@if (!user) {
+@let u = user();
+@if (!u) {
 
   <div class="not-found-wrap">
     <app-empty-state
@@ -16,20 +17,20 @@
 } @else {
 
   <app-page-header
-    [title]="user.fullName"
-    [subtitle]="user.email"
+    [title]="u.fullName"
+    [subtitle]="u.email"
   >
     <button mat-stroked-button routerLink="/users">
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
-    @if (user.storeId) {
-      <button mat-stroked-button [routerLink]="['/stores', user.storeId]">
+    @if (u.storeId) {
+      <button mat-stroked-button [routerLink]="['/stores', u.storeId]">
         <mat-icon>store</mat-icon>
         Ver tienda
       </button>
     }
-    <button mat-flat-button [routerLink]="['/users', user.id, 'edit']">
+    <button mat-flat-button [routerLink]="['/users', u.id, 'edit']">
       <mat-icon>edit</mat-icon>
       Editar usuario
     </button>
@@ -39,22 +40,22 @@
   <div class="stats-grid">
     <app-stat-card
       title="Rol"
-      [value]="roleLabel(user.role)"
-      [icon]="roleIcon(user.role)"
+      [value]="roleLabel(u.role)"
+      [icon]="roleIcon(u.role)"
     />
     <app-stat-card
       title="Estado"
-      [value]="user.status === 'active' ? 'Activo' : 'Inactivo'"
+      [value]="u.status === 'active' ? 'Activo' : 'Inactivo'"
       icon="circle"
     />
     <app-stat-card
       title="Tienda asignada"
-      [value]="user.storeName || 'Sin tienda'"
+      [value]="u.storeName || 'Sin tienda'"
       icon="store"
     />
     <app-stat-card
       title="Último acceso"
-      [value]="(user.lastAccess | date:'dd/MM/yyyy') ?? 'Sin registro'"
+      [value]="(u.lastAccess | date:'dd/MM/yyyy') ?? 'Sin registro'"
       icon="login"
     />
   </div>
@@ -67,8 +68,8 @@
       <div class="usr-info-header">
         <h2 class="usr-info-title">Información del usuario</h2>
         <app-status-badge
-          [status]="user.status === 'active' ? 'normal' : 'inactive'"
-          [label]="user.status === 'active' ? 'Activo' : 'Inactivo'"
+          [status]="u.status === 'active' ? 'normal' : 'inactive'"
+          [label]="u.status === 'active' ? 'Activo' : 'Inactivo'"
         />
       </div>
       <dl class="usr-info-dl">
@@ -78,7 +79,7 @@
             <mat-icon aria-hidden="true">person</mat-icon>
             Nombre completo
           </dt>
-          <dd class="usr-info-value">{{ user.fullName }}</dd>
+          <dd class="usr-info-value">{{ u.fullName }}</dd>
         </div>
 
         <div class="usr-info-item">
@@ -87,7 +88,7 @@
             Correo electrónico
           </dt>
           <dd class="usr-info-value">
-            <a class="usr-info-link" [href]="'mailto:' + user.email">{{ user.email }}</a>
+            <a class="usr-info-link" [href]="'mailto:' + u.email">{{ u.email }}</a>
           </dd>
         </div>
 
@@ -96,7 +97,7 @@
             <mat-icon aria-hidden="true">phone</mat-icon>
             Teléfono
           </dt>
-          <dd class="usr-info-value">{{ user.phone || '—' }}</dd>
+          <dd class="usr-info-value">{{ u.phone || '—' }}</dd>
         </div>
 
         <div class="usr-info-item">
@@ -104,7 +105,7 @@
             <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
             Rol en el sistema
           </dt>
-          <dd class="usr-info-value">{{ roleLabel(user.role) }}</dd>
+          <dd class="usr-info-value">{{ roleLabel(u.role) }}</dd>
         </div>
 
         <div class="usr-info-item">
@@ -112,7 +113,7 @@
             <mat-icon aria-hidden="true">store</mat-icon>
             Tienda asignada
           </dt>
-          <dd class="usr-info-value">{{ user.storeName || '—' }}</dd>
+          <dd class="usr-info-value">{{ u.storeName || '—' }}</dd>
         </div>
 
         <div class="usr-info-item">
@@ -120,7 +121,7 @@
             <mat-icon aria-hidden="true">calendar_today</mat-icon>
             Fecha de registro
           </dt>
-          <dd class="usr-info-value">{{ user.createdAt | date:'dd/MM/yyyy' }}</dd>
+          <dd class="usr-info-value">{{ u.createdAt | date:'dd/MM/yyyy' }}</dd>
         </div>
 
         <div class="usr-info-item">
@@ -129,17 +130,17 @@
             Último acceso
           </dt>
           <dd class="usr-info-value">
-            {{ (user.lastAccess | date:'dd/MM/yyyy HH:mm') ?? 'Sin registro' }}
+            {{ (u.lastAccess | date:'dd/MM/yyyy HH:mm') ?? 'Sin registro' }}
           </dd>
         </div>
 
-        @if (user.notes) {
+        @if (u.notes) {
           <div class="usr-info-item usr-info-item--full">
             <dt class="usr-info-label">
               <mat-icon aria-hidden="true">notes</mat-icon>
               Notas
             </dt>
-            <dd class="usr-info-value usr-info-value--notes">{{ user.notes }}</dd>
+            <dd class="usr-info-value usr-info-value--notes">{{ u.notes }}</dd>
           </div>
         }
 
@@ -154,11 +155,11 @@
           Actividad reciente
         </h2>
       </div>
-      @if (user.recentActivity.length === 0) {
+      @if (u.recentActivity.length === 0) {
         <p class="usr-activity-empty">Sin actividad registrada.</p>
       } @else {
         <ul class="usr-activity-list" role="list">
-          @for (entry of user.recentActivity; track entry.timestamp) {
+          @for (entry of u.recentActivity; track entry.timestamp) {
             <li class="usr-activity-item" role="listitem">
               <div class="usr-activity-dot" aria-hidden="true">
                 <mat-icon>{{ entry.icon }}</mat-icon>
