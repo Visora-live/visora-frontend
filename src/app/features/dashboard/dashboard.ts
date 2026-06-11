@@ -1,13 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import type { BadgeStatus } from '../../shared/components/status-badge/status-badge';
-import { MOCK_STORES } from '../stores/stores.mock';
-import { MOCK_CAMERAS } from '../cameras/cameras.mock';
-import { MOCK_EVENTS } from '../events/events.mock';
-import { MOCK_ALERTS } from '../alerts/alerts.mock';
+import { DashboardService } from '../../core/services/dashboard.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge';
@@ -27,28 +25,24 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
   styleUrl: './dashboard.scss',
 })
 export class DashboardComponent {
-  // ── Stat card values ─────────────────────────────────────────────────────────
-  protected readonly activeStores = MOCK_STORES.filter((s) => s.status === 'active').length;
-  protected readonly onlineCameras = MOCK_CAMERAS.filter((c) => c.status === 'online').length;
-  protected readonly openAlerts = MOCK_ALERTS.filter((a) => a.status === 'open').length;
-  protected readonly totalEvents = MOCK_EVENTS.length;
+  private readonly service = inject(DashboardService);
 
-  // ── System status ────────────────────────────────────────────────────────────
-  protected readonly offlineCameras = MOCK_CAMERAS.filter((c) => c.status === 'offline').length;
-  protected readonly maintenanceCameras = MOCK_CAMERAS.filter((c) => c.status === 'maintenance').length;
-  protected readonly criticalAlerts = MOCK_ALERTS.filter(
-    (a) => a.severity === 'critical' && a.status === 'open',
-  ).length;
-  protected readonly suspiciousEvents = MOCK_EVENTS.filter((e) => e.severity === 'suspicious').length;
+  private readonly metrics = toSignal(this.service.getMetrics(), { initialValue: null });
 
-  // ── Recent data ───────────────────────────────────────────────────────────────
-  protected readonly recentAlerts = [...MOCK_ALERTS]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 5);
+  protected readonly recentAlerts = toSignal(this.service.getRecentAlerts(5), { initialValue: [] });
+  protected readonly recentEvents = toSignal(this.service.getRecentEvents(5), { initialValue: [] });
 
-  protected readonly recentEvents = [...MOCK_EVENTS]
-    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-    .slice(0, 5);
+  // Stat cards
+  protected readonly activeStores = computed(() => this.metrics()?.activeStores ?? 0);
+  protected readonly onlineCameras = computed(() => this.metrics()?.onlineCameras ?? 0);
+  protected readonly openAlerts = computed(() => this.metrics()?.openAlerts ?? 0);
+  protected readonly totalEvents = computed(() => this.metrics()?.totalEvents ?? 0);
+
+  // System status
+  protected readonly offlineCameras = computed(() => this.metrics()?.offlineCameras ?? 0);
+  protected readonly maintenanceCameras = computed(() => this.metrics()?.maintenanceCameras ?? 0);
+  protected readonly criticalAlerts = computed(() => this.metrics()?.criticalAlerts ?? 0);
+  protected readonly suspiciousEvents = computed(() => this.metrics()?.suspiciousEvents ?? 0);
 
   protected severityBadge(severity: string): BadgeStatus {
     const map: Record<string, BadgeStatus> = {

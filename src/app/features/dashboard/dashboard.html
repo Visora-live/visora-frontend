@@ -10,10 +10,10 @@
 
 <!-- ── Stat cards ─────────────────────────────────────────────────────────── -->
 <div class="stats-grid">
-  <app-stat-card title="Tiendas activas" [value]="activeStores" icon="store" />
-  <app-stat-card title="Cámaras en línea" [value]="onlineCameras" icon="videocam" />
-  <app-stat-card title="Alertas abiertas" [value]="openAlerts" icon="notifications_active" />
-  <app-stat-card title="Eventos registrados" [value]="totalEvents" icon="event_note" />
+  <app-stat-card title="Tiendas activas" [value]="activeStores()" icon="store" />
+  <app-stat-card title="Cámaras en línea" [value]="onlineCameras()" icon="videocam" />
+  <app-stat-card title="Alertas abiertas" [value]="openAlerts()" icon="notifications_active" />
+  <app-stat-card title="Eventos registrados" [value]="totalEvents()" icon="event_note" />
 </div>
 
 <!-- ── Main grid ─────────────────────────────────────────────────────────── -->
@@ -31,11 +31,11 @@
         </h2>
         <a mat-button routerLink="/alerts" class="dash-view-all">Ver todas</a>
       </div>
-      @if (recentAlerts.length === 0) {
+      @if (recentAlerts().length === 0) {
         <p class="dash-empty">Sin alertas recientes.</p>
       } @else {
         <ul class="dash-list" role="list">
-          @for (alert of recentAlerts; track alert.id) {
+          @for (alert of recentAlerts(); track alert.id) {
             <li class="dash-list-item" role="listitem">
               <a
                 class="dash-item-link"
@@ -66,11 +66,11 @@
         </h2>
         <a mat-button routerLink="/events" class="dash-view-all">Ver todos</a>
       </div>
-      @if (recentEvents.length === 0) {
+      @if (recentEvents().length === 0) {
         <p class="dash-empty">Sin eventos recientes.</p>
       } @else {
         <ul class="dash-list" role="list">
-          @for (event of recentEvents; track event.id) {
+          @for (event of recentEvents(); track event.id) {
             <li class="dash-list-item" role="listitem">
               <a
                 class="dash-item-link"
@@ -110,28 +110,28 @@
         <li class="dash-status-item" role="listitem">
           <span class="dash-status-dot dash-status-dot--online" aria-hidden="true"></span>
           <span class="dash-status-label">Cámaras en línea</span>
-          <span class="dash-status-value">{{ onlineCameras }}</span>
+          <span class="dash-status-value">{{ onlineCameras() }}</span>
         </li>
         <li class="dash-status-item" role="listitem">
           <span class="dash-status-dot dash-status-dot--offline" aria-hidden="true"></span>
           <span class="dash-status-label">Sin señal</span>
-          <span class="dash-status-value">{{ offlineCameras }}</span>
+          <span class="dash-status-value">{{ offlineCameras() }}</span>
         </li>
         <li class="dash-status-item" role="listitem">
           <span class="dash-status-dot dash-status-dot--maintenance" aria-hidden="true"></span>
           <span class="dash-status-label">En mantenimiento</span>
-          <span class="dash-status-value">{{ maintenanceCameras }}</span>
+          <span class="dash-status-value">{{ maintenanceCameras() }}</span>
         </li>
 
         <li class="dash-status-item dash-status-item--sep" role="listitem">
           <span class="dash-status-dot dash-status-dot--critical" aria-hidden="true"></span>
           <span class="dash-status-label">Alertas críticas abiertas</span>
-          <span class="dash-status-value dash-status-value--critical">{{ criticalAlerts }}</span>
+          <span class="dash-status-value dash-status-value--critical">{{ criticalAlerts() }}</span>
         </li>
         <li class="dash-status-item" role="listitem">
           <span class="dash-status-dot dash-status-dot--suspicious" aria-hidden="true"></span>
           <span class="dash-status-label">Eventos sospechosos</span>
-          <span class="dash-status-value">{{ suspiciousEvents }}</span>
+          <span class="dash-status-value">{{ suspiciousEvents() }}</span>
         </li>
 
       </ul>
