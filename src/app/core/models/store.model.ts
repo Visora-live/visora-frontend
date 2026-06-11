@@ -8,4 +8,8 @@ export interface Store {
   status: StoreStatus;
   cameraCount: number;
   createdAt: string;
+  manager?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
 }

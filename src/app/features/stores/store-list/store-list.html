@@ -2,7 +2,7 @@
   title="Tiendas"
   subtitle="Gestiona los establecimientos conectados al sistema de videovigilancia inteligente."
 >
-  <button mat-flat-button class="register-btn">
+  <button mat-flat-button class="register-btn" routerLink="/stores/new">
     <mat-icon>add</mat-icon>
     Registrar tienda
   </button>
@@ -134,6 +134,7 @@
                 mat-icon-button
                 matTooltip="Ver detalle"
                 [attr.aria-label]="'Ver ' + store.name"
+                [routerLink]="['/stores', store.id]"
               >
                 <mat-icon>visibility</mat-icon>
               </button>
@@ -141,6 +142,7 @@
                 mat-icon-button
                 matTooltip="Editar tienda"
                 [attr.aria-label]="'Editar ' + store.name"
+                [routerLink]="['/stores', store.id, 'edit']"
               >
                 <mat-icon>edit</mat-icon>
               </button>

@@ -35,6 +35,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'stores/new',
+        loadComponent: () =>
+          import('./features/stores/store-new/store-new').then(
+            (m) => m.StoreNewComponent,
+          ),
+      },
+      {
+        path: 'stores/:id',
+        loadComponent: () =>
+          import('./features/stores/store-detail/store-detail').then(
+            (m) => m.StoreDetailComponent,
+          ),
+      },
+      {
+        path: 'stores/:id/edit',
+        loadComponent: () =>
+          import('./features/stores/store-edit/store-edit').then(
+            (m) => m.StoreEditComponent,
+          ),
+      },
+      {
         path: 'cameras',
         loadComponent: () =>
           import('./features/cameras/camera-dashboard/camera-dashboard').then(

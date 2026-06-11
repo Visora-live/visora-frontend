@@ -1,0 +1,135 @@
+@if (store) {
+
+  <app-page-header
+    [title]="store.name"
+    [subtitle]="store.address + ' · ' + store.city"
+  >
+    <button mat-stroked-button routerLink="/stores">
+      <mat-icon>arrow_back</mat-icon>
+      Volver
+    </button>
+    <button mat-stroked-button routerLink="/cameras">
+      <mat-icon>videocam</mat-icon>
+      Ver cámaras
+    </button>
+    <button mat-flat-button [routerLink]="['/stores', store.id, 'edit']">
+      <mat-icon>edit</mat-icon>
+      Editar tienda
+    </button>
+  </app-page-header>
+
+  <!-- Stat cards -->
+  <div class="stats-grid">
+    <app-stat-card
+      title="Cámaras registradas"
+      [value]="store.cameraCount"
+      icon="videocam"
+    />
+    <app-stat-card
+      title="Alertas abiertas"
+      [value]="mockAlerts"
+      icon="notifications_active"
+    />
+    <app-stat-card
+      title="Eventos de hoy"
+      [value]="mockEvents"
+      icon="event_note"
+    />
+  </div>
+
+  <!-- Detail card -->
+  <div class="detail-card">
+    <div class="detail-card-header">
+      <h2 class="detail-card-title">Información del establecimiento</h2>
+      <app-status-badge
+        [status]="store.status === 'active' ? 'normal' : 'inactive'"
+        [label]="store.status === 'active' ? 'Activa' : 'Inactiva'"
+      />
+    </div>
+    <div class="detail-card-body">
+      <div class="info-grid">
+
+        <div class="info-item">
+          <span class="info-label">
+            <mat-icon aria-hidden="true">location_on</mat-icon>
+            Dirección
+          </span>
+          <span class="info-value">{{ store.address }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <mat-icon aria-hidden="true">apartment</mat-icon>
+            Ciudad / Distrito
+          </span>
+          <span class="info-value">{{ store.city }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <mat-icon aria-hidden="true">person</mat-icon>
+            Responsable
+          </span>
+          <span class="info-value">{{ store.manager || '—' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <mat-icon aria-hidden="true">email</mat-icon>
+            Correo electrónico
+          </span>
+          @if (store.email) {
+            <a class="info-value info-link" [href]="'mailto:' + store.email">
+              {{ store.email }}
+            </a>
+          } @else {
+            <span class="info-value">—</span>
+          }
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <mat-icon aria-hidden="true">phone</mat-icon>
+            Teléfono
+          </span>
+          <span class="info-value">{{ store.phone || '—' }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <mat-icon aria-hidden="true">calendar_today</mat-icon>
+            Fecha de registro
+          </span>
+          <span class="info-value">{{ store.createdAt | date : 'dd/MM/yyyy' }}</span>
+        </div>
+
+        @if (store.notes) {
+          <div class="info-item info-item--full">
+            <span class="info-label">
+              <mat-icon aria-hidden="true">notes</mat-icon>
+              Notas
+            </span>
+            <span class="info-value info-value--notes">{{ store.notes }}</span>
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+
+} @else {
+
+  <div class="not-found-wrap">
+    <app-empty-state
+      icon="error_outline"
+      title="Tienda no encontrada"
+      description="No existe una tienda con este identificador en el sistema VISORA."
+    >
+      <button mat-flat-button routerLink="/stores">
+        <mat-icon>arrow_back</mat-icon>
+        Volver al listado
+      </button>
+    </app-empty-state>
+  </div>
+
+}
