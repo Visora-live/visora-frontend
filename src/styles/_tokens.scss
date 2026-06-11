@@ -1,0 +1,49 @@
+:root {
+  // Brand
+  --visora-primary: #1652a3;
+  --visora-primary-hover: #1a6ad4;
+  --visora-accent: #2f88f5;
+
+  // Backgrounds
+  --visora-bg: #fbfbfc;
+  --visora-bg-secondary: #d5dee7;
+  --visora-bg-surface: #ffffff;
+
+  // Text
+  --visora-text: #3a414b;
+  --visora-text-muted: #6b7280;
+  --visora-text-inverse: #ffffff;
+
+  // Status semantic
+  --visora-status-normal: #16a34a;
+  --visora-status-suspicious: #d97706;
+  --visora-status-critical: #dc2626;
+  --visora-status-inactive: #6b7280;
+
+  // Status backgrounds
+  --visora-status-normal-bg: #dcfce7;
+  --visora-status-suspicious-bg: #fef3c7;
+  --visora-status-critical-bg: #fee2e2;
+  --visora-status-inactive-bg: #f3f4f6;
+
+  // Layout
+  --visora-sidebar-width: 240px;
+  --visora-topbar-height: 64px;
+
+  // Spacing
+  --visora-space-xs: 4px;
+  --visora-space-sm: 8px;
+  --visora-space-md: 16px;
+  --visora-space-lg: 24px;
+  --visora-space-xl: 32px;
+
+  // Borders & radius
+  --visora-radius-sm: 4px;
+  --visora-radius-md: 8px;
+  --visora-radius-lg: 12px;
+  --visora-border-color: #e5e7eb;
+
+  // Shadows
+  --visora-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --visora-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
