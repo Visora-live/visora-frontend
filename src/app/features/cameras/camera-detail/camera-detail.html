@@ -23,6 +23,10 @@
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
+    <button mat-stroked-button routerLink="/events">
+      <mat-icon>event_note</mat-icon>
+      Ver eventos
+    </button>
     <button mat-flat-button [routerLink]="['/cameras', cameraId, 'edit']">
       <mat-icon>edit</mat-icon>
       Editar
@@ -92,19 +96,31 @@
       <section class="events-card" aria-label="Eventos recientes">
         <div class="events-header">
           <h2 class="events-title">Eventos recientes</h2>
-          <span class="events-count">{{ recentEvents.length }}</span>
-        </div>
-        <ul class="events-list" role="list">
-          @for (event of recentEvents; track event.description) {
-            <li class="event-item" role="listitem">
-              <app-status-badge [status]="event.severity" />
-              <div class="event-info">
-                <span class="event-desc">{{ event.description }}</span>
-                <span class="event-time">{{ event.time }}</span>
-              </div>
-            </li>
+          @if (recentEvents.length > 0) {
+            <span class="events-count">{{ recentEvents.length }}</span>
           }
-        </ul>
+        </div>
+        @if (recentEvents.length === 0) {
+          <div class="events-empty">
+            <mat-icon aria-hidden="true">event_available</mat-icon>
+            <span>Sin eventos registrados para esta cámara.</span>
+          </div>
+        } @else {
+          <ul class="events-list" role="list">
+            @for (event of recentEvents; track event.id) {
+              <li class="event-item" role="listitem">
+                <a class="event-item-link" [routerLink]="['/events', event.id]" aria-label="Ver evento {{ event.id }}">
+                  <app-status-badge [status]="event.severity" />
+                  <div class="event-info">
+                    <span class="event-desc">{{ event.description }}</span>
+                    <span class="event-time">{{ event.timestamp | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <mat-icon class="event-chevron" aria-hidden="true">chevron_right</mat-icon>
+                </a>
+              </li>
+            }
+          </ul>
+        }
       </section>
 
     </div>

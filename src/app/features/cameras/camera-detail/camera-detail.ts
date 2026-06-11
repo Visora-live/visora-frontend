@@ -1,26 +1,22 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { UpperCasePipe } from '@angular/common';
+import { DatePipe, UpperCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import type { CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { MOCK_CAMERAS } from '../cameras.mock';
+import { MOCK_EVENTS } from '../../events/events.mock';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
-interface RecentEvent {
-  description: string;
-  severity: BadgeStatus;
-  time: string;
-}
-
 @Component({
   selector: 'app-camera-detail',
   imports: [
     RouterLink,
+    DatePipe,
     UpperCasePipe,
     MatButtonModule,
     MatIconModule,
@@ -38,13 +34,9 @@ export class CameraDetailComponent {
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
   protected readonly camera = MOCK_CAMERAS.find((c) => c.id === this.cameraId) ?? null;
 
-  protected readonly recentEvents: RecentEvent[] = [
-    { description: 'Persona detectada en zona restringida', severity: 'suspicious', time: 'Hace 8 min' },
-    { description: 'Movimiento nocturno registrado', severity: 'critical', time: 'Hace 22 min' },
-    { description: 'Reconocimiento facial completado', severity: 'normal', time: 'Hace 35 min' },
-    { description: 'Sin actividad inusual', severity: 'normal', time: 'Hace 1 h' },
-    { description: 'Aglomeración detectada', severity: 'suspicious', time: 'Hace 2 h' },
-  ];
+  protected readonly recentEvents = MOCK_EVENTS
+    .filter((e) => e.cameraId === this.cameraId)
+    .slice(0, 5);
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {
     const map: Record<CameraStatus, BadgeStatus> = {
