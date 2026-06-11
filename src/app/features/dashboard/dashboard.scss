@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--visora-space-md);
+  margin-bottom: var(--visora-space-xl);
+
+  @media (max-width: 960px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; gap: var(--visora-space-sm); }
+}
+
+.visora-dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--visora-space-md);
+  align-items: start;
+
+  @media (max-width: 960px) { grid-template-columns: 1fr; }
+}
+
+.dash-col-main,
+.dash-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--visora-space-md);
+}

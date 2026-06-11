@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 const PAGE_TITLES: Record<string, string> = {
+  dashboard: 'Panel principal',
   stores: 'Tiendas',
   cameras: 'Cámaras',
   events: 'Eventos',

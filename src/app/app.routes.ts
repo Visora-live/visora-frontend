@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'stores',
+    redirectTo: 'dashboard',
     pathMatch: 'full',
   },
 
@@ -27,6 +27,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layout/app-shell/app-shell').then((m) => m.AppShellComponent),
     children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
+      },
       {
         path: 'stores',
         loadComponent: () =>

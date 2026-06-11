@@ -1,0 +1,170 @@
+<app-page-header
+  title="Panel principal"
+  subtitle="Resumen operativo del sistema de videovigilancia inteligente VISORA."
+>
+  <a mat-stroked-button routerLink="/alerts" aria-label="Ver todas las alertas">
+    <mat-icon>notifications</mat-icon>
+    Ver alertas
+  </a>
+</app-page-header>
+
+<!-- ── Stat cards ─────────────────────────────────────────────────────────── -->
+<div class="stats-grid">
+  <app-stat-card title="Tiendas activas" [value]="activeStores" icon="store" />
+  <app-stat-card title="Cámaras en línea" [value]="onlineCameras" icon="videocam" />
+  <app-stat-card title="Alertas abiertas" [value]="openAlerts" icon="notifications_active" />
+  <app-stat-card title="Eventos registrados" [value]="totalEvents" icon="event_note" />
+</div>
+
+<!-- ── Main grid ─────────────────────────────────────────────────────────── -->
+<div class="visora-dashboard-layout">
+
+  <!-- Col main -->
+  <div class="dash-col-main">
+
+    <!-- Alertas recientes -->
+    <section class="dash-panel" aria-label="Alertas recientes">
+      <div class="dash-panel-header">
+        <h2 class="dash-panel-title">
+          <mat-icon aria-hidden="true">notifications_active</mat-icon>
+          Alertas recientes
+        </h2>
+        <a mat-button routerLink="/alerts" class="dash-view-all">Ver todas</a>
+      </div>
+      @if (recentAlerts.length === 0) {
+        <p class="dash-empty">Sin alertas recientes.</p>
+      } @else {
+        <ul class="dash-list" role="list">
+          @for (alert of recentAlerts; track alert.id) {
+            <li class="dash-list-item" role="listitem">
+              <a
+                class="dash-item-link"
+                [routerLink]="['/alerts', alert.id]"
+                [attr.aria-label]="'Ver alerta: ' + alert.title"
+              >
+                <app-status-badge [status]="severityBadge(alert.severity)" />
+                <div class="dash-item-info">
+                  <span class="dash-item-title">{{ alert.title }}</span>
+                  <span class="dash-item-meta">
+                    {{ alert.storeName }} · {{ alert.createdAt | date:'HH:mm' }}
+                  </span>
+                </div>
+                <mat-icon class="dash-item-chevron" aria-hidden="true">chevron_right</mat-icon>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Eventos recientes -->
+    <section class="dash-panel" aria-label="Eventos recientes">
+      <div class="dash-panel-header">
+        <h2 class="dash-panel-title">
+          <mat-icon aria-hidden="true">event_note</mat-icon>
+          Eventos recientes
+        </h2>
+        <a mat-button routerLink="/events" class="dash-view-all">Ver todos</a>
+      </div>
+      @if (recentEvents.length === 0) {
+        <p class="dash-empty">Sin eventos recientes.</p>
+      } @else {
+        <ul class="dash-list" role="list">
+          @for (event of recentEvents; track event.id) {
+            <li class="dash-list-item" role="listitem">
+              <a
+                class="dash-item-link"
+                [routerLink]="['/events', event.id]"
+                [attr.aria-label]="'Ver evento: ' + event.description"
+              >
+                <app-status-badge [status]="severityBadge(event.severity)" />
+                <div class="dash-item-info">
+                  <span class="dash-item-title">{{ event.description }}</span>
+                  <span class="dash-item-meta">
+                    {{ event.cameraName }} · {{ event.timestamp | date:'dd/MM HH:mm' }}
+                  </span>
+                </div>
+                <mat-icon class="dash-item-chevron" aria-hidden="true">chevron_right</mat-icon>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+  </div>
+
+  <!-- Col side -->
+  <div class="dash-col-side">
+
+    <!-- Estado del sistema -->
+    <section class="dash-panel" aria-label="Estado del sistema">
+      <div class="dash-panel-header">
+        <h2 class="dash-panel-title">
+          <mat-icon aria-hidden="true">monitor_heart</mat-icon>
+          Estado del sistema
+        </h2>
+      </div>
+      <ul class="dash-status-list" role="list">
+
+        <li class="dash-status-item" role="listitem">
+          <span class="dash-status-dot dash-status-dot--online" aria-hidden="true"></span>
+          <span class="dash-status-label">Cámaras en línea</span>
+          <span class="dash-status-value">{{ onlineCameras }}</span>
+        </li>
+        <li class="dash-status-item" role="listitem">
+          <span class="dash-status-dot dash-status-dot--offline" aria-hidden="true"></span>
+          <span class="dash-status-label">Sin señal</span>
+          <span class="dash-status-value">{{ offlineCameras }}</span>
+        </li>
+        <li class="dash-status-item" role="listitem">
+          <span class="dash-status-dot dash-status-dot--maintenance" aria-hidden="true"></span>
+          <span class="dash-status-label">En mantenimiento</span>
+          <span class="dash-status-value">{{ maintenanceCameras }}</span>
+        </li>
+
+        <li class="dash-status-item dash-status-item--sep" role="listitem">
+          <span class="dash-status-dot dash-status-dot--critical" aria-hidden="true"></span>
+          <span class="dash-status-label">Alertas críticas abiertas</span>
+          <span class="dash-status-value dash-status-value--critical">{{ criticalAlerts }}</span>
+        </li>
+        <li class="dash-status-item" role="listitem">
+          <span class="dash-status-dot dash-status-dot--suspicious" aria-hidden="true"></span>
+          <span class="dash-status-label">Eventos sospechosos</span>
+          <span class="dash-status-value">{{ suspiciousEvents }}</span>
+        </li>
+
+      </ul>
+    </section>
+
+    <!-- Accesos rápidos -->
+    <section class="dash-panel" aria-label="Accesos rápidos">
+      <div class="dash-panel-header">
+        <h2 class="dash-panel-title">
+          <mat-icon aria-hidden="true">grid_view</mat-icon>
+          Accesos rápidos
+        </h2>
+      </div>
+      <div class="dash-quick-grid">
+        <a mat-stroked-button routerLink="/stores/new" class="dash-quick-btn">
+          <mat-icon aria-hidden="true">add_business</mat-icon>
+          <span>Registrar tienda</span>
+        </a>
+        <a mat-stroked-button routerLink="/cameras/new" class="dash-quick-btn">
+          <mat-icon aria-hidden="true">add_a_photo</mat-icon>
+          <span>Registrar cámara</span>
+        </a>
+        <a mat-stroked-button routerLink="/cameras" class="dash-quick-btn">
+          <mat-icon aria-hidden="true">videocam</mat-icon>
+          <span>Ver cámaras</span>
+        </a>
+        <a mat-stroked-button routerLink="/events" class="dash-quick-btn">
+          <mat-icon aria-hidden="true">event_note</mat-icon>
+          <span>Ver eventos</span>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+</div>
