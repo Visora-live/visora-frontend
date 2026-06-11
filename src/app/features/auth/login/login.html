@@ -1,0 +1,112 @@
+<div class="auth-page">
+
+  <!-- Left brand panel -->
+  <aside class="brand-panel" aria-hidden="true">
+    <div class="brand-content">
+      <p class="brand-logo">VISORA</p>
+      <p class="brand-tagline">Vigilancia inteligente<br />para tus tiendas.</p>
+      <p class="brand-sub">
+        Monitorea cámaras, detecta eventos y actúa<br />en tiempo real desde un solo lugar.
+      </p>
+      <ul class="brand-features">
+        <li class="brand-feature">
+          <mat-icon>videocam</mat-icon>
+          <span>Cámaras en tiempo real</span>
+        </li>
+        <li class="brand-feature">
+          <mat-icon>notifications_active</mat-icon>
+          <span>Alertas inteligentes</span>
+        </li>
+        <li class="brand-feature">
+          <mat-icon>analytics</mat-icon>
+          <span>Análisis de eventos</span>
+        </li>
+      </ul>
+    </div>
+    <mat-icon class="brand-bg-icon">videocam</mat-icon>
+  </aside>
+
+  <!-- Right form area -->
+  <main class="form-area">
+    <div class="form-card">
+
+      <p class="form-logo">VISORA</p>
+      <h1 class="form-title">Bienvenido a VISORA</h1>
+      <p class="form-subtitle">Inicia sesión para continuar.</p>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="onSubmit()"
+        class="auth-form"
+        novalidate
+      >
+
+        <!-- Identifier -->
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Usuario o correo electrónico</mat-label>
+          <mat-icon matPrefix aria-hidden="true">person</mat-icon>
+          <input
+            matInput
+            type="text"
+            formControlName="identifier"
+            autocomplete="username"
+          />
+          @if (form.controls.identifier.hasError('required')) {
+            <mat-error>Este campo es obligatorio.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Password -->
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Contraseña</mat-label>
+          <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+          <input
+            matInput
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            matSuffix
+            mat-icon-button
+            type="button"
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.controls.password.hasError('required')) {
+            <mat-error>La contraseña es obligatoria.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Auth error -->
+        @if (submitError()) {
+          <div class="auth-error" role="alert">
+            <mat-icon aria-hidden="true">error_outline</mat-icon>
+            <span>{{ submitError() }}</span>
+          </div>
+        }
+
+        <!-- Submit -->
+        <button
+          mat-flat-button
+          type="submit"
+          class="submit-btn"
+          [disabled]="form.invalid || isLoading()"
+        >
+          @if (isLoading()) {
+            <mat-spinner diameter="18" class="btn-spinner" />
+          }
+          <span>{{ isLoading() ? 'Verificando...' : 'Acceder' }}</span>
+        </button>
+
+        <p class="form-footer-link">
+          <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+        </p>
+
+      </form>
+    </div>
+  </main>
+
+</div>
