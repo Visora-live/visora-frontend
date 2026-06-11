@@ -1,0 +1,235 @@
+<app-page-header
+  title="Alertas"
+  subtitle="Gestiona las alertas generadas por eventos relevantes del sistema de videovigilancia."
+/>
+
+<!-- Stat cards -->
+<div class="stats-grid">
+  <app-stat-card title="Abiertas" [value]="openCount()" icon="notifications_active" />
+  <app-stat-card title="Críticas" [value]="criticalCount()" icon="error" />
+  <app-stat-card title="En revisión" [value]="acknowledgedCount()" icon="manage_search" />
+  <app-stat-card title="Resueltas" [value]="resolvedCount()" icon="check_circle" />
+</div>
+
+<!-- Filters -->
+<div class="filters-row">
+  <mat-form-field appearance="outline" class="filter filter--search">
+    <mat-label>Buscar por tienda, cámara o descripción</mat-label>
+    <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+    <input
+      matInput
+      type="search"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+      aria-label="Buscar alertas"
+    />
+    @if (searchQuery()) {
+      <button matSuffix mat-icon-button aria-label="Limpiar búsqueda" (click)="searchQuery.set('')">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter filter--sm">
+    <mat-label>Severidad</mat-label>
+    <mat-select
+      [ngModel]="severityFilter()"
+      (ngModelChange)="severityFilter.set($event)"
+      aria-label="Filtrar por severidad"
+    >
+      <mat-option value="all">Todas</mat-option>
+      <mat-option value="normal">Normal</mat-option>
+      <mat-option value="suspicious">Sospechosa</mat-option>
+      <mat-option value="critical">Crítica</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter filter--sm">
+    <mat-label>Estado</mat-label>
+    <mat-select
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
+      aria-label="Filtrar por estado"
+    >
+      <mat-option value="all">Todos</mat-option>
+      <mat-option value="open">Abierta</mat-option>
+      <mat-option value="acknowledged">En revisión</mat-option>
+      <mat-option value="resolved">Resuelta</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter filter--md">
+    <mat-label>Tienda</mat-label>
+    <mat-select
+      [ngModel]="storeFilter()"
+      (ngModelChange)="storeFilter.set($event)"
+      aria-label="Filtrar por tienda"
+    >
+      <mat-option value="all">Todas las tiendas</mat-option>
+      @for (s of storeOptions(); track s.id) {
+        <mat-option [value]="s.id">{{ s.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (isFiltered()) {
+    <button
+      mat-stroked-button
+      (click)="clearFilters()"
+      class="clear-btn"
+      aria-label="Limpiar todos los filtros"
+    >
+      <mat-icon>filter_list_off</mat-icon>
+      Limpiar
+    </button>
+  }
+</div>
+
+<!-- Results count -->
+<p class="alrt-results" aria-live="polite" aria-atomic="true">
+  {{ filteredAlerts().length }} de {{ alerts().length }} alertas
+  @if (isFiltered()) { <span class="alrt-results-tag">filtrado</span> }
+</p>
+
+<!-- Table -->
+@if (filteredAlerts().length > 0) {
+  <div class="table-wrap" role="region" aria-label="Tabla de alertas">
+    <table
+      mat-table
+      [dataSource]="filteredAlerts()"
+      class="alerts-table"
+      aria-label="Alertas del sistema"
+    >
+      <!-- Fecha/hora -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>Fecha / Hora</th>
+        <td mat-cell *matCellDef="let a">
+          <div class="cell-datetime">
+            <span class="dt-date">{{ a.createdAt | date:'dd/MM/yyyy' }}</span>
+            <span class="dt-time">{{ a.createdAt | date:'HH:mm:ss' }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Tienda -->
+      <ng-container matColumnDef="store">
+        <th mat-header-cell *matHeaderCellDef>Tienda</th>
+        <td mat-cell *matCellDef="let a">
+          <span class="cell-text">{{ a.storeName }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Cámara -->
+      <ng-container matColumnDef="camera">
+        <th mat-header-cell *matHeaderCellDef>Cámara</th>
+        <td mat-cell *matCellDef="let a">
+          <span class="cell-text cell-text--muted">{{ a.cameraName }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Severidad -->
+      <ng-container matColumnDef="severity">
+        <th mat-header-cell *matHeaderCellDef>Severidad</th>
+        <td mat-cell *matCellDef="let a">
+          <app-status-badge
+            [status]="severityToBadge(a.severity)"
+            [label]="severityLabel(a.severity)"
+          />
+        </td>
+      </ng-container>
+
+      <!-- Estado -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let a">
+          <app-status-badge
+            [status]="statusBadge(a.status)"
+            [label]="statusLabel(a.status)"
+          />
+        </td>
+      </ng-container>
+
+      <!-- Evento relacionado -->
+      <ng-container matColumnDef="event">
+        <th mat-header-cell *matHeaderCellDef>Evento</th>
+        <td mat-cell *matCellDef="let a">
+          <div class="cell-type">
+            <mat-icon class="type-icon" aria-hidden="true">{{ eventTypeIcon(a.eventType) }}</mat-icon>
+            <span>{{ eventTypeLabel(a.eventType) }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Responsable -->
+      <ng-container matColumnDef="assignedTo">
+        <th mat-header-cell *matHeaderCellDef>Responsable</th>
+        <td mat-cell *matCellDef="let a">
+          @if (a.assignedTo) {
+            <div class="cell-assigned">
+              <mat-icon aria-hidden="true">person</mat-icon>
+              <span>{{ a.assignedTo }}</span>
+            </div>
+          } @else {
+            <span class="cell-text cell-text--muted">—</span>
+          }
+        </td>
+      </ng-container>
+
+      <!-- Descripción (mobile) -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef>Alerta</th>
+        <td mat-cell *matCellDef="let a">
+          <div class="cell-desc-mobile">
+            <span class="cell-text">{{ a.title }}</span>
+            <span class="desc-mobile-sub">{{ a.storeName }} · {{ a.cameraName }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Acciones -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let a">
+          <button
+            mat-icon-button
+            [routerLink]="['/alerts', a.id]"
+            matTooltip="Ver detalle"
+            [attr.aria-label]="'Ver detalle de alerta de ' + a.storeName"
+          >
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns()"
+        class="alerts-row"
+        [class.alerts-row--critical]="row.severity === 'critical'"
+        [class.alerts-row--open]="row.status === 'open' && row.severity !== 'critical'"
+      ></tr>
+    </table>
+  </div>
+} @else {
+  <div class="empty-wrap">
+    @if (isFiltered()) {
+      <app-empty-state
+        icon="search_off"
+        title="Sin resultados"
+        description="No hay alertas que coincidan con los filtros aplicados."
+      >
+        <button mat-flat-button (click)="clearFilters()">
+          <mat-icon>filter_list_off</mat-icon>
+          Limpiar filtros
+        </button>
+      </app-empty-state>
+    } @else {
+      <app-empty-state
+        icon="notifications_off"
+        title="Sin alertas registradas"
+        description="El sistema no ha generado alertas aún. Las nuevas alertas aparecerán aquí automáticamente."
+      />
+    }
+  </div>
+}

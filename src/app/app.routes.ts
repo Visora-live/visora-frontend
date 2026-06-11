@@ -104,6 +104,13 @@ export const routes: Routes = [
             (m) => m.AlertListComponent,
           ),
       },
+      {
+        path: 'alerts/:id',
+        loadComponent: () =>
+          import('./features/alerts/alert-detail/alert-detail').then(
+            (m) => m.AlertDetailComponent,
+          ),
+      },
     ],
   },
 
