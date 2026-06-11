@@ -63,6 +63,27 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'cameras/new',
+        loadComponent: () =>
+          import('./features/cameras/camera-new/camera-new').then(
+            (m) => m.CameraNewComponent,
+          ),
+      },
+      {
+        path: 'cameras/:id',
+        loadComponent: () =>
+          import('./features/cameras/camera-detail/camera-detail').then(
+            (m) => m.CameraDetailComponent,
+          ),
+      },
+      {
+        path: 'cameras/:id/edit',
+        loadComponent: () =>
+          import('./features/cameras/camera-edit/camera-edit').then(
+            (m) => m.CameraEditComponent,
+          ),
+      },
+      {
         path: 'events',
         loadComponent: () =>
           import('./features/events/event-list/event-list').then(

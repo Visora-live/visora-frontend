@@ -1,0 +1,190 @@
+@if (!camera) {
+
+  <div class="not-found-wrap">
+    <app-empty-state
+      icon="videocam_off"
+      title="Cámara no encontrada"
+      description="No existe una cámara con este identificador en el sistema VISORA."
+    >
+      <button mat-flat-button routerLink="/cameras">
+        <mat-icon>arrow_back</mat-icon>
+        Volver al panel
+      </button>
+    </app-empty-state>
+  </div>
+
+} @else if (isSuccess()) {
+
+  <div class="success-wrap">
+    <div class="success-card" role="status">
+      <div class="success-icon-wrap">
+        <mat-icon class="success-icon" aria-hidden="true">check_circle</mat-icon>
+      </div>
+      <h1 class="success-title">Cambios guardados</h1>
+      <p class="success-body">
+        La información de la cámara fue actualizada correctamente en VISORA.
+      </p>
+      <div class="success-actions">
+        <button mat-stroked-button [routerLink]="['/cameras', cameraId]">
+          <mat-icon>visibility</mat-icon>
+          Ver cámara
+        </button>
+        <button mat-stroked-button routerLink="/cameras">
+          <mat-icon>arrow_back</mat-icon>
+          Ir al panel
+        </button>
+      </div>
+    </div>
+  </div>
+
+} @else {
+
+  <app-page-header
+    [title]="'Editar: ' + camera.name"
+    subtitle="Actualiza la configuración de esta cámara en el sistema VISORA."
+  >
+    <button mat-stroked-button [routerLink]="['/cameras', cameraId]">Cancelar</button>
+    <button mat-flat-button (click)="onSubmit()" [disabled]="isLoading()" class="submit-btn">
+      @if (isLoading()) {
+        <mat-spinner diameter="18" class="btn-spinner" />
+      } @else {
+        <mat-icon>save</mat-icon>
+      }
+      <span>{{ isLoading() ? 'Guardando...' : 'Guardar cambios' }}</span>
+    </button>
+  </app-page-header>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="form-card">
+
+      <!-- Información de la cámara -->
+      <div class="form-section">
+        <h2 class="section-label">Información de la cámara</h2>
+        <div class="field-grid">
+
+          <mat-form-field appearance="outline" class="field field--full">
+            <mat-label>Nombre de la cámara</mat-label>
+            <mat-icon matPrefix aria-hidden="true">videocam</mat-icon>
+            <input matInput formControlName="name" autocomplete="off" />
+            @if (form.controls.name.hasError('required')) {
+              <mat-error>El nombre es obligatorio.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Tienda asignada</mat-label>
+            <mat-icon matPrefix aria-hidden="true">store</mat-icon>
+            <mat-select formControlName="storeId">
+              @for (store of stores; track store.id) {
+                <mat-option [value]="store.id">{{ store.name }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.storeId.hasError('required')) {
+              <mat-error>Selecciona una tienda.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Ubicación en tienda</mat-label>
+            <mat-icon matPrefix aria-hidden="true">location_on</mat-icon>
+            <input matInput formControlName="location" autocomplete="off" />
+            @if (form.controls.location.hasError('required')) {
+              <mat-error>La ubicación es obligatoria.</mat-error>
+            }
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <!-- Configuración técnica -->
+      <div class="form-section form-section--divided">
+        <h2 class="section-label">Configuración técnica</h2>
+        <div class="field-grid">
+
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Dirección IP</mat-label>
+            <mat-icon matPrefix aria-hidden="true">lan</mat-icon>
+            <input matInput formControlName="ipUrl" autocomplete="off" />
+            @if (form.controls.ipUrl.hasError('required')) {
+              <mat-error>La IP es obligatoria.</mat-error>
+            } @else if (form.controls.ipUrl.hasError('pattern')) {
+              <mat-error>Ingresa una IP válida (ej. 192.168.1.100).</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Resolución</mat-label>
+            <mat-icon matPrefix aria-hidden="true">hd</mat-icon>
+            <mat-select formControlName="resolution">
+              <mat-option value="720p">720p — HD</mat-option>
+              <mat-option value="1080p">1080p — Full HD</mat-option>
+              <mat-option value="4K">4K — Ultra HD</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="online">En línea</mat-option>
+              <mat-option value="offline">Sin señal</mat-option>
+              <mat-option value="maintenance">Mantenimiento</mat-option>
+              <mat-option value="error">Error</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <!-- Capacidades activas -->
+      <div class="form-section form-section--divided">
+        <h2 class="section-label">Capacidades activas</h2>
+        <div class="capabilities-grid">
+
+          <mat-checkbox formControlName="capRecording" class="capability-check">
+            <span class="cap-label">
+              <mat-icon aria-hidden="true">fiber_manual_record</mat-icon>
+              Grabación continua
+            </span>
+          </mat-checkbox>
+
+          <mat-checkbox formControlName="capFacialRecognition" class="capability-check">
+            <span class="cap-label">
+              <mat-icon aria-hidden="true">face</mat-icon>
+              Reconocimiento facial
+            </span>
+          </mat-checkbox>
+
+          <mat-checkbox formControlName="capWeaponDetection" class="capability-check">
+            <span class="cap-label">
+              <mat-icon aria-hidden="true">security</mat-icon>
+              Detección de armas
+            </span>
+          </mat-checkbox>
+
+        </div>
+      </div>
+
+      <!-- Notas adicionales -->
+      <div class="form-section form-section--divided">
+        <h2 class="section-label">Notas adicionales</h2>
+        <div class="field-grid">
+          <mat-form-field appearance="outline" class="field field--full">
+            <mat-label>Observaciones</mat-label>
+            <textarea
+              matInput
+              formControlName="notes"
+              rows="3"
+              placeholder="Ángulo de cobertura, condiciones especiales..."
+            ></textarea>
+            <mat-hint align="end">{{ form.controls.notes.value.length }} / 500</mat-hint>
+            @if (form.controls.notes.hasError('maxlength')) {
+              <mat-error>Máximo 500 caracteres.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+
+    </div>
+  </form>
+
+}

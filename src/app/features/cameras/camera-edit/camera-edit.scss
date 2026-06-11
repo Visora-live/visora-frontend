@@ -1,0 +1,162 @@
+:host {
+  display: block;
+}
+
+// ── Not found ─────────────────────────────────────────────────────────────────
+
+.not-found-wrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--visora-space-xl);
+}
+
+// ── Success state ─────────────────────────────────────────────────────────────
+
+.success-wrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--visora-space-xl) 0;
+}
+
+.success-card {
+  background: var(--visora-bg-surface);
+  border-radius: var(--visora-radius-md);
+  border: 1px solid var(--visora-border-color);
+  box-shadow: var(--visora-shadow-sm);
+  padding: 48px var(--visora-space-xl);
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+}
+
+.success-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--visora-status-normal-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--visora-space-lg);
+}
+
+.success-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: var(--visora-status-normal);
+}
+
+.success-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--visora-text);
+  margin: 0 0 var(--visora-space-sm);
+}
+
+.success-body {
+  font-size: 14px;
+  color: var(--visora-text-muted);
+  line-height: 1.6;
+  max-width: 360px;
+  margin: 0 auto var(--visora-space-xl);
+}
+
+.success-actions {
+  display: flex;
+  gap: var(--visora-space-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+// ── Form card ─────────────────────────────────────────────────────────────────
+
+.form-card {
+  background: var(--visora-bg-surface);
+  border-radius: var(--visora-radius-md);
+  border: 1px solid var(--visora-border-color);
+  box-shadow: var(--visora-shadow-sm);
+  overflow: hidden;
+}
+
+.form-section {
+  padding: var(--visora-space-xl);
+
+  &--divided {
+    border-top: 1px solid var(--visora-border-color);
+  }
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--visora-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--visora-space-lg);
+}
+
+// ── Field grid ────────────────────────────────────────────────────────────────
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 var(--visora-space-md);
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.field {
+  width: 100%;
+}
+
+.field--full {
+  grid-column: 1 / -1;
+}
+
+// ── Capabilities ──────────────────────────────────────────────────────────────
+
+.capabilities-grid {
+  display: flex;
+  gap: var(--visora-space-xl);
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: var(--visora-space-md);
+  }
+}
+
+.capability-check {
+  display: flex;
+  align-items: center;
+}
+
+.cap-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--visora-text);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--visora-text-muted);
+  }
+}
+
+// ── Submit button ─────────────────────────────────────────────────────────────
+
+.submit-btn {
+  gap: 6px;
+  font-weight: 600;
+}
+
+.btn-spinner {
+  --mdc-circular-progress-active-indicator-color: #ffffff;
+}

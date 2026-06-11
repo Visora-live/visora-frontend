@@ -1,0 +1,234 @@
+<app-page-header
+  title="Cámaras"
+  subtitle="Panel de monitoreo y gestión de cámaras registradas en el sistema VISORA."
+>
+  <button mat-flat-button routerLink="/cameras/new">
+    <mat-icon>add</mat-icon>
+    Registrar cámara
+  </button>
+</app-page-header>
+
+<!-- Stat cards -->
+<div class="stats-grid">
+  <app-stat-card
+    title="Total cámaras"
+    [value]="cameras().length"
+    icon="videocam"
+  />
+  <app-stat-card
+    title="En línea"
+    [value]="onlineCount()"
+    icon="videocam"
+  />
+  <app-stat-card
+    title="Sin señal / Error"
+    [value]="offlineCount() + errorCount()"
+    icon="videocam_off"
+  />
+  <app-stat-card
+    title="Tiendas cubiertas"
+    [value]="storeOptions().length"
+    icon="store"
+  />
+</div>
+
+<!-- Filters -->
+<div class="filters-row">
+  <mat-form-field appearance="outline" class="filter filter--search">
+    <mat-label>Buscar cámara</mat-label>
+    <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+    <input
+      matInput
+      type="search"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+      placeholder="Nombre o ubicación..."
+      aria-label="Buscar cámara por nombre o ubicación"
+    />
+    @if (searchQuery()) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Limpiar búsqueda"
+        (click)="searchQuery.set('')"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter filter--status">
+    <mat-label>Estado</mat-label>
+    <mat-select
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)"
+      aria-label="Filtrar por estado"
+    >
+      <mat-option value="all">Todos los estados</mat-option>
+      <mat-option value="online">En línea</mat-option>
+      <mat-option value="offline">Sin señal</mat-option>
+      <mat-option value="error">Error</mat-option>
+      <mat-option value="maintenance">Mantenimiento</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter filter--store">
+    <mat-label>Tienda</mat-label>
+    <mat-select
+      [ngModel]="storeFilter()"
+      (ngModelChange)="storeFilter.set($event)"
+      aria-label="Filtrar por tienda"
+    >
+      <mat-option value="all">Todas las tiendas</mat-option>
+      @for (store of storeOptions(); track store.id) {
+        <mat-option [value]="store.id">{{ store.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (isFiltered()) {
+    <button mat-stroked-button (click)="clearFilters()" class="clear-btn" aria-label="Limpiar todos los filtros">
+      <mat-icon>filter_list_off</mat-icon>
+      Limpiar
+    </button>
+  }
+</div>
+
+<!-- Results summary -->
+<p class="visora-cam-results" aria-live="polite" aria-atomic="true">
+  {{ filteredCameras().length }} de {{ cameras().length }} cámaras
+  @if (isFiltered()) {
+    <span class="visora-cam-results-filtered">(filtrado)</span>
+  }
+</p>
+
+<!-- Camera grid -->
+@if (filteredCameras().length > 0) {
+  <div class="cameras-grid" role="list" aria-label="Lista de cámaras">
+    @for (camera of filteredCameras(); track camera.id) {
+      <article class="camera-card" [class]="'camera-card camera-card--' + camera.status" role="listitem">
+
+        <!-- Video preview area -->
+        <div class="cam-preview" [class]="'cam-preview--' + camera.status" aria-hidden="true">
+          <div class="corner corner--tl"></div>
+          <div class="corner corner--tr"></div>
+          <div class="corner corner--bl"></div>
+          <div class="corner corner--br"></div>
+
+          @if (camera.status === 'online') {
+            <div class="scanlines"></div>
+            <div class="preview-center">
+              <mat-icon class="preview-icon">videocam</mat-icon>
+            </div>
+            <span class="live-badge">● LIVE</span>
+            <div class="detection-box"></div>
+          } @else {
+            <div class="preview-center">
+              <mat-icon class="preview-icon preview-icon--offline">videocam_off</mat-icon>
+            </div>
+            <div class="status-overlay">
+              @switch (camera.status) {
+                @case ('offline') { SIN SEÑAL }
+                @case ('error') { ERROR }
+                @case ('maintenance') { MANTENIMIENTO }
+              }
+            </div>
+          }
+
+          <div class="preview-footer">
+            <span class="preview-res">{{ camera.resolution }}</span>
+            <span class="preview-ip">{{ camera.ipUrl }}</span>
+          </div>
+        </div>
+
+        <!-- Card body -->
+        <div class="card-body">
+          <h3 class="cam-name">{{ camera.name }}</h3>
+
+          <div class="cam-meta">
+            <mat-icon aria-hidden="true">store</mat-icon>
+            <span>{{ camera.storeName }}</span>
+          </div>
+          <div class="cam-meta">
+            <mat-icon aria-hidden="true">location_on</mat-icon>
+            <span>{{ camera.location }}</span>
+          </div>
+
+          <div class="cam-status">
+            <app-status-badge
+              [status]="cameraStatusToBadge(camera.status)"
+              [label]="cameraStatusLabel(camera.status)"
+            />
+          </div>
+
+          @if (camera.lastEvent) {
+            <div class="cam-last-event">
+              <mat-icon aria-hidden="true">schedule</mat-icon>
+              <span>{{ camera.lastEvent }} · {{ camera.lastEventTime }}</span>
+            </div>
+          }
+
+          <div class="capability-chips" aria-label="Capacidades">
+            @if (camera.capabilities.facialRecognition) {
+              <span class="chip chip--face" title="Reconocimiento facial">Facial</span>
+            }
+            @if (camera.capabilities.weaponDetection) {
+              <span class="chip chip--weapon" title="Detección de armas">Armas</span>
+            }
+            @if (camera.capabilities.recording) {
+              <span class="chip chip--rec" title="Grabación">REC</span>
+            }
+          </div>
+
+          <div class="card-actions">
+            <button
+              mat-stroked-button
+              [routerLink]="['/cameras', camera.id]"
+              class="card-btn"
+              [attr.aria-label]="'Ver detalle de ' + camera.name"
+            >
+              <mat-icon>visibility</mat-icon>
+              @if (!compact()) { Ver }
+            </button>
+            <button
+              mat-stroked-button
+              [routerLink]="['/cameras', camera.id, 'edit']"
+              class="card-btn"
+              [attr.aria-label]="'Editar ' + camera.name"
+            >
+              <mat-icon>edit</mat-icon>
+              @if (!compact()) { Editar }
+            </button>
+          </div>
+        </div>
+
+      </article>
+    }
+  </div>
+} @else {
+  <div class="empty-wrap">
+    @if (isFiltered()) {
+      <app-empty-state
+        icon="search_off"
+        title="Sin resultados"
+        description="No hay cámaras que coincidan con los filtros aplicados."
+      >
+        <button mat-flat-button (click)="clearFilters()">
+          <mat-icon>filter_list_off</mat-icon>
+          Limpiar filtros
+        </button>
+      </app-empty-state>
+    } @else {
+      <app-empty-state
+        icon="videocam_off"
+        title="Sin cámaras registradas"
+        description="Registra la primera cámara de vigilancia para comenzar el monitoreo VISORA."
+      >
+        <button mat-flat-button routerLink="/cameras/new">
+          <mat-icon>add</mat-icon>
+          Registrar cámara
+        </button>
+      </app-empty-state>
+    }
+  </div>
+}
