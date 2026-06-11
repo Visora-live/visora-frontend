@@ -1,0 +1,19 @@
+<mat-sidenav-container class="shell-container">
+  <mat-sidenav
+    class="shell-sidenav"
+    [mode]="sidenavMode()"
+    [opened]="sidenavOpen()"
+    (closedStart)="onSidenavClose()"
+  >
+    <app-sidebar />
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="shell-layout">
+      <app-topbar (menuToggle)="toggleSidenav()" />
+      <main id="main-content" class="shell-main" tabindex="-1">
+        <router-outlet />
+      </main>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

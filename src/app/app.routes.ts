@@ -6,6 +6,8 @@ export const routes: Routes = [
     redirectTo: 'stores',
     pathMatch: 'full',
   },
+
+  // Public routes — no shell
   {
     path: 'login',
     loadComponent: () =>
@@ -18,34 +20,45 @@ export const routes: Routes = [
         (m) => m.ForgotPasswordComponent,
       ),
   },
+
+  // Main app routes — wrapped in shell layout
   {
-    path: 'stores',
+    path: '',
     loadComponent: () =>
-      import('./features/stores/store-list/store-list').then(
-        (m) => m.StoreListComponent,
-      ),
+      import('./layout/app-shell/app-shell').then((m) => m.AppShellComponent),
+    children: [
+      {
+        path: 'stores',
+        loadComponent: () =>
+          import('./features/stores/store-list/store-list').then(
+            (m) => m.StoreListComponent,
+          ),
+      },
+      {
+        path: 'cameras',
+        loadComponent: () =>
+          import('./features/cameras/camera-dashboard/camera-dashboard').then(
+            (m) => m.CameraDashboardComponent,
+          ),
+      },
+      {
+        path: 'events',
+        loadComponent: () =>
+          import('./features/events/event-list/event-list').then(
+            (m) => m.EventListComponent,
+          ),
+      },
+      {
+        path: 'alerts',
+        loadComponent: () =>
+          import('./features/alerts/alert-list/alert-list').then(
+            (m) => m.AlertListComponent,
+          ),
+      },
+    ],
   },
-  {
-    path: 'cameras',
-    loadComponent: () =>
-      import('./features/cameras/camera-dashboard/camera-dashboard').then(
-        (m) => m.CameraDashboardComponent,
-      ),
-  },
-  {
-    path: 'events',
-    loadComponent: () =>
-      import('./features/events/event-list/event-list').then(
-        (m) => m.EventListComponent,
-      ),
-  },
-  {
-    path: 'alerts',
-    loadComponent: () =>
-      import('./features/alerts/alert-list/alert-list').then(
-        (m) => m.AlertListComponent,
-      ),
-  },
+
+  // Error routes — no shell
   {
     path: 'unauthorized',
     loadComponent: () =>

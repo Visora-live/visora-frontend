@@ -1,0 +1,22 @@
+<nav class="sidebar" aria-label="Navegación principal">
+  <div class="sidebar-logo" aria-hidden="true">
+    <span>VISORA</span>
+  </div>
+
+  <ul class="nav-list" role="list">
+    @for (item of navItems; track item.route) {
+      <li>
+        <a
+          #rla="routerLinkActive"
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [attr.aria-current]="rla.isActive ? 'page' : null"
+        >
+          <mat-icon class="nav-icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+</nav>

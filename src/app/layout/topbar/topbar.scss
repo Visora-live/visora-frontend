@@ -1,0 +1,58 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  height: var(--visora-topbar-height);
+  padding: 0 var(--visora-space-md) 0 var(--visora-space-sm);
+  background: var(--visora-bg-surface);
+  border-bottom: 1px solid var(--visora-border-color);
+  box-shadow: var(--visora-shadow-sm);
+  flex-shrink: 0;
+  gap: var(--visora-space-sm);
+  z-index: 10;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--visora-border-color);
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--visora-text);
+}
+
+.topbar-spacer {
+  flex: 1;
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--visora-space-sm);
+  height: 40px;
+  padding: 0 var(--visora-space-sm) !important;
+  border-radius: var(--visora-radius-md) !important;
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--visora-primary);
+  color: var(--visora-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--visora-text);
+}

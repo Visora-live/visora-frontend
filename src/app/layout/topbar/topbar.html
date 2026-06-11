@@ -1,0 +1,38 @@
+<header class="topbar" role="banner">
+  <button
+    mat-icon-button
+    class="menu-btn"
+    (click)="onMenuToggle()"
+    aria-label="Alternar menú lateral"
+  >
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <span class="topbar-divider" aria-hidden="true"></span>
+
+  <span class="topbar-title" aria-live="polite">{{ pageTitle() }}</span>
+
+  <span class="topbar-spacer"></span>
+
+  <button
+    mat-button
+    class="user-btn"
+    [matMenuTriggerFor]="userMenu"
+    aria-label="Menú de usuario — Admin"
+  >
+    <div class="user-avatar" aria-hidden="true">AD</div>
+    <span class="user-name">Admin</span>
+    <mat-icon aria-hidden="true">expand_more</mat-icon>
+  </button>
+
+  <mat-menu #userMenu="matMenu">
+    <button mat-menu-item>
+      <mat-icon>person</mat-icon>
+      <span>Perfil</span>
+    </button>
+    <button mat-menu-item>
+      <mat-icon>logout</mat-icon>
+      <span>Cerrar sesión</span>
+    </button>
+  </mat-menu>
+</header>

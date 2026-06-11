@@ -1,0 +1,31 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.shell-container {
+  height: 100%;
+}
+
+.shell-sidenav {
+  width: var(--visora-sidebar-width);
+  border-right: 1px solid var(--visora-border-color);
+  background: var(--visora-bg-surface);
+}
+
+.shell-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.shell-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--visora-space-lg);
+  background: var(--visora-bg);
+
+  &:focus {
+    outline: none;
+  }
+}
