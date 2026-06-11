@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -52,8 +53,8 @@ type StatusFilter = 'all' | EventStatus;
 export class EventListComponent {
   private readonly bp = inject(BreakpointObserver);
   private readonly isMobile = toSignal(
-    this.bp.observe('(max-width: 768px)'),
-    { initialValue: { matches: false, breakpoints: {} } },
+    this.bp.observe('(max-width: 768px)').pipe(map((r) => r.matches)),
+    { initialValue: false },
   );
 
   protected readonly events = signal(MOCK_EVENTS);
@@ -62,8 +63,10 @@ export class EventListComponent {
   protected readonly typeFilter = signal<TypeFilter>('all');
   protected readonly statusFilter = signal<StatusFilter>('all');
 
+  private readonly today = new Date().toISOString().slice(0, 10);
+
   protected readonly todayCount = computed(
-    () => this.events().filter((e) => e.timestamp.startsWith('2026-06-11')).length,
+    () => this.events().filter((e) => e.timestamp.startsWith(this.today)).length,
   );
   protected readonly criticalCount = computed(
     () => this.events().filter((e) => e.severity === 'critical').length,
@@ -101,7 +104,7 @@ export class EventListComponent {
   );
 
   protected readonly displayedColumns = computed(() =>
-    this.isMobile().matches
+    this.isMobile()
       ? ['timestamp', 'description', 'severity', 'actions']
       : ['timestamp', 'store', 'camera', 'type', 'severity', 'status', 'evidence', 'actions'],
   );

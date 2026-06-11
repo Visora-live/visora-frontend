@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -41,8 +42,8 @@ type StatusFilter = 'all' | CameraStatus;
 export class CameraDashboardComponent {
   private readonly bp = inject(BreakpointObserver);
   private readonly isMobile = toSignal(
-    this.bp.observe('(max-width: 600px)'),
-    { initialValue: { matches: false, breakpoints: {} } },
+    this.bp.observe('(max-width: 600px)').pipe(map((r) => r.matches)),
+    { initialValue: false },
   );
 
   protected readonly cameras = signal(MOCK_CAMERAS);
@@ -90,7 +91,7 @@ export class CameraDashboardComponent {
       this.storeFilter() !== 'all',
   );
 
-  protected readonly compact = computed(() => this.isMobile().matches);
+  protected readonly compact = computed(() => this.isMobile());
 
   protected clearFilters(): void {
     this.searchQuery.set('');
