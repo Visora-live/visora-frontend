@@ -18,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
         La ruta solicitada no existe en el sistema VISORA.
         Verifica la URL o regresa al inicio.
       </p>
-      <a mat-flat-button routerLink="/stores" class="error-btn">
+      <a mat-flat-button routerLink="/dashboard" class="error-btn">
         <mat-icon>home</mat-icon>
         Ir al inicio
       </a>

@@ -47,7 +47,7 @@ export class LoginComponent {
     setTimeout(() => {
       this.isLoading.set(false);
       if (identifier === 'admin' && password === 'visora2026') {
-        void this.router.navigate(['/stores']);
+        void this.router.navigate(['/dashboard']);
       } else {
         this.submitError.set(
           'Credenciales incorrectas. Verifica tus datos e intenta de nuevo.',
