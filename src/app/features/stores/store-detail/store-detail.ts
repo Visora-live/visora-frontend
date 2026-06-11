@@ -4,6 +4,8 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MOCK_STORES } from '../stores.mock';
+import { MOCK_ALERTS } from '../../alerts/alerts.mock';
+import { MOCK_EVENTS } from '../../events/events.mock';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -30,6 +32,7 @@ export class StoreDetailComponent {
   protected readonly storeId = this.route.snapshot.paramMap.get('id') ?? '';
   protected readonly store = MOCK_STORES.find((s) => s.id === this.storeId) ?? null;
 
-  protected readonly mockAlerts = 3;
-  protected readonly mockEvents = 5;
+  protected readonly mockAlerts = MOCK_ALERTS.filter((a) => a.status === 'open').length;
+  protected readonly mockEvents = MOCK_EVENTS.length;
+  protected readonly mockResolved = MOCK_ALERTS.filter((a) => a.status === 'resolved').length;
 }

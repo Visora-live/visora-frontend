@@ -13,6 +13,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { map } from 'rxjs';
 import type { Store, StoreStatus } from '../../../core/models/store.model';
 import { MOCK_STORES } from '../stores.mock';
+import { MOCK_ALERTS } from '../../alerts/alerts.mock';
+import { MOCK_EVENTS } from '../../events/events.mock';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -72,8 +74,8 @@ export class StoreListComponent {
   protected readonly totalCameras = computed(() =>
     this.stores().reduce((acc, s) => acc + s.cameraCount, 0),
   );
-  protected readonly openAlerts = 7;
-  protected readonly todayEvents = 24;
+  protected readonly openAlerts = MOCK_ALERTS.filter((a) => a.status === 'open').length;
+  protected readonly todayEvents = MOCK_EVENTS.length;
 
   protected readonly isFiltered = computed(
     () => this.searchQuery() !== '' || this.statusFilter() !== 'all',
