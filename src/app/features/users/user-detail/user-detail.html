@@ -54,7 +54,7 @@
     />
     <app-stat-card
       title="Último acceso"
-      [value]="(user.lastAccess | date:'dd/MM/yyyy') ?? '—'"
+      [value]="(user.lastAccess | date:'dd/MM/yyyy') ?? 'Sin registro'"
       icon="login"
     />
   </div>
@@ -129,7 +129,7 @@
             Último acceso
           </dt>
           <dd class="usr-info-value">
-            {{ (user.lastAccess | date:'dd/MM/yyyy HH:mm') ?? '—' }}
+            {{ (user.lastAccess | date:'dd/MM/yyyy HH:mm') ?? 'Sin registro' }}
           </dd>
         </div>
 

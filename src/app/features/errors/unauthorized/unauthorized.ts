@@ -50,7 +50,7 @@ import { MatIconModule } from '@angular/material/icon';
       width: 88px;
       height: 88px;
       border-radius: 50%;
-      background: rgba(217, 119, 6, 0.06);
+      background: var(--visora-status-suspicious-bg);
       display: flex;
       align-items: center;
       justify-content: center;
