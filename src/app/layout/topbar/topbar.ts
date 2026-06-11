@@ -12,6 +12,7 @@ const PAGE_TITLES: Record<string, string> = {
   cameras: 'Cámaras',
   events: 'Eventos',
   alerts: 'Alertas',
+  users: 'Usuarios',
 };
 
 @Component({

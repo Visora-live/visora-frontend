@@ -21,5 +21,6 @@ export class SidebarComponent {
     { label: 'Cámaras', icon: 'videocam', route: '/cameras' },
     { label: 'Eventos', icon: 'event_note', route: '/events' },
     { label: 'Alertas', icon: 'notifications', route: '/alerts' },
+    { label: 'Usuarios', icon: 'group', route: '/users' },
   ];
 }

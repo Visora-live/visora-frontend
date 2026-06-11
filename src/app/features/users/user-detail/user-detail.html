@@ -1,0 +1,178 @@
+@if (!user) {
+
+  <div class="not-found-wrap">
+    <app-empty-state
+      icon="person_off"
+      title="Usuario no encontrado"
+      description="No existe un usuario con este identificador en el sistema VISORA."
+    >
+      <button mat-flat-button routerLink="/users">
+        <mat-icon>arrow_back</mat-icon>
+        Volver al listado
+      </button>
+    </app-empty-state>
+  </div>
+
+} @else {
+
+  <app-page-header
+    [title]="user.fullName"
+    [subtitle]="user.email"
+  >
+    <button mat-stroked-button routerLink="/users">
+      <mat-icon>arrow_back</mat-icon>
+      Volver
+    </button>
+    @if (user.storeId) {
+      <button mat-stroked-button [routerLink]="['/stores', user.storeId]">
+        <mat-icon>store</mat-icon>
+        Ver tienda
+      </button>
+    }
+    <button mat-flat-button [routerLink]="['/users', user.id, 'edit']">
+      <mat-icon>edit</mat-icon>
+      Editar usuario
+    </button>
+  </app-page-header>
+
+  <!-- Stat cards -->
+  <div class="stats-grid">
+    <app-stat-card
+      title="Rol"
+      [value]="roleLabel(user.role)"
+      [icon]="roleIcon(user.role)"
+    />
+    <app-stat-card
+      title="Estado"
+      [value]="user.status === 'active' ? 'Activo' : 'Inactivo'"
+      icon="circle"
+    />
+    <app-stat-card
+      title="Tienda asignada"
+      [value]="user.storeName || 'Sin tienda'"
+      icon="store"
+    />
+    <app-stat-card
+      title="Último acceso"
+      [value]="(user.lastAccess | date:'dd/MM/yyyy') ?? '—'"
+      icon="login"
+    />
+  </div>
+
+  <!-- Info + Activity layout -->
+  <div class="visora-user-detail-layout">
+
+    <!-- Info card -->
+    <div class="usr-info-card">
+      <div class="usr-info-header">
+        <h2 class="usr-info-title">Información del usuario</h2>
+        <app-status-badge
+          [status]="user.status === 'active' ? 'normal' : 'inactive'"
+          [label]="user.status === 'active' ? 'Activo' : 'Inactivo'"
+        />
+      </div>
+      <dl class="usr-info-dl">
+
+        <div class="usr-info-item">
+          <dt class="usr-info-label">
+            <mat-icon aria-hidden="true">person</mat-icon>
+            Nombre completo
+          </dt>
+          <dd class="usr-info-value">{{ user.fullName }}</dd>
+        </div>
+
+        <div class="usr-info-item">
+          <dt class="usr-info-label">
+            <mat-icon aria-hidden="true">email</mat-icon>
+            Correo electrónico
+          </dt>
+          <dd class="usr-info-value">
+            <a class="usr-info-link" [href]="'mailto:' + user.email">{{ user.email }}</a>
+          </dd>
+        </div>
+
+        <div class="usr-info-item">
+          <dt class="usr-info-label">
+            <mat-icon aria-hidden="true">phone</mat-icon>
+            Teléfono
+          </dt>
+          <dd class="usr-info-value">{{ user.phone || '—' }}</dd>
+        </div>
+
+        <div class="usr-info-item">
+          <dt class="usr-info-label">
+            <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
+            Rol en el sistema
+          </dt>
+          <dd class="usr-info-value">{{ roleLabel(user.role) }}</dd>
+        </div>
+
+        <div class="usr-info-item">
+          <dt class="usr-info-label">
+            <mat-icon aria-hidden="true">store</mat-icon>
+            Tienda asignada
+          </dt>
+          <dd class="usr-info-value">{{ user.storeName || '—' }}</dd>
+        </div>
+
+        <div class="usr-info-item">
+          <dt class="usr-info-label">
+            <mat-icon aria-hidden="true">calendar_today</mat-icon>
+            Fecha de registro
+          </dt>
+          <dd class="usr-info-value">{{ user.createdAt | date:'dd/MM/yyyy' }}</dd>
+        </div>
+
+        <div class="usr-info-item">
+          <dt class="usr-info-label">
+            <mat-icon aria-hidden="true">login</mat-icon>
+            Último acceso
+          </dt>
+          <dd class="usr-info-value">
+            {{ (user.lastAccess | date:'dd/MM/yyyy HH:mm') ?? '—' }}
+          </dd>
+        </div>
+
+        @if (user.notes) {
+          <div class="usr-info-item usr-info-item--full">
+            <dt class="usr-info-label">
+              <mat-icon aria-hidden="true">notes</mat-icon>
+              Notas
+            </dt>
+            <dd class="usr-info-value usr-info-value--notes">{{ user.notes }}</dd>
+          </div>
+        }
+
+      </dl>
+    </div>
+
+    <!-- Activity card -->
+    <div class="usr-activity-card">
+      <div class="usr-activity-header">
+        <h2 class="usr-activity-title">
+          <mat-icon aria-hidden="true">history</mat-icon>
+          Actividad reciente
+        </h2>
+      </div>
+      @if (user.recentActivity.length === 0) {
+        <p class="usr-activity-empty">Sin actividad registrada.</p>
+      } @else {
+        <ul class="usr-activity-list" role="list">
+          @for (entry of user.recentActivity; track entry.timestamp) {
+            <li class="usr-activity-item" role="listitem">
+              <div class="usr-activity-dot" aria-hidden="true">
+                <mat-icon>{{ entry.icon }}</mat-icon>
+              </div>
+              <div class="usr-activity-content">
+                <span class="usr-activity-action">{{ entry.action }}</span>
+                <span class="usr-activity-time">{{ entry.timestamp | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+  </div>
+
+}

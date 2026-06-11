@@ -116,6 +116,26 @@ export const routes: Routes = [
             (m) => m.AlertDetailComponent,
           ),
       },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./features/users/user-list/user-list').then((m) => m.UserListComponent),
+      },
+      {
+        path: 'users/new',
+        loadComponent: () =>
+          import('./features/users/user-new/user-new').then((m) => m.UserNewComponent),
+      },
+      {
+        path: 'users/:id',
+        loadComponent: () =>
+          import('./features/users/user-detail/user-detail').then((m) => m.UserDetailComponent),
+      },
+      {
+        path: 'users/:id/edit',
+        loadComponent: () =>
+          import('./features/users/user-edit/user-edit').then((m) => m.UserEditComponent),
+      },
     ],
   },
 
