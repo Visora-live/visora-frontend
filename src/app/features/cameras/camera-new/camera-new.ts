@@ -8,7 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import type { CameraStatus } from '../../../core/models/camera.model';
 import { MOCK_STORES } from '../../stores/stores.mock';
+import { CameraService } from '../../../core/services/camera.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
 @Component({
@@ -30,6 +32,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 })
 export class CameraNewComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly cameraService = inject(CameraService);
 
   protected readonly stores = MOCK_STORES;
 
@@ -55,9 +58,29 @@ export class CameraNewComponent {
       return;
     }
     this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.isSuccess.set(true);
-    }, 1200);
+    const raw = this.form.getRawValue();
+    const selectedStore = this.stores.find((s) => s.id === raw.storeId);
+    this.cameraService
+      .create({
+        name: raw.name,
+        storeId: raw.storeId,
+        storeName: selectedStore?.name ?? '',
+        location: raw.location,
+        ipUrl: raw.ipUrl,
+        resolution: raw.resolution,
+        status: raw.status as CameraStatus,
+        capabilities: {
+          facialRecognition: raw.capFacialRecognition,
+          weaponDetection: raw.capWeaponDetection,
+          recording: raw.capRecording,
+        },
+        notes: raw.notes || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.isLoading.set(false);
+          this.isSuccess.set(true);
+        },
+      });
   }
 }

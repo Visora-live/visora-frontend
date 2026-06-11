@@ -10,9 +10,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import type { CameraStatus } from '../../../core/models/camera.model';
+import type { Camera, CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
-import { MOCK_CAMERAS } from '../cameras.mock';
+import { CameraService } from '../../../core/services/camera.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -41,12 +41,16 @@ type StatusFilter = 'all' | CameraStatus;
 })
 export class CameraDashboardComponent {
   private readonly bp = inject(BreakpointObserver);
+  private readonly cameraService = inject(CameraService);
+
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 600px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
-  protected readonly cameras = signal(MOCK_CAMERAS);
+  private readonly listRes = toSignal(this.cameraService.list(), { requireSync: true });
+
+  protected readonly cameras = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
   protected readonly storeFilter = signal<string>('all');
@@ -63,9 +67,9 @@ export class CameraDashboardComponent {
   );
 
   protected readonly storeOptions = computed(() => {
-    const map = new Map<string, string>();
-    this.cameras().forEach((c) => map.set(c.storeId, c.storeName));
-    return Array.from(map.entries())
+    const m = new Map<string, string>();
+    this.cameras().forEach((c) => m.set(c.storeId, c.storeName));
+    return Array.from(m.entries())
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
   });
@@ -100,22 +104,22 @@ export class CameraDashboardComponent {
   }
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {
-    const map: Record<CameraStatus, BadgeStatus> = {
+    const m: Record<CameraStatus, BadgeStatus> = {
       online: 'normal',
       offline: 'inactive',
       error: 'critical',
       maintenance: 'suspicious',
     };
-    return map[status];
+    return m[status];
   }
 
   protected cameraStatusLabel(status: CameraStatus): string {
-    const map: Record<CameraStatus, string> = {
+    const m: Record<CameraStatus, string> = {
       online: 'En línea',
       offline: 'Sin señal',
       error: 'Error',
       maintenance: 'Mantenimiento',
     };
-    return map[status];
+    return m[status];
   }
 }

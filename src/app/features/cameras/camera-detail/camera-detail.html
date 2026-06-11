@@ -1,4 +1,5 @@
-@if (!camera) {
+@let c = camera();
+@if (!c) {
 
   <div class="not-found-wrap">
     <app-empty-state
@@ -16,8 +17,8 @@
 } @else {
 
   <app-page-header
-    [title]="camera.name"
-    [subtitle]="camera.storeName + ' · ' + camera.location"
+    [title]="c.name"
+    [subtitle]="c.storeName + ' · ' + c.location"
   >
     <button mat-stroked-button routerLink="/cameras">
       <mat-icon>arrow_back</mat-icon>
@@ -35,9 +36,9 @@
 
   <!-- Stat cards -->
   <div class="stats-grid">
-    <app-stat-card title="Estado" [value]="cameraStatusLabel(camera.status)" icon="circle" />
-    <app-stat-card title="Resolución" [value]="camera.resolution" icon="hd" />
-    <app-stat-card title="Dirección IP" [value]="camera.ipUrl" icon="lan" />
+    <app-stat-card title="Estado" [value]="cameraStatusLabel(c.status)" icon="circle" />
+    <app-stat-card title="Resolución" [value]="c.resolution" icon="hd" />
+    <app-stat-card title="Dirección IP" [value]="c.ipUrl" icon="lan" />
   </div>
 
   <!-- Main content -->
@@ -47,17 +48,17 @@
     <div class="col-main">
 
       <!-- Simulated video panel -->
-      <section class="video-panel" [class]="'video-panel--' + camera.status" aria-label="Panel de video">
+      <section class="video-panel" [class]="'video-panel--' + c.status" aria-label="Panel de video">
         <div class="corner corner--tl"></div>
         <div class="corner corner--tr"></div>
         <div class="corner corner--bl"></div>
         <div class="corner corner--br"></div>
 
-        @if (camera.status === 'online') {
+        @if (c.status === 'online') {
           <div class="scanlines" aria-hidden="true"></div>
           <div class="video-hud" aria-hidden="true">
             <div class="hud-top">
-              <span class="hud-id">CAM-{{ camera.id | uppercase }}</span>
+              <span class="hud-id">CAM-{{ c.id | uppercase }}</span>
               <span class="hud-live">● LIVE</span>
             </div>
             <div class="hud-center">
@@ -66,8 +67,8 @@
               <div class="detection-box det-2" aria-hidden="true"></div>
             </div>
             <div class="hud-bottom">
-              <span class="hud-res">{{ camera.resolution }}</span>
-              <span class="hud-ip">{{ camera.ipUrl }}</span>
+              <span class="hud-res">{{ c.resolution }}</span>
+              <span class="hud-ip">{{ c.ipUrl }}</span>
               <span class="hud-time">14:32:07</span>
             </div>
           </div>
@@ -75,14 +76,14 @@
           <div class="video-offline" aria-label="Cámara sin señal">
             <mat-icon class="offline-icon">videocam_off</mat-icon>
             <div class="offline-status-label">
-              @switch (camera.status) {
+              @switch (c.status) {
                 @case ('offline') { SIN SEÑAL }
                 @case ('error') { ERROR DE CÁMARA }
                 @case ('maintenance') { EN MANTENIMIENTO }
               }
             </div>
             <p class="offline-desc">
-              @switch (camera.status) {
+              @switch (c.status) {
                 @case ('offline') { La cámara no está transmitiendo. Verifica la conexión de red. }
                 @case ('error') { La cámara reportó un error de hardware o firmware. }
                 @case ('maintenance') { La cámara está temporalmente fuera de servicio para mantenimiento. }
@@ -96,18 +97,18 @@
       <section class="events-card" aria-label="Eventos recientes">
         <div class="events-header">
           <h2 class="events-title">Eventos recientes</h2>
-          @if (recentEvents.length > 0) {
-            <span class="events-count">{{ recentEvents.length }}</span>
+          @if (recentEvents().length > 0) {
+            <span class="events-count">{{ recentEvents().length }}</span>
           }
         </div>
-        @if (recentEvents.length === 0) {
+        @if (recentEvents().length === 0) {
           <div class="events-empty">
             <mat-icon aria-hidden="true">event_available</mat-icon>
             <span>Sin eventos registrados para esta cámara.</span>
           </div>
         } @else {
           <ul class="events-list" role="list">
-            @for (event of recentEvents; track event.id) {
+            @for (event of recentEvents(); track event.id) {
               <li class="event-item" role="listitem">
                 <a class="event-item-link" [routerLink]="['/events', event.id]" aria-label="Ver evento {{ event.id }}">
                   <app-status-badge [status]="event.severity" />
@@ -139,7 +140,7 @@
               <mat-icon aria-hidden="true">videocam</mat-icon>
               Nombre
             </dt>
-            <dd class="info-value">{{ camera.name }}</dd>
+            <dd class="info-value">{{ c.name }}</dd>
           </div>
 
           <div class="info-item">
@@ -147,7 +148,7 @@
               <mat-icon aria-hidden="true">store</mat-icon>
               Tienda
             </dt>
-            <dd class="info-value">{{ camera.storeName }}</dd>
+            <dd class="info-value">{{ c.storeName }}</dd>
           </div>
 
           <div class="info-item">
@@ -155,7 +156,7 @@
               <mat-icon aria-hidden="true">location_on</mat-icon>
               Ubicación
             </dt>
-            <dd class="info-value">{{ camera.location }}</dd>
+            <dd class="info-value">{{ c.location }}</dd>
           </div>
 
           <div class="info-item">
@@ -163,7 +164,7 @@
               <mat-icon aria-hidden="true">lan</mat-icon>
               Dirección IP
             </dt>
-            <dd class="info-value info-value--mono">{{ camera.ipUrl }}</dd>
+            <dd class="info-value info-value--mono">{{ c.ipUrl }}</dd>
           </div>
 
           <div class="info-item">
@@ -171,7 +172,7 @@
               <mat-icon aria-hidden="true">hd</mat-icon>
               Resolución
             </dt>
-            <dd class="info-value">{{ camera.resolution }}</dd>
+            <dd class="info-value">{{ c.resolution }}</dd>
           </div>
 
           <div class="info-item">
@@ -181,8 +182,8 @@
             </dt>
             <dd class="info-value">
               <app-status-badge
-                [status]="cameraStatusToBadge(camera.status)"
-                [label]="cameraStatusLabel(camera.status)"
+                [status]="cameraStatusToBadge(c.status)"
+                [label]="cameraStatusLabel(c.status)"
               />
             </dd>
           </div>
@@ -192,16 +193,16 @@
               <mat-icon aria-hidden="true">calendar_today</mat-icon>
               Registrada
             </dt>
-            <dd class="info-value">{{ camera.createdAt }}</dd>
+            <dd class="info-value">{{ c.createdAt }}</dd>
           </div>
 
-          @if (camera.notes) {
+          @if (c.notes) {
             <div class="info-item info-item--full">
               <dt class="info-label">
                 <mat-icon aria-hidden="true">notes</mat-icon>
                 Notas
               </dt>
-              <dd class="info-value info-value--notes">{{ camera.notes }}</dd>
+              <dd class="info-value info-value--notes">{{ c.notes }}</dd>
             </div>
           }
 
@@ -216,33 +217,33 @@
         <ul class="cap-list" role="list">
           <li
             class="cap-item"
-            [class.cap-item--active]="camera.capabilities.recording"
-            [class.cap-item--inactive]="!camera.capabilities.recording"
+            [class.cap-item--active]="c.capabilities.recording"
+            [class.cap-item--inactive]="!c.capabilities.recording"
             role="listitem"
           >
             <mat-icon aria-hidden="true">fiber_manual_record</mat-icon>
             <span>Grabación continua</span>
-            <span class="cap-status">{{ camera.capabilities.recording ? 'Activa' : 'Inactiva' }}</span>
+            <span class="cap-status">{{ c.capabilities.recording ? 'Activa' : 'Inactiva' }}</span>
           </li>
           <li
             class="cap-item"
-            [class.cap-item--active]="camera.capabilities.facialRecognition"
-            [class.cap-item--inactive]="!camera.capabilities.facialRecognition"
+            [class.cap-item--active]="c.capabilities.facialRecognition"
+            [class.cap-item--inactive]="!c.capabilities.facialRecognition"
             role="listitem"
           >
             <mat-icon aria-hidden="true">face</mat-icon>
             <span>Reconocimiento facial</span>
-            <span class="cap-status">{{ camera.capabilities.facialRecognition ? 'Activo' : 'Inactivo' }}</span>
+            <span class="cap-status">{{ c.capabilities.facialRecognition ? 'Activo' : 'Inactivo' }}</span>
           </li>
           <li
             class="cap-item"
-            [class.cap-item--active]="camera.capabilities.weaponDetection"
-            [class.cap-item--inactive]="!camera.capabilities.weaponDetection"
+            [class.cap-item--active]="c.capabilities.weaponDetection"
+            [class.cap-item--inactive]="!c.capabilities.weaponDetection"
             role="listitem"
           >
             <mat-icon aria-hidden="true">security</mat-icon>
             <span>Detección de armas</span>
-            <span class="cap-status">{{ camera.capabilities.weaponDetection ? 'Activa' : 'Inactiva' }}</span>
+            <span class="cap-status">{{ c.capabilities.weaponDetection ? 'Activa' : 'Inactiva' }}</span>
           </li>
         </ul>
       </div>

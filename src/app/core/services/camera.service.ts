@@ -35,11 +35,11 @@ export class CameraService {
       offlineCount: MOCK_CAMERAS.filter((c) => c.status === 'offline').length,
       errorCount: MOCK_CAMERAS.filter((c) => c.status === 'error' || c.status === 'maintenance').length,
     };
-    return of(response).pipe(delay(300));
+    return of(response);
   }
 
   getById(id: string) {
-    return of(MOCK_CAMERAS.find((c) => c.id === id) ?? null).pipe(delay(300));
+    return of(MOCK_CAMERAS.find((c) => c.id === id) ?? null);
   }
 
   create(payload: CameraPayload) {
@@ -76,6 +76,6 @@ export class CameraService {
       .filter((e) => e.cameraId === cameraId)
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
       .slice(0, limit);
-    return of(items).pipe(delay(300));
+    return of(items);
   }
 }

@@ -1,4 +1,5 @@
-@if (!camera) {
+@let c = camera();
+@if (!c) {
 
   <div class="not-found-wrap">
     <app-empty-state
@@ -40,7 +41,7 @@
 } @else {
 
   <app-page-header
-    [title]="'Editar: ' + camera.name"
+    [title]="'Editar: ' + c.name"
     subtitle="Actualiza la configuración de esta cámara en el sistema VISORA."
   >
     <button mat-stroked-button [routerLink]="['/cameras', cameraId]">Cancelar</button>
