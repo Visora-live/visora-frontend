@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,8 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import type { CameraStatus } from '../../../core/models/camera.model';
-import { MOCK_STORES } from '../../stores/stores.mock';
 import { CameraService } from '../../../core/services/camera.service';
+import { StoreService } from '../../../core/services/store.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
 @Component({
@@ -33,8 +34,10 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 export class CameraNewComponent {
   private readonly fb = inject(FormBuilder);
   private readonly cameraService = inject(CameraService);
+  private readonly storeService = inject(StoreService);
 
-  protected readonly stores = MOCK_STORES;
+  private readonly storeListRes = toSignal(this.storeService.list(), { requireSync: true });
+  protected readonly stores = computed(() => this.storeListRes().items);
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -59,7 +62,7 @@ export class CameraNewComponent {
     }
     this.isLoading.set(true);
     const raw = this.form.getRawValue();
-    const selectedStore = this.stores.find((s) => s.id === raw.storeId);
+    const selectedStore = this.stores().find((s) => s.id === raw.storeId);
     this.cameraService
       .create({
         name: raw.name,

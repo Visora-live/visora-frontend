@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,8 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import type { UserRole, UserStatus } from '../../../core/models/user.model';
-import { MOCK_STORES } from '../../stores/stores.mock';
 import { UserService } from '../../../core/services/user.service';
+import { StoreService } from '../../../core/services/store.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
 @Component({
@@ -31,8 +32,10 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 export class UserNewComponent {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
+  private readonly storeService = inject(StoreService);
 
-  protected readonly stores = MOCK_STORES;
+  private readonly storeListRes = toSignal(this.storeService.list(), { requireSync: true });
+  protected readonly stores = computed(() => this.storeListRes().items);
 
   protected readonly form = this.fb.nonNullable.group({
     fullName: ['', Validators.required],
@@ -54,7 +57,7 @@ export class UserNewComponent {
     }
     this.isLoading.set(true);
     const raw = this.form.getRawValue();
-    const selectedStore = this.stores.find((s) => s.id === raw.storeId);
+    const selectedStore = this.stores().find((s) => s.id === raw.storeId);
     this.userService.create({
       fullName: raw.fullName,
       email: raw.email,

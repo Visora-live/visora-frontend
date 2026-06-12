@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -10,8 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import type { CameraStatus } from '../../../core/models/camera.model';
-import { MOCK_STORES } from '../../stores/stores.mock';
 import { CameraService } from '../../../core/services/camera.service';
+import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
@@ -37,13 +37,16 @@ export class CameraEditComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly cameraService = inject(CameraService);
+  private readonly storeService = inject(StoreService);
 
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
-  protected readonly stores = MOCK_STORES;
 
   protected readonly camera = toSignal(this.cameraService.getById(this.cameraId), {
     requireSync: true,
   });
+
+  private readonly storeListRes = toSignal(this.storeService.list(), { requireSync: true });
+  protected readonly stores = computed(() => this.storeListRes().items);
 
   protected readonly form = this.fb.nonNullable.group({
     name: [this.camera()?.name ?? '', Validators.required],
@@ -71,7 +74,7 @@ export class CameraEditComponent {
     }
     this.isLoading.set(true);
     const raw = this.form.getRawValue();
-    const selectedStore = this.stores.find((s) => s.id === raw.storeId);
+    const selectedStore = this.stores().find((s) => s.id === raw.storeId);
     this.cameraService
       .update(this.cameraId, {
         name: raw.name,
