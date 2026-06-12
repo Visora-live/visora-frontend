@@ -53,21 +53,7 @@ export class CameraService {
 
   update(id: string, payload: CameraPayload) {
     const existing = MOCK_CAMERAS.find((c) => c.id === id);
-    const updated: Camera = {
-      ...(existing ?? {
-        id,
-        createdAt: '',
-        name: '',
-        storeId: '',
-        storeName: '',
-        location: '',
-        ipUrl: '',
-        resolution: '',
-        status: 'offline' as CameraStatus,
-        capabilities: { facialRecognition: false, weaponDetection: false, recording: false },
-      }),
-      ...payload,
-    };
+    const updated: Camera | null = existing ? { ...existing, ...payload } : null;
     return of(updated).pipe(delay(300));
   }
 

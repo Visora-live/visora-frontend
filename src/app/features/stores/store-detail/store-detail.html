@@ -28,17 +28,17 @@
     />
     <app-stat-card
       title="Alertas abiertas"
-      [value]="mockAlerts()"
+      [value]="openAlerts()"
       icon="notifications_active"
     />
     <app-stat-card
       title="Eventos registrados"
-      [value]="mockEvents()"
+      [value]="totalEvents()"
       icon="event_note"
     />
     <app-stat-card
       title="Alertas resueltas"
-      [value]="mockResolved()"
+      [value]="resolvedAlerts()"
       icon="check_circle"
     />
   </div>

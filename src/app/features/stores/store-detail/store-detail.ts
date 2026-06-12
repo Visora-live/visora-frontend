@@ -39,7 +39,7 @@ export class StoreDetailComponent {
     requireSync: true,
   });
 
-  protected readonly mockAlerts = computed(() => this.metricsRes().alertsOpen);
-  protected readonly mockEvents = computed(() => this.metricsRes().eventsTotal);
-  protected readonly mockResolved = computed(() => this.metricsRes().alertsResolved);
+  protected readonly openAlerts = computed(() => this.metricsRes().alertsOpen);
+  protected readonly totalEvents = computed(() => this.metricsRes().eventsTotal);
+  protected readonly resolvedAlerts = computed(() => this.metricsRes().alertsResolved);
 }

@@ -50,18 +50,7 @@ export class StoreService {
 
   update(id: string, payload: StorePayload) {
     const existing = MOCK_STORES.find((s) => s.id === id);
-    const updated: Store = {
-      ...(existing ?? {
-        id,
-        cameraCount: 0,
-        createdAt: '',
-        name: '',
-        address: '',
-        city: '',
-        status: 'active' as StoreStatus,
-      }),
-      ...payload,
-    };
+    const updated: Store | null = existing ? { ...existing, ...payload } : null;
     return of(updated).pipe(delay(300));
   }
 

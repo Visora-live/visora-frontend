@@ -3,7 +3,6 @@ import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import type { User, UserRole, UserStatus } from '../models/user.model';
 import { MOCK_USERS } from '../../features/users/users.mock';
-import { MOCK_STORES } from '../../features/stores/stores.mock';
 
 export interface UserListResponse {
   items: User[];
@@ -39,8 +38,6 @@ export interface UserUpdatePayload {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  readonly stores = MOCK_STORES;
-
   list() {
     const response: UserListResponse = {
       items: MOCK_USERS,

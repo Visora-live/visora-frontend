@@ -55,16 +55,9 @@ export class CameraDashboardComponent {
   protected readonly statusFilter = signal<StatusFilter>('all');
   protected readonly storeFilter = signal<string>('all');
 
-  protected readonly onlineCount = computed(
-    () => this.cameras().filter((c) => c.status === 'online').length,
-  );
-  protected readonly offlineCount = computed(
-    () => this.cameras().filter((c) => c.status === 'offline').length,
-  );
-  protected readonly errorCount = computed(
-    () =>
-      this.cameras().filter((c) => c.status === 'error' || c.status === 'maintenance').length,
-  );
+  protected readonly onlineCount = computed(() => this.listRes().onlineCount);
+  protected readonly offlineCount = computed(() => this.listRes().offlineCount);
+  protected readonly errorCount = computed(() => this.listRes().errorCount);
 
   protected readonly storeOptions = computed(() => {
     const m = new Map<string, string>();
