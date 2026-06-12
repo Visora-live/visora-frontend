@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { map } from 'rxjs';
-import type { Store, StoreStatus } from '../../../core/models/store.model';
+import type { StoreStatus } from '../../../core/models/store.model';
 import { StoreService } from '../../../core/services/store.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { EventService } from '../../../core/services/event.service';
@@ -105,9 +105,5 @@ export class StoreListComponent {
   protected clearFilters(): void {
     this.searchQuery.set('');
     this.statusFilter.set('all');
-  }
-
-  protected trackStore(_: number, s: Store): string {
-    return s.id;
   }
 }

@@ -13,7 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { EventSeverity, EventType } from '../../../core/models/event.model';
-import type { Alert, AlertStatus } from '../../../core/models/alert.model';
+import type { AlertStatus } from '../../../core/models/alert.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AlertService } from '../../../core/services/alert.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
@@ -164,9 +164,5 @@ export class AlertListComponent {
       system: 'settings',
     };
     return m[t];
-  }
-
-  protected trackAlert(_: number, a: Alert): string {
-    return a.id;
   }
 }

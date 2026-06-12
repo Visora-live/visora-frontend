@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { map } from 'rxjs';
-import type { User, UserRole, UserStatus } from '../../../core/models/user.model';
+import type { UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
@@ -112,9 +112,5 @@ export class UserListComponent {
     this.searchQuery.set('');
     this.roleFilter.set('all');
     this.statusFilter.set('all');
-  }
-
-  protected trackUser(_: number, u: User): string {
-    return u.id;
   }
 }

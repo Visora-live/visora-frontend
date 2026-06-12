@@ -16,7 +16,6 @@ import type {
   EventSeverity,
   EventType,
   EventStatus,
-  VisoraEvent,
 } from '../../../core/models/event.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { EventService } from '../../../core/services/event.service';
@@ -149,9 +148,5 @@ export class EventListComponent {
 
   protected statusBadge(s: EventStatus): BadgeStatus {
     return s === 'pending' ? 'suspicious' : s === 'reviewed' ? 'normal' : 'inactive';
-  }
-
-  protected trackEvent(_: number, e: VisoraEvent): string {
-    return e.id;
   }
 }
