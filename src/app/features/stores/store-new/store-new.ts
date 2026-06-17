@@ -68,6 +68,9 @@ export class StoreNewComponent {
           this.isLoading.set(false);
           this.isSuccess.set(true);
         },
+        error: () => {
+          this.isLoading.set(false);
+        },
       });
   }
 }

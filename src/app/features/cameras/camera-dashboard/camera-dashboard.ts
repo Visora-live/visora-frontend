@@ -10,15 +10,19 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import type { Camera, CameraStatus } from '../../../core/models/camera.model';
+import type { CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { CameraService } from '../../../core/services/camera.service';
+import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
 type StatusFilter = 'all' | CameraStatus;
+
+const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0, errorCount: 0 };
+const EMPTY_STORE_LIST = { items: [], total: 0 };
 
 @Component({
   selector: 'app-camera-dashboard',
@@ -42,15 +46,29 @@ type StatusFilter = 'all' | CameraStatus;
 export class CameraDashboardComponent {
   private readonly bp = inject(BreakpointObserver);
   private readonly cameraService = inject(CameraService);
+  private readonly storeService = inject(StoreService);
 
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 600px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.cameraService.list(), { requireSync: true });
+  private readonly listRes = toSignal(this.cameraService.list(), { initialValue: EMPTY_CAM_LIST });
+  private readonly storeListRes = toSignal(this.storeService.list(), { initialValue: EMPTY_STORE_LIST });
 
-  protected readonly cameras = computed(() => this.listRes().items);
+  private readonly storeMap = computed(() => {
+    const m = new Map<string, string>();
+    this.storeListRes().items.forEach((s) => m.set(s.id, s.name));
+    return m;
+  });
+
+  protected readonly cameras = computed(() =>
+    this.listRes().items.map((c) => ({
+      ...c,
+      storeName: this.storeMap().get(c.storeId) ?? c.storeName,
+    })),
+  );
+
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
   protected readonly storeFilter = signal<string>('all');
@@ -59,13 +77,11 @@ export class CameraDashboardComponent {
   protected readonly offlineCount = computed(() => this.listRes().offlineCount);
   protected readonly errorCount = computed(() => this.listRes().errorCount);
 
-  protected readonly storeOptions = computed(() => {
-    const m = new Map<string, string>();
-    this.cameras().forEach((c) => m.set(c.storeId, c.storeName));
-    return Array.from(m.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  });
+  protected readonly storeOptions = computed(() =>
+    this.storeListRes().items
+      .map((s) => ({ id: s.id, name: s.name }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  );
 
   protected readonly filteredCameras = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();

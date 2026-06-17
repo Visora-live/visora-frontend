@@ -53,7 +53,7 @@ export class StoreListComponent {
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.storeService.list(), { requireSync: true });
+  private readonly listRes = toSignal(this.storeService.list(), { initialValue: { items: [], total: 0 } });
   private readonly alertListRes = toSignal(this.alertService.list(), { requireSync: true });
   private readonly eventListRes = toSignal(this.eventService.list(), { requireSync: true });
 

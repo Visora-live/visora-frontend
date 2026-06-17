@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -42,30 +42,49 @@ export class CameraEditComponent {
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly camera = toSignal(this.cameraService.getById(this.cameraId), {
-    requireSync: true,
+    initialValue: null,
   });
 
-  private readonly storeListRes = toSignal(this.storeService.list(), { requireSync: true });
+  private readonly storeListRes = toSignal(this.storeService.list(), {
+    initialValue: { items: [], total: 0 },
+  });
   protected readonly stores = computed(() => this.storeListRes().items);
 
   protected readonly form = this.fb.nonNullable.group({
-    name: [this.camera()?.name ?? '', Validators.required],
-    storeId: [this.camera()?.storeId ?? '', Validators.required],
-    location: [this.camera()?.location ?? '', Validators.required],
-    ipUrl: [
-      this.camera()?.ipUrl ?? '',
-      [Validators.required, Validators.pattern(/^\d{1,3}(\.\d{1,3}){3}$/)],
-    ],
-    resolution: [this.camera()?.resolution ?? '1080p', Validators.required],
-    status: [this.camera()?.status ?? 'online', Validators.required],
-    capFacialRecognition: [this.camera()?.capabilities.facialRecognition ?? false],
-    capWeaponDetection: [this.camera()?.capabilities.weaponDetection ?? false],
-    capRecording: [this.camera()?.capabilities.recording ?? true],
-    notes: [this.camera()?.notes ?? '', Validators.maxLength(500)],
+    name: ['', Validators.required],
+    storeId: ['', Validators.required],
+    location: ['', Validators.required],
+    ipUrl: ['', [Validators.required, Validators.pattern(/^\d{1,3}(\.\d{1,3}){3}$/)]],
+    resolution: ['1080p', Validators.required],
+    status: ['online', Validators.required],
+    capFacialRecognition: [false],
+    capWeaponDetection: [false],
+    capRecording: [true],
+    notes: ['', Validators.maxLength(500)],
   });
 
   protected readonly isLoading = signal(false);
   protected readonly isSuccess = signal(false);
+
+  constructor() {
+    effect(() => {
+      const c = this.camera();
+      if (c) {
+        this.form.patchValue({
+          name: c.name,
+          storeId: c.storeId,
+          location: c.location,
+          ipUrl: c.ipUrl,
+          resolution: c.resolution,
+          status: c.status,
+          capFacialRecognition: c.capabilities.facialRecognition,
+          capWeaponDetection: c.capabilities.weaponDetection,
+          capRecording: c.capabilities.recording,
+          notes: c.notes ?? '',
+        });
+      }
+    });
+  }
 
   protected onSubmit(): void {
     if (this.form.invalid) {
@@ -95,6 +114,9 @@ export class CameraEditComponent {
         next: () => {
           this.isLoading.set(false);
           this.isSuccess.set(true);
+        },
+        error: () => {
+          this.isLoading.set(false);
         },
       });
   }

@@ -36,7 +36,7 @@ export class CameraNewComponent {
   private readonly cameraService = inject(CameraService);
   private readonly storeService = inject(StoreService);
 
-  private readonly storeListRes = toSignal(this.storeService.list(), { requireSync: true });
+  private readonly storeListRes = toSignal(this.storeService.list(), { initialValue: { items: [], total: 0 } });
   protected readonly stores = computed(() => this.storeListRes().items);
 
   protected readonly form = this.fb.nonNullable.group({
@@ -83,6 +83,9 @@ export class CameraNewComponent {
         next: () => {
           this.isLoading.set(false);
           this.isSuccess.set(true);
+        },
+        error: () => {
+          this.isLoading.set(false);
         },
       });
   }

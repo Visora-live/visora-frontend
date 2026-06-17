@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -38,22 +38,40 @@ export class StoreEditComponent {
   protected readonly storeId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly store = toSignal(this.storeService.getById(this.storeId), {
-    requireSync: true,
+    initialValue: null,
   });
 
   protected readonly form = this.fb.nonNullable.group({
-    name: [this.store()?.name ?? '', Validators.required],
-    address: [this.store()?.address ?? '', Validators.required],
-    city: [this.store()?.city ?? '', Validators.required],
-    manager: [this.store()?.manager ?? '', Validators.required],
-    email: [this.store()?.email ?? '', [Validators.required, Validators.email]],
-    phone: [this.store()?.phone ?? ''],
-    status: [this.store()?.status ?? 'active', Validators.required],
-    notes: [this.store()?.notes ?? '', Validators.maxLength(500)],
+    name: ['', Validators.required],
+    address: ['', Validators.required],
+    city: [''],
+    manager: [''],
+    email: ['', Validators.email],
+    phone: [''],
+    status: ['active', Validators.required],
+    notes: ['', Validators.maxLength(500)],
   });
 
   protected readonly isLoading = signal(false);
   protected readonly isSuccess = signal(false);
+
+  constructor() {
+    effect(() => {
+      const s = this.store();
+      if (s) {
+        this.form.patchValue({
+          name: s.name,
+          address: s.address,
+          city: s.city,
+          status: s.status,
+          manager: s.manager ?? '',
+          email: s.email ?? '',
+          phone: s.phone ?? '',
+          notes: s.notes ?? '',
+        });
+      }
+    });
+  }
 
   protected onSubmit(): void {
     if (this.form.invalid) {
@@ -77,6 +95,9 @@ export class StoreEditComponent {
         next: () => {
           this.isLoading.set(false);
           this.isSuccess.set(true);
+        },
+        error: () => {
+          this.isLoading.set(false);
         },
       });
   }

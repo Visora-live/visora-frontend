@@ -35,7 +35,7 @@ export class CameraDetailComponent {
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly camera = toSignal(this.cameraService.getById(this.cameraId), {
-    requireSync: true,
+    initialValue: null,
   });
 
   protected readonly recentEvents = toSignal(

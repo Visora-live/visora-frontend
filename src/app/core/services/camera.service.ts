@@ -1,9 +1,42 @@
-import { Injectable } from '@angular/core';
-import { of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import type { Camera, CameraStatus, CameraCapabilities } from '../models/camera.model';
-import { MOCK_CAMERAS } from '../../features/cameras/cameras.mock';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { catchError, map, of, switchMap } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import type { Camera, CameraStatus } from '../models/camera.model';
 import { MOCK_EVENTS } from '../../features/events/events.mock';
+
+interface BackendCamera {
+  id: number;
+  nombre: string;
+  host: string;
+  puerto: number;
+  ubicacion: string | null;
+  estado: string;
+  source_type: string;
+  protocolo: string;
+  tienda_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapBackendCamera(b: BackendCamera, storeName = ''): Camera {
+  return {
+    id: String(b.id),
+    name: b.nombre,
+    storeId: String(b.tienda_id),
+    storeName,
+    location: b.ubicacion ?? '',
+    ipUrl: b.host,
+    resolution: '1080p',
+    status: b.estado as CameraStatus,
+    capabilities: {
+      facialRecognition: false,
+      weaponDetection: false,
+      recording: true,
+    },
+    createdAt: b.created_at.slice(0, 10),
+  };
+}
 
 export interface CameraListResponse {
   items: Camera[];
@@ -21,40 +54,68 @@ export interface CameraPayload {
   ipUrl: string;
   resolution: string;
   status: CameraStatus;
-  capabilities: CameraCapabilities;
+  capabilities: { facialRecognition: boolean; weaponDetection: boolean; recording: boolean };
   notes?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class CameraService {
+  private readonly http = inject(HttpClient);
+  private readonly base = environment.apiBaseUrl;
+
   list() {
-    const response: CameraListResponse = {
-      items: MOCK_CAMERAS,
-      total: MOCK_CAMERAS.length,
-      onlineCount: MOCK_CAMERAS.filter((c) => c.status === 'online').length,
-      offlineCount: MOCK_CAMERAS.filter((c) => c.status === 'offline').length,
-      errorCount: MOCK_CAMERAS.filter((c) => c.status === 'error' || c.status === 'maintenance').length,
-    };
-    return of(response);
+    return this.http.get<BackendCamera[]>(`${this.base}/cameras`).pipe(
+      map((arr) => {
+        const items = arr.map((c) => mapBackendCamera(c));
+        return {
+          items,
+          total: items.length,
+          onlineCount: items.filter((c) => c.status === 'online').length,
+          offlineCount: items.filter((c) => c.status === 'offline').length,
+          errorCount: items.filter((c) => c.status === 'error' || c.status === 'maintenance').length,
+        };
+      }),
+    );
   }
 
   getById(id: string) {
-    return of(MOCK_CAMERAS.find((c) => c.id === id) ?? null);
+    return this.http.get<BackendCamera>(`${this.base}/cameras/${id}`).pipe(
+      switchMap((cam) =>
+        this.http
+          .get<{ id: number; nombre: string }>(`${this.base}/stores/${cam.tienda_id}`)
+          .pipe(
+            map((store) => mapBackendCamera(cam, store.nombre)),
+            catchError(() => of(mapBackendCamera(cam, ''))),
+          ),
+      ),
+      catchError(() => of(null)),
+    );
   }
 
   create(payload: CameraPayload) {
-    const newCamera: Camera = {
-      ...payload,
-      id: `cam-${String(MOCK_CAMERAS.length + 1).padStart(3, '0')}`,
-      createdAt: new Date().toISOString().slice(0, 10),
+    const body = {
+      nombre: payload.name,
+      host: payload.ipUrl,
+      tienda_id: Number(payload.storeId),
+      ubicacion: payload.location || null,
+      estado: payload.status,
     };
-    return of(newCamera).pipe(delay(300));
+    return this.http.post<BackendCamera>(`${this.base}/cameras`, body).pipe(
+      map((b) => mapBackendCamera(b)),
+    );
   }
 
   update(id: string, payload: CameraPayload) {
-    const existing = MOCK_CAMERAS.find((c) => c.id === id);
-    const updated: Camera | null = existing ? { ...existing, ...payload } : null;
-    return of(updated).pipe(delay(300));
+    const body = {
+      nombre: payload.name,
+      host: payload.ipUrl,
+      tienda_id: Number(payload.storeId),
+      ubicacion: payload.location || null,
+      estado: payload.status,
+    };
+    return this.http.patch<BackendCamera>(`${this.base}/cameras/${id}`, body).pipe(
+      map((b) => mapBackendCamera(b)),
+    );
   }
 
   getRecentEvents(cameraId: string, limit = 5) {

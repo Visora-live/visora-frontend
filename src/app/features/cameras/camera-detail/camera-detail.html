@@ -18,7 +18,7 @@
 
   <app-page-header
     [title]="c.name"
-    [subtitle]="c.storeName + ' · ' + c.location"
+    [subtitle]="c.storeName ? c.storeName + ' · ' + c.location : c.location"
   >
     <button mat-stroked-button routerLink="/cameras">
       <mat-icon>arrow_back</mat-icon>

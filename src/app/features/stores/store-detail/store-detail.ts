@@ -32,7 +32,7 @@ export class StoreDetailComponent {
   protected readonly storeId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly store = toSignal(this.storeService.getById(this.storeId), {
-    requireSync: true,
+    initialValue: null,
   });
 
   private readonly metricsRes = toSignal(this.storeService.getMetricsByStore(this.storeId), {
