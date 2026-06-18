@@ -33,7 +33,7 @@ export class UserDetailComponent {
   protected readonly userId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly user = toSignal(this.userService.getById(this.userId), {
-    requireSync: true,
+    initialValue: null,
   });
 
   protected roleLabel(role: UserRole): string {

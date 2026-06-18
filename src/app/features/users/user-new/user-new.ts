@@ -8,9 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import type { UserRole, UserStatus } from '../../../core/models/user.model';
+import type { UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { StoreService } from '../../../core/services/store.service';
+import { RoleService } from '../../../core/services/role.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
 @Component({
@@ -33,14 +34,18 @@ export class UserNewComponent {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly storeService = inject(StoreService);
+  private readonly roleService = inject(RoleService);
 
-  private readonly storeListRes = toSignal(this.storeService.list(), { requireSync: true });
+  private readonly storeListRes = toSignal(this.storeService.list(), { initialValue: { items: [], total: 0 } });
   protected readonly stores = computed(() => this.storeListRes().items);
+
+  private readonly roleListRes = toSignal(this.roleService.list(), { initialValue: [] });
+  protected readonly roles = computed(() => this.roleListRes());
 
   protected readonly form = this.fb.nonNullable.group({
     fullName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    role: ['operator', Validators.required],
+    roleId: [0, [Validators.required, Validators.min(1)]],
     storeId: [''],
     phone: [''],
     status: ['active', Validators.required],
@@ -57,20 +62,21 @@ export class UserNewComponent {
     }
     this.isLoading.set(true);
     const raw = this.form.getRawValue();
-    const selectedStore = this.stores().find((s) => s.id === raw.storeId);
     this.userService.create({
       fullName: raw.fullName,
       email: raw.email,
-      role: raw.role as UserRole,
+      roleId: raw.roleId,
       status: raw.status as UserStatus,
       storeId: raw.storeId || undefined,
-      storeName: selectedStore?.name || undefined,
       phone: raw.phone || undefined,
       notes: raw.notes || undefined,
     }).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.isSuccess.set(true);
+      },
+      error: () => {
+        this.isLoading.set(false);
       },
     });
   }

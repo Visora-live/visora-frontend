@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -8,9 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import type { UserRole, UserStatus } from '../../../core/models/user.model';
+import type { UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { StoreService } from '../../../core/services/store.service';
+import { RoleService } from '../../../core/services/role.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
@@ -36,28 +37,51 @@ export class UserEditComponent {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly storeService = inject(StoreService);
+  private readonly roleService = inject(RoleService);
 
   protected readonly userId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly user = toSignal(this.userService.getById(this.userId), {
-    requireSync: true,
+    initialValue: null,
   });
 
-  private readonly storeListRes = toSignal(this.storeService.list(), { requireSync: true });
+  private readonly storeListRes = toSignal(this.storeService.list(), {
+    initialValue: { items: [], total: 0 },
+  });
   protected readonly stores = computed(() => this.storeListRes().items);
 
+  private readonly roleListRes = toSignal(this.roleService.list(), { initialValue: [] });
+  protected readonly roles = computed(() => this.roleListRes());
+
   protected readonly form = this.fb.nonNullable.group({
-    fullName: [this.user()?.fullName ?? '', Validators.required],
-    email: [this.user()?.email ?? '', [Validators.required, Validators.email]],
-    role: [this.user()?.role ?? 'operator', Validators.required],
-    storeId: [this.user()?.storeId ?? ''],
-    phone: [this.user()?.phone ?? ''],
-    status: [this.user()?.status ?? 'active', Validators.required],
-    notes: [this.user()?.notes ?? '', Validators.maxLength(500)],
+    fullName: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    roleId: [0, [Validators.required, Validators.min(1)]],
+    storeId: [''],
+    phone: [''],
+    status: ['active', Validators.required],
+    notes: ['', Validators.maxLength(500)],
   });
 
   protected readonly isLoading = signal(false);
   protected readonly isSuccess = signal(false);
+
+  constructor() {
+    effect(() => {
+      const u = this.user();
+      if (u) {
+        this.form.patchValue({
+          fullName: u.fullName,
+          email: u.email,
+          roleId: u.roleId ?? 0,
+          storeId: u.storeId ?? '',
+          phone: u.phone ?? '',
+          status: u.status,
+          notes: u.notes ?? '',
+        });
+      }
+    });
+  }
 
   protected onSubmit(): void {
     if (this.form.invalid) {
@@ -66,20 +90,21 @@ export class UserEditComponent {
     }
     this.isLoading.set(true);
     const raw = this.form.getRawValue();
-    const selectedStore = this.stores().find((s) => s.id === raw.storeId);
     this.userService.update(this.userId, {
       fullName: raw.fullName,
       email: raw.email,
-      role: raw.role as UserRole,
+      roleId: raw.roleId,
       status: raw.status as UserStatus,
       storeId: raw.storeId || undefined,
-      storeName: selectedStore?.name ?? this.user()?.storeName ?? undefined,
       phone: raw.phone || undefined,
       notes: raw.notes || undefined,
     }).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.isSuccess.set(true);
+      },
+      error: () => {
+        this.isLoading.set(false);
       },
     });
   }

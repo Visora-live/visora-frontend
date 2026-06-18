@@ -50,7 +50,9 @@ export class UserListComponent {
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.userService.list(), { requireSync: true });
+  private readonly listRes = toSignal(this.userService.list(), {
+    initialValue: { items: [], total: 0, activeCount: 0, adminCount: 0, operatorCount: 0, inactiveCount: 0 },
+  });
 
   protected readonly users = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');

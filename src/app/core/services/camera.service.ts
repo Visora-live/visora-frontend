@@ -27,9 +27,10 @@ function mapBackendCamera(b: BackendCamera, storeName = ''): Camera {
     storeName,
     location: b.ubicacion ?? '',
     ipUrl: b.host,
-    resolution: '1080p',
+    resolution: '1080p', // backend has no resolution field; fixed default until backend adds it
     status: b.estado as CameraStatus,
     capabilities: {
+      // backend has no capabilities fields; all default until backend adds them
       facialRecognition: false,
       weaponDetection: false,
       recording: true,
@@ -114,6 +115,12 @@ export class CameraService {
       estado: payload.status,
     };
     return this.http.patch<BackendCamera>(`${this.base}/cameras/${id}`, body).pipe(
+      map((b) => mapBackendCamera(b)),
+    );
+  }
+
+  delete(id: string) {
+    return this.http.delete<BackendCamera>(`${this.base}/cameras/${id}`).pipe(
       map((b) => mapBackendCamera(b)),
     );
   }

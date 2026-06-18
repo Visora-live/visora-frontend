@@ -34,7 +34,7 @@ export class StoreNewComponent {
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     address: ['', Validators.required],
-    city: ['', Validators.required],
+    city: [''],
     manager: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     phone: [''],

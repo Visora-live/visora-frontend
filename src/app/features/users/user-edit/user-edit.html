@@ -101,12 +101,12 @@
           <mat-form-field appearance="outline" class="field">
             <mat-label>Rol</mat-label>
             <mat-icon matPrefix aria-hidden="true">admin_panel_settings</mat-icon>
-            <mat-select formControlName="role">
-              <mat-option value="admin">Administrador</mat-option>
-              <mat-option value="operator">Operador</mat-option>
-              <mat-option value="viewer">Visualizador</mat-option>
+            <mat-select formControlName="roleId">
+              @for (role of roles(); track role.id) {
+                <mat-option [value]="role.id">{{ role.name }}</mat-option>
+              }
             </mat-select>
-            @if (form.controls.role.hasError('required')) {
+            @if (form.controls.roleId.invalid && form.controls.roleId.dirty) {
               <mat-error>El rol es obligatorio.</mat-error>
             }
           </mat-form-field>

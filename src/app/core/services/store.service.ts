@@ -23,9 +23,9 @@ function mapBackendStore(b: BackendStore): Store {
     id: String(b.id),
     name: b.nombre,
     address: b.direccion ?? '',
-    city: '',
+    city: '', // backend has no city field; always empty until backend adds it
     status: b.estado === 'activa' ? 'active' : 'inactive',
-    cameraCount: 0,
+    cameraCount: 0, // backend StoreResponse has no cameraCount; stays 0 until a count endpoint exists
     createdAt: b.created_at.slice(0, 10),
   };
 }
@@ -92,7 +92,15 @@ export class StoreService {
     );
   }
 
+  delete(id: string) {
+    return this.http.delete<BackendStore>(`${this.base}/stores/${id}`).pipe(
+      map((b) => mapBackendStore(b)),
+    );
+  }
+
   getMetricsByStore(id: string) {
+    // Metrics are mock-only. Backend IDs are numeric strings ("1", "2", …) while
+    // mock data uses "store-001" style — counts will always be 0 until alerts/events connect.
     const metrics: StoreMetrics = {
       alertsOpen: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'open').length,
       alertsResolved: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'resolved').length,
