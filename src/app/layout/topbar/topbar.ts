@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { AuthService } from '../../core/services/auth.service';
 
 const PAGE_TITLES: Record<string, string> = {
   dashboard: 'Panel principal',
@@ -25,6 +26,7 @@ export class TopbarComponent {
   readonly menuToggle = output<void>();
 
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   protected readonly pageTitle = toSignal(
     this.router.events.pipe(
@@ -40,6 +42,7 @@ export class TopbarComponent {
   }
 
   protected logout(): void {
+    this.auth.logout();
     void this.router.navigate(['/login']);
   }
 
