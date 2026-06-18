@@ -15,10 +15,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(outgoing).pipe(
     catchError((err) => {
-      // Skip global 401 handling for the login endpoint — LoginComponent shows its own message.
-      if (err.status === 401 && !req.url.endsWith('/auth/login')) {
-        auth.logout();
-        void router.navigate(['/login']);
+      // Skip global error handling for the login endpoint — LoginComponent shows its own messages.
+      if (!req.url.endsWith('/auth/login')) {
+        if (err.status === 401) {
+          auth.logout();
+          void router.navigate(['/login']);
+        } else if (err.status === 403) {
+          void router.navigate(['/unauthorized']);
+        }
       }
       return throwError(() => err);
     }),
