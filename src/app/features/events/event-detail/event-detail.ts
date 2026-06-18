@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -38,13 +38,20 @@ export class EventDetailComponent {
   protected readonly eventId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly event = toSignal(this.eventService.getById(this.eventId), {
-    requireSync: true,
+    initialValue: null,
   });
 
-  protected readonly currentStatus = signal<EventStatus>(
-    this.event()?.status ?? 'pending',
-  );
+  protected readonly currentStatus = signal<EventStatus>('pending');
   protected readonly actionDone = signal<'reviewed' | 'dismissed' | null>(null);
+
+  constructor() {
+    effect(() => {
+      const e = this.event();
+      if (e && this.actionDone() === null) {
+        this.currentStatus.set(e.status);
+      }
+    });
+  }
 
   protected markReviewed(): void {
     this.eventService.updateStatus(this.eventId, 'reviewed').subscribe({

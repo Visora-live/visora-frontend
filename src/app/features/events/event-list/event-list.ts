@@ -58,7 +58,9 @@ export class EventListComponent {
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.eventService.list(), { requireSync: true });
+  private readonly listRes = toSignal(this.eventService.list(), {
+    initialValue: { items: [], total: 0, todayCount: 0, criticalCount: 0, suspiciousCount: 0, evidenceCount: 0 },
+  });
 
   protected readonly events = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');

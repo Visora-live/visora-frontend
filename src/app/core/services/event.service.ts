@@ -1,8 +1,77 @@
-import { Injectable } from '@angular/core';
-import { of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import type { VisoraEvent, EventStatus } from '../models/event.model';
-import { MOCK_EVENTS } from '../../features/events/events.mock';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import type { VisoraEvent, EventType, EventSeverity, EventStatus } from '../models/event.model';
+
+interface BackendEvent {
+  id: number;
+  tipo: string;
+  severidad: string;
+  estado: string;
+  fecha_hora: string;
+  comentario: string | null;
+  camara_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface BackendCameraMin {
+  id: number;
+  nombre: string;
+  ubicacion: string | null;
+  tienda_id: number;
+}
+
+interface BackendStoreMin {
+  id: number;
+  nombre: string;
+}
+
+function mapTipo(t: string): EventType {
+  const n = t.toLowerCase();
+  if (n === 'facial_recognition' || n.includes('facial') || n.includes('reconocimiento')) return 'facial_recognition';
+  if (n === 'weapon_detection' || n.includes('arma') || n.includes('weapon')) return 'weapon_detection';
+  if (n === 'system' || n === 'sistema') return 'system';
+  return 'suspicious_activity';
+}
+
+function mapSeveridad(s: string): EventSeverity {
+  const n = s.toLowerCase();
+  if (n === 'normal' || n === 'baja') return 'normal';
+  if (n === 'critical' || n === 'critica' || n === 'alta') return 'critical';
+  return 'suspicious'; // 'media' → suspicious
+}
+
+function mapEstadoEvento(s: string): EventStatus {
+  if (s === 'revisado' || s === 'reviewed') return 'reviewed';
+  if (s === 'descartado' || s === 'dismissed' || s === 'cerrado') return 'dismissed';
+  return 'pending'; // 'abierto'/'pendiente' → pending
+}
+
+function mapEvent(
+  b: BackendEvent,
+  cameraName: string,
+  storeId: string,
+  storeName: string,
+  location: string,
+): VisoraEvent {
+  return {
+    id: String(b.id),
+    cameraId: String(b.camara_id),
+    cameraName,
+    storeId,
+    storeName,
+    location,
+    severity: mapSeveridad(b.severidad),
+    type: mapTipo(b.tipo),
+    status: mapEstadoEvento(b.estado),
+    description: b.comentario ?? '',
+    timestamp: b.fecha_hora,
+    evidence: [],         // backend events have no evidence — evidenceCount stat will be 0
+    recommendedActions: [], // backend events have no recommended actions
+  };
+}
 
 export interface EventListResponse {
   items: VisoraEvent[];
@@ -15,27 +84,91 @@ export interface EventListResponse {
 
 @Injectable({ providedIn: 'root' })
 export class EventService {
-  private readonly today = new Date().toISOString().slice(0, 10);
+  private readonly http = inject(HttpClient);
+  private readonly base = environment.apiBaseUrl;
 
   list() {
-    const response: EventListResponse = {
-      items: MOCK_EVENTS,
-      total: MOCK_EVENTS.length,
-      todayCount: MOCK_EVENTS.filter((e) => e.timestamp.startsWith(this.today)).length,
-      criticalCount: MOCK_EVENTS.filter((e) => e.severity === 'critical').length,
-      suspiciousCount: MOCK_EVENTS.filter((e) => e.severity === 'suspicious').length,
-      evidenceCount: MOCK_EVENTS.reduce((acc, e) => acc + e.evidence.length, 0),
-    };
-    return of(response);
+    return forkJoin([
+      this.http.get<BackendEvent[]>(`${this.base}/events`),
+      this.http.get<BackendCameraMin[]>(`${this.base}/cameras`).pipe(catchError(() => of([] as BackendCameraMin[]))),
+      this.http.get<BackendStoreMin[]>(`${this.base}/stores`).pipe(catchError(() => of([] as BackendStoreMin[]))),
+    ]).pipe(
+      map(([events, cameras, stores]) => {
+        const camMap = new Map(cameras.map((c) => [c.id, c]));
+        const storeMap = new Map(stores.map((s) => [s.id, s.nombre]));
+        const today = new Date().toISOString().slice(0, 10);
+        const items = events.map((e) => {
+          const cam = camMap.get(e.camara_id);
+          return mapEvent(
+            e,
+            cam?.nombre ?? `Cámara ${e.camara_id}`,
+            cam ? String(cam.tienda_id) : '',
+            cam ? (storeMap.get(cam.tienda_id) ?? '') : '',
+            cam?.ubicacion ?? '',
+          );
+        });
+        return {
+          items,
+          total: items.length,
+          todayCount: items.filter((e) => e.timestamp.startsWith(today)).length,
+          criticalCount: items.filter((e) => e.severity === 'critical').length,
+          suspiciousCount: items.filter((e) => e.severity === 'suspicious').length,
+          evidenceCount: 0, // evidence not stored in backend events
+        };
+      }),
+    );
   }
 
   getById(id: string) {
-    return of(MOCK_EVENTS.find((e) => e.id === id) ?? null);
+    return this.http.get<BackendEvent>(`${this.base}/events/${id}`).pipe(
+      switchMap((evt) =>
+        this.http.get<BackendCameraMin>(`${this.base}/cameras/${evt.camara_id}`).pipe(
+          catchError(() => of(null as BackendCameraMin | null)),
+          switchMap((cam) => {
+            if (!cam) return of(mapEvent(evt, `Cámara ${evt.camara_id}`, '', '', ''));
+            return this.http.get<BackendStoreMin>(`${this.base}/stores/${cam.tienda_id}`).pipe(
+              catchError(() => of(null as BackendStoreMin | null)),
+              map((store) =>
+                mapEvent(evt, cam.nombre, String(cam.tienda_id), store?.nombre ?? '', cam.ubicacion ?? ''),
+              ),
+            );
+          }),
+        ),
+      ),
+      catchError(() => of(null)),
+    );
   }
 
   updateStatus(id: string, status: EventStatus) {
-    const event = MOCK_EVENTS.find((e) => e.id === id);
-    const updated: VisoraEvent | null = event ? { ...event, status } : null;
-    return of(updated).pipe(delay(300));
+    const estadoMap: Record<EventStatus, string> = {
+      pending: 'abierto',
+      reviewed: 'revisado',
+      dismissed: 'descartado',
+    };
+    return this.http
+      .patch<BackendEvent>(`${this.base}/events/${id}`, { estado: estadoMap[status] })
+      .pipe(
+        map((e) => mapEvent(e, '', '', '', '')),
+        catchError(() => of(null)),
+      );
+  }
+
+  create(payload: { tipo: string; severidad: string; camaraId: number; comentario?: string }) {
+    const body = {
+      tipo: payload.tipo,
+      severidad: payload.severidad,
+      camara_id: payload.camaraId,
+      comentario: payload.comentario ?? null,
+    };
+    return this.http.post<BackendEvent>(`${this.base}/events`, body).pipe(
+      map((e) => mapEvent(e, '', '', '', '')),
+    );
+  }
+
+  delete(id: string) {
+    return this.http.delete<BackendEvent>(`${this.base}/events/${id}`).pipe(
+      map((e) => mapEvent(e, '', '', '', '')),
+      catchError(() => of(null)),
+    );
   }
 }

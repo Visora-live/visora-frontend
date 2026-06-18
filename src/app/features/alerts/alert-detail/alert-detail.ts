@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -35,11 +35,20 @@ export class AlertDetailComponent {
   protected readonly alertId = this.route.snapshot.paramMap.get('id') ?? '';
 
   protected readonly alert = toSignal(this.alertService.getById(this.alertId), {
-    requireSync: true,
+    initialValue: null,
   });
 
-  protected readonly currentStatus = signal<AlertStatus>(this.alert()?.status ?? 'open');
+  protected readonly currentStatus = signal<AlertStatus>('open');
   protected readonly actionDone = signal<'acknowledged' | 'resolved' | null>(null);
+
+  constructor() {
+    effect(() => {
+      const a = this.alert();
+      if (a && this.actionDone() === null) {
+        this.currentStatus.set(a.status);
+      }
+    });
+  }
 
   protected markAcknowledged(): void {
     this.alertService.acknowledge(this.alertId).subscribe({

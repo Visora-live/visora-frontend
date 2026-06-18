@@ -54,7 +54,9 @@ export class AlertListComponent {
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.alertService.list(), { requireSync: true });
+  private readonly listRes = toSignal(this.alertService.list(), {
+    initialValue: { items: [], total: 0, openCount: 0, criticalCount: 0, acknowledgedCount: 0, resolvedCount: 0 },
+  });
 
   protected readonly alerts = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
