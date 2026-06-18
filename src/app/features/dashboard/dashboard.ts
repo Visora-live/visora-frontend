@@ -27,22 +27,22 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
 export class DashboardComponent {
   private readonly service = inject(DashboardService);
 
-  private readonly metrics = toSignal(this.service.getMetrics(), { initialValue: null });
+  private readonly data = toSignal(this.service.getAll(5), { initialValue: null });
 
-  protected readonly recentAlerts = toSignal(this.service.getRecentAlerts(5), { initialValue: [] });
-  protected readonly recentEvents = toSignal(this.service.getRecentEvents(5), { initialValue: [] });
+  protected readonly recentAlerts = computed(() => this.data()?.recentAlerts ?? []);
+  protected readonly recentEvents = computed(() => this.data()?.recentEvents ?? []);
 
   // Stat cards
-  protected readonly activeStores = computed(() => this.metrics()?.activeStores ?? 0);
-  protected readonly onlineCameras = computed(() => this.metrics()?.onlineCameras ?? 0);
-  protected readonly openAlerts = computed(() => this.metrics()?.openAlerts ?? 0);
-  protected readonly totalEvents = computed(() => this.metrics()?.totalEvents ?? 0);
+  protected readonly activeStores = computed(() => this.data()?.metrics.activeStores ?? 0);
+  protected readonly onlineCameras = computed(() => this.data()?.metrics.onlineCameras ?? 0);
+  protected readonly openAlerts = computed(() => this.data()?.metrics.openAlerts ?? 0);
+  protected readonly totalEvents = computed(() => this.data()?.metrics.totalEvents ?? 0);
 
   // System status
-  protected readonly offlineCameras = computed(() => this.metrics()?.offlineCameras ?? 0);
-  protected readonly maintenanceCameras = computed(() => this.metrics()?.maintenanceCameras ?? 0);
-  protected readonly criticalAlerts = computed(() => this.metrics()?.criticalAlerts ?? 0);
-  protected readonly suspiciousEvents = computed(() => this.metrics()?.suspiciousEvents ?? 0);
+  protected readonly offlineCameras = computed(() => this.data()?.metrics.offlineCameras ?? 0);
+  protected readonly maintenanceCameras = computed(() => this.data()?.metrics.maintenanceCameras ?? 0);
+  protected readonly criticalAlerts = computed(() => this.data()?.metrics.criticalAlerts ?? 0);
+  protected readonly suspiciousEvents = computed(() => this.data()?.metrics.suspiciousEvents ?? 0);
 
   protected severityBadge(severity: string): BadgeStatus {
     const map: Record<string, BadgeStatus> = {
