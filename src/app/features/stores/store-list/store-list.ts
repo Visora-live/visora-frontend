@@ -10,11 +10,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { map } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 import type { StoreStatus } from '../../../core/models/store.model';
 import { StoreService } from '../../../core/services/store.service';
-import { AlertService } from '../../../core/services/alert.service';
-import { EventService } from '../../../core/services/event.service';
+import { AlertService, type AlertListResponse } from '../../../core/services/alert.service';
+import { EventService, type EventListResponse } from '../../../core/services/event.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
@@ -53,9 +53,16 @@ export class StoreListComponent {
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.storeService.list(), { initialValue: { items: [], total: 0 } });
-  private readonly alertListRes = toSignal(this.alertService.list(), { requireSync: true });
-  private readonly eventListRes = toSignal(this.eventService.list(), { requireSync: true });
+  private readonly listRes = toSignal(
+    this.storeService.list().pipe(catchError(() => of({ items: [], total: 0 }))),
+    { initialValue: { items: [], total: 0 } },
+  );
+  private readonly alertListRes = toSignal(this.alertService.list(), {
+    initialValue: { items: [], total: 0, openCount: 0, criticalCount: 0, acknowledgedCount: 0, resolvedCount: 0 } as AlertListResponse,
+  });
+  private readonly eventListRes = toSignal(this.eventService.list(), {
+    initialValue: { items: [], total: 0, todayCount: 0, criticalCount: 0, suspiciousCount: 0, evidenceCount: 0 } as EventListResponse,
+  });
 
   protected readonly stores = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
