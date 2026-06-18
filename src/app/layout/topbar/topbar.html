@@ -18,17 +18,22 @@
     mat-button
     class="user-btn"
     [matMenuTriggerFor]="userMenu"
-    aria-label="Menú de usuario — Admin"
+    [attr.aria-label]="'Menú de usuario — ' + displayName()"
   >
-    <div class="user-avatar" aria-hidden="true">AD</div>
-    <span class="user-name">Admin</span>
+    <div class="user-avatar" aria-hidden="true">{{ avatarInitials() }}</div>
+    <span class="user-name">{{ displayName() }}</span>
     <mat-icon aria-hidden="true">expand_more</mat-icon>
   </button>
 
   <mat-menu #userMenu="matMenu">
-    <button mat-menu-item disabled aria-disabled="true">
+    <button mat-menu-item disabled class="user-menu-header" aria-disabled="true">
       <mat-icon>person</mat-icon>
-      <span>Perfil próximamente</span>
+      <span class="user-menu-info">
+        <span class="user-menu-name">{{ displayName() }}</span>
+        @if (displayRole()) {
+          <span class="user-menu-role">{{ displayRole() }}</span>
+        }
+      </span>
     </button>
     <button mat-menu-item (click)="logout()">
       <mat-icon>logout</mat-icon>

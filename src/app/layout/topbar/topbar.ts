@@ -1,6 +1,6 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, computed, inject, output } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter, map, startWith } from 'rxjs';
+import { catchError, filter, map, of, startWith } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -36,6 +36,18 @@ export class TopbarComponent {
     ),
     { initialValue: '' },
   );
+
+  private readonly currentUser = toSignal(
+    this.auth.getCurrentUser().pipe(catchError(() => of(null))),
+    { initialValue: null },
+  );
+
+  protected readonly displayName = computed(() => this.currentUser()?.username ?? '—');
+  protected readonly displayRole = computed(() => this.currentUser()?.rol_nombre ?? '');
+  protected readonly avatarInitials = computed(() => {
+    const u = this.currentUser()?.username;
+    return u ? u.slice(0, 2).toUpperCase() : '—';
+  });
 
   protected onMenuToggle(): void {
     this.menuToggle.emit();

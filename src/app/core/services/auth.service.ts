@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { LoginRequest, TokenResponse } from '../models/auth.model';
+import type { CurrentUser, LoginRequest, TokenResponse } from '../models/auth.model';
 
 const TOKEN_KEY = 'visora_access_token';
 const TOKEN_TYPE_KEY = 'visora_token_type';
@@ -33,5 +33,9 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return this.getToken() !== null;
+  }
+
+  getCurrentUser() {
+    return this.http.get<CurrentUser>(`${this.base}/auth/me`);
   }
 }
