@@ -27,10 +27,10 @@ function mapBackendCamera(b: BackendCamera, storeName = ''): Camera {
     storeName,
     location: b.ubicacion ?? '',
     ipUrl: b.host,
-    resolution: '1080p', // backend has no resolution field; fixed default until backend adds it
+    port: b.puerto,
+    resolution: '1080p',
     status: b.estado as CameraStatus,
     capabilities: {
-      // backend has no capabilities fields; all default until backend adds them
       facialRecognition: false,
       weaponDetection: false,
       recording: true,
@@ -53,10 +53,8 @@ export interface CameraPayload {
   storeName: string;
   location: string;
   ipUrl: string;
-  resolution: string;
+  port?: number;
   status: CameraStatus;
-  capabilities: { facialRecognition: boolean; weaponDetection: boolean; recording: boolean };
-  notes?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -97,6 +95,7 @@ export class CameraService {
     const body = {
       nombre: payload.name,
       host: payload.ipUrl,
+      puerto: payload.port ?? 8080,
       tienda_id: Number(payload.storeId),
       ubicacion: payload.location || null,
       estado: payload.status,
@@ -110,6 +109,7 @@ export class CameraService {
     const body = {
       nombre: payload.name,
       host: payload.ipUrl,
+      puerto: payload.port ?? 8080,
       tienda_id: Number(payload.storeId),
       ubicacion: payload.location || null,
       estado: payload.status,

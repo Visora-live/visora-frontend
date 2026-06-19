@@ -3,7 +3,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -20,7 +19,6 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
     RouterLink,
     ReactiveFormsModule,
     MatButtonModule,
-    MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -44,12 +42,8 @@ export class CameraNewComponent {
     storeId: ['', Validators.required],
     location: ['', Validators.required],
     ipUrl: ['', [Validators.required, Validators.pattern(/^\d{1,3}(\.\d{1,3}){3}$/)]],
-    resolution: ['1080p', Validators.required],
+    port: [8080, [Validators.required, Validators.min(1), Validators.max(65535)]],
     status: ['online', Validators.required],
-    capFacialRecognition: [false],
-    capWeaponDetection: [false],
-    capRecording: [true],
-    notes: ['', Validators.maxLength(500)],
   });
 
   protected readonly isLoading = signal(false);
@@ -70,14 +64,8 @@ export class CameraNewComponent {
         storeName: selectedStore?.name ?? '',
         location: raw.location,
         ipUrl: raw.ipUrl,
-        resolution: raw.resolution,
+        port: raw.port,
         status: raw.status as CameraStatus,
-        capabilities: {
-          facialRecognition: raw.capFacialRecognition,
-          weaponDetection: raw.capWeaponDetection,
-          recording: raw.capRecording,
-        },
-        notes: raw.notes || undefined,
       })
       .subscribe({
         next: () => {

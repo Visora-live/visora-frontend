@@ -52,9 +52,6 @@ export interface UserCreatePayload {
   roleId: number;
   password: string;
   status: UserStatus;
-  storeId?: string;
-  phone?: string;
-  notes?: string;
 }
 
 export interface UserUpdatePayload {
@@ -62,9 +59,6 @@ export interface UserUpdatePayload {
   email?: string;
   roleId?: number;
   status?: UserStatus;
-  storeId?: string;
-  phone?: string;
-  notes?: string;
 }
 
 @Injectable({ providedIn: 'root' })

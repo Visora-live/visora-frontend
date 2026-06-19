@@ -10,7 +10,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import type { UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
-import { StoreService } from '../../../core/services/store.service';
 import { RoleService } from '../../../core/services/role.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
@@ -36,7 +35,6 @@ export class UserEditComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
-  private readonly storeService = inject(StoreService);
   private readonly roleService = inject(RoleService);
 
   protected readonly userId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -45,11 +43,6 @@ export class UserEditComponent {
     initialValue: null,
   });
 
-  private readonly storeListRes = toSignal(this.storeService.list(), {
-    initialValue: { items: [], total: 0 },
-  });
-  protected readonly stores = computed(() => this.storeListRes().items);
-
   private readonly roleListRes = toSignal(this.roleService.list(), { initialValue: [] });
   protected readonly roles = computed(() => this.roleListRes());
 
@@ -57,10 +50,7 @@ export class UserEditComponent {
     fullName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     roleId: [0, [Validators.required, Validators.min(1)]],
-    storeId: [''],
-    phone: [''],
     status: ['active', Validators.required],
-    notes: ['', Validators.maxLength(500)],
   });
 
   protected readonly isLoading = signal(false);
@@ -74,10 +64,7 @@ export class UserEditComponent {
           fullName: u.fullName,
           email: u.email,
           roleId: u.roleId ?? 0,
-          storeId: u.storeId ?? '',
-          phone: u.phone ?? '',
           status: u.status,
-          notes: u.notes ?? '',
         });
       }
     });
@@ -95,9 +82,6 @@ export class UserEditComponent {
       email: raw.email,
       roleId: raw.roleId,
       status: raw.status as UserStatus,
-      storeId: raw.storeId || undefined,
-      phone: raw.phone || undefined,
-      notes: raw.notes || undefined,
     }).subscribe({
       next: () => {
         this.isLoading.set(false);

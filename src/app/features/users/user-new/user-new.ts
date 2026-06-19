@@ -10,7 +10,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import type { UserStatus } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
-import { StoreService } from '../../../core/services/store.service';
 import { RoleService } from '../../../core/services/role.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
@@ -33,11 +32,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 export class UserNewComponent {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
-  private readonly storeService = inject(StoreService);
   private readonly roleService = inject(RoleService);
-
-  private readonly storeListRes = toSignal(this.storeService.list(), { initialValue: { items: [], total: 0 } });
-  protected readonly stores = computed(() => this.storeListRes().items);
 
   private readonly roleListRes = toSignal(this.roleService.list(), { initialValue: [] });
   protected readonly roles = computed(() => this.roleListRes());
@@ -47,10 +42,7 @@ export class UserNewComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     roleId: [0, [Validators.required, Validators.min(1)]],
-    storeId: [''],
-    phone: [''],
     status: ['active', Validators.required],
-    notes: ['', Validators.maxLength(500)],
   });
 
   protected readonly isLoading = signal(false);
@@ -69,9 +61,6 @@ export class UserNewComponent {
       password: raw.password,
       roleId: raw.roleId,
       status: raw.status as UserStatus,
-      storeId: raw.storeId || undefined,
-      phone: raw.phone || undefined,
-      notes: raw.notes || undefined,
     }).subscribe({
       next: () => {
         this.isLoading.set(false);

@@ -3,7 +3,7 @@
 
   <app-page-header
     [title]="s.name"
-    [subtitle]="s.address + ' · ' + s.city"
+    [subtitle]="s.address"
   >
     <button mat-stroked-button routerLink="/stores">
       <mat-icon>arrow_back</mat-icon>
@@ -65,21 +65,15 @@
           <span class="info-value">{{ s.address }}</span>
         </div>
 
-        <div class="info-item">
-          <span class="info-label">
-            <mat-icon aria-hidden="true">apartment</mat-icon>
-            Ciudad / Distrito
-          </span>
-          <span class="info-value">{{ s.city }}</span>
-        </div>
-
-        <div class="info-item">
-          <span class="info-label">
-            <mat-icon aria-hidden="true">person</mat-icon>
-            Responsable
-          </span>
-          <span class="info-value">{{ s.manager || '—' }}</span>
-        </div>
+        @if (s.ruc) {
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon aria-hidden="true">badge</mat-icon>
+              RUC
+            </span>
+            <span class="info-value">{{ s.ruc }}</span>
+          </div>
+        }
 
         <div class="info-item">
           <span class="info-label">

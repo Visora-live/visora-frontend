@@ -13,11 +13,12 @@ export interface Camera {
   storeName: string;
   location: string;
   ipUrl: string;
-  resolution: string;
+  port?: number;
+  resolution: string;           // frontend-only; backend has no resolution field
   status: CameraStatus;
-  capabilities: CameraCapabilities;
+  capabilities: CameraCapabilities; // frontend-only; backend has no capabilities fields
   lastEvent?: string;
   lastEventTime?: string;
   createdAt: string;
-  notes?: string;
+  notes?: string;               // frontend-only; backend has no notes field
 }

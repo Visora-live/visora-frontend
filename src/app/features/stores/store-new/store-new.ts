@@ -34,12 +34,8 @@ export class StoreNewComponent {
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     address: ['', Validators.required],
-    city: [''],
-    manager: [''],
-    email: ['', Validators.email],
-    phone: [''],
+    ruc: [''],
     status: ['active', Validators.required],
-    notes: ['', Validators.maxLength(500)],
   });
 
   protected readonly isLoading = signal(false);
@@ -56,12 +52,8 @@ export class StoreNewComponent {
       .create({
         name: raw.name,
         address: raw.address,
-        city: raw.city,
+        ruc: raw.ruc || undefined,
         status: raw.status as StoreStatus,
-        manager: raw.manager || undefined,
-        email: raw.email || undefined,
-        phone: raw.phone || undefined,
-        notes: raw.notes || undefined,
       })
       .subscribe({
         next: () => {

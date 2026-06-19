@@ -23,9 +23,10 @@ function mapBackendStore(b: BackendStore): Store {
     id: String(b.id),
     name: b.nombre,
     address: b.direccion ?? '',
-    city: '', // backend has no city field; always empty until backend adds it
+    city: '',
+    ruc: b.ruc ?? undefined,
     status: b.estado === 'activa' ? 'active' : 'inactive',
-    cameraCount: 0, // backend StoreResponse has no cameraCount; stays 0 until a count endpoint exists
+    cameraCount: 0,
     createdAt: b.created_at.slice(0, 10),
   };
 }
@@ -44,12 +45,8 @@ export interface StoreMetrics {
 export interface StorePayload {
   name: string;
   address: string;
-  city: string;
+  ruc?: string;
   status: StoreStatus;
-  manager?: string;
-  email?: string;
-  phone?: string;
-  notes?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -74,6 +71,7 @@ export class StoreService {
     const body = {
       nombre: payload.name,
       direccion: payload.address || null,
+      ruc: payload.ruc || null,
       estado: payload.status === 'active' ? 'activa' : 'inactiva',
     };
     return this.http.post<BackendStore>(`${this.base}/stores`, body).pipe(
@@ -85,6 +83,7 @@ export class StoreService {
     const body = {
       nombre: payload.name,
       direccion: payload.address || null,
+      ruc: payload.ruc || null,
       estado: payload.status === 'active' ? 'activa' : 'inactiva',
     };
     return this.http.patch<BackendStore>(`${this.base}/stores/${id}`, body).pipe(
