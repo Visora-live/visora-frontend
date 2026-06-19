@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Camera, CameraConnectionStatus, CameraStatus } from '../models/camera.model';
@@ -195,7 +195,17 @@ export class CameraService {
           contentType: b.content_type,
           message: b.message,
         })),
-        catchError(() => of({ ...CONNECTION_FAIL, message: 'Sin acceso o cámara no encontrada' })),
+        catchError((err) => {
+          if (err instanceof HttpErrorResponse) {
+            if (err.status === 403) {
+              return of({ ...CONNECTION_FAIL, message: 'No tienes permisos para probar esta cámara.' });
+            }
+            if (err.status === 0) {
+              return of({ ...CONNECTION_FAIL, message: 'No se pudo conectar al servidor. Verifica que el backend esté activo.' });
+            }
+          }
+          return of({ ...CONNECTION_FAIL, message: 'Sin acceso o cámara no encontrada.' });
+        }),
       );
   }
 }

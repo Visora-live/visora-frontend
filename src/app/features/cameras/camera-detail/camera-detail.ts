@@ -73,6 +73,13 @@ export class CameraDetailComponent {
   protected readonly connectionStatus = signal<CameraConnectionStatus | null>(null);
   protected readonly isTesting = signal(false);
 
+  protected readonly connectionState = computed((): 'idle' | 'testing' | 'connected' | 'failed' => {
+    if (this.isTesting()) return 'testing';
+    const s = this.connectionStatus();
+    if (!s) return 'idle';
+    return s.reachable ? 'connected' : 'failed';
+  });
+
   protected readonly hasLiveStream = computed(
     () => (this.connectionStatus()?.reachable ?? false) && !!this.connectionStatus()?.streamUrl,
   );
@@ -106,5 +113,9 @@ export class CameraDetailComponent {
 
   protected disconnectStream(): void {
     this.connectionStatus.set(null);
+  }
+
+  protected copyToClipboard(url: string): void {
+    navigator.clipboard.writeText(url).catch(() => {});
   }
 }

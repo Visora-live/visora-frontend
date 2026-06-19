@@ -148,30 +148,65 @@
           </div>
           <div class="conn-info-item">
             <dt>Snapshot URL</dt>
-            <dd class="conn-mono">{{ expectedSnapshotUrl() }}</dd>
+            <dd class="conn-url-row">
+              <span class="conn-mono">{{ expectedSnapshotUrl() }}</span>
+              <button mat-icon-button class="conn-copy-btn" (click)="copyToClipboard(expectedSnapshotUrl())" aria-label="Copiar URL de snapshot">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+            </dd>
           </div>
           <div class="conn-info-item">
             <dt>Stream URL</dt>
-            <dd class="conn-mono">{{ expectedStreamUrl() }}</dd>
+            <dd class="conn-url-row">
+              <span class="conn-mono">{{ expectedStreamUrl() }}</span>
+              <button mat-icon-button class="conn-copy-btn" (click)="copyToClipboard(expectedStreamUrl())" aria-label="Copiar URL de stream">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+            </dd>
           </div>
         </dl>
 
-        @if (connectionStatus(); as cs) {
-          <div
-            class="conn-status"
-            [class.conn-status--ok]="cs.reachable"
-            [class.conn-status--fail]="!cs.reachable"
-            role="status"
-          >
-            <mat-icon aria-hidden="true">{{ cs.reachable ? 'check_circle' : 'cancel' }}</mat-icon>
-            <div class="conn-status-body">
-              <strong>{{ cs.reachable ? 'Conectada — stream activo en visor' : 'No conectada' }}</strong>
-              <span class="conn-status-msg">{{ cs.message }}</span>
-              @if (cs.statusCode) {
-                <span class="conn-meta">HTTP {{ cs.statusCode }} · {{ cs.contentType ?? 'sin tipo' }}</span>
-              }
+        @switch (connectionState()) {
+          @case ('idle') {
+            <p class="conn-state-idle" role="status">
+              <mat-icon aria-hidden="true">info</mat-icon>
+              Aún no se ha probado la conexión con esta cámara.
+            </p>
+          }
+          @case ('testing') {
+            <p class="conn-state-testing" role="status" aria-live="polite">
+              <mat-icon aria-hidden="true">sync</mat-icon>
+              Probando conexión con IP Webcam...
+            </p>
+          }
+          @case ('connected') {
+            <div class="conn-status conn-status--ok" role="status">
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              <div class="conn-status-body">
+                <strong>Conectada — stream activo en visor</strong>
+                <span class="conn-status-msg">{{ connectionStatus()!.message }}</span>
+                @if (connectionStatus()!.statusCode) {
+                  <span class="conn-meta">HTTP {{ connectionStatus()!.statusCode }} · {{ connectionStatus()!.contentType ?? 'sin tipo' }}</span>
+                }
+              </div>
             </div>
-          </div>
+          }
+          @case ('failed') {
+            <div class="conn-status conn-status--fail" role="status" aria-live="assertive">
+              <mat-icon aria-hidden="true">cancel</mat-icon>
+              <div class="conn-status-body">
+                <strong>No conectada</strong>
+                <span class="conn-status-msg">{{ connectionStatus()!.message }}</span>
+                @if (connectionStatus()!.statusCode) {
+                  <span class="conn-meta">HTTP {{ connectionStatus()!.statusCode }} · {{ connectionStatus()!.contentType ?? 'sin tipo' }}</span>
+                }
+              </div>
+            </div>
+            <button mat-stroked-button class="conn-retry-btn" (click)="testConnection()" aria-label="Reintentar conexión">
+              <mat-icon>replay</mat-icon>
+              Reintentar
+            </button>
+          }
         }
       </section>
 
