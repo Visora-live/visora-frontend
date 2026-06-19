@@ -45,6 +45,7 @@ export class UserNewComponent {
   protected readonly form = this.fb.nonNullable.group({
     fullName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
     roleId: [0, [Validators.required, Validators.min(1)]],
     storeId: [''],
     phone: [''],
@@ -65,6 +66,7 @@ export class UserNewComponent {
     this.userService.create({
       fullName: raw.fullName,
       email: raw.email,
+      password: raw.password,
       roleId: raw.roleId,
       status: raw.status as UserStatus,
       storeId: raw.storeId || undefined,

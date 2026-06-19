@@ -74,6 +74,18 @@
             <mat-hint>Opcional</mat-hint>
           </mat-form-field>
 
+          <mat-form-field appearance="outline" class="field">
+            <mat-label>Contraseña inicial</mat-label>
+            <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+            <input matInput type="password" formControlName="password" autocomplete="new-password" />
+            @if (form.controls.password.hasError('required')) {
+              <mat-error>La contraseña es obligatoria.</mat-error>
+            } @else if (form.controls.password.hasError('minlength')) {
+              <mat-error>Mínimo 8 caracteres.</mat-error>
+            }
+            <mat-hint>Mínimo 8 caracteres</mat-hint>
+          </mat-form-field>
+
         </div>
       </div>
 

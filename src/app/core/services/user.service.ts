@@ -49,7 +49,8 @@ export interface UserListResponse {
 export interface UserCreatePayload {
   fullName: string;
   email: string;
-  roleId: number;    // maps to rol_id — no password accepted from client
+  roleId: number;
+  password: string;
   status: UserStatus;
   storeId?: string;
   phone?: string;
@@ -111,7 +112,7 @@ export class UserService {
       email: payload.email || null,
       estado: payload.status === 'active' ? 'activo' : 'inactivo',
       rol_id: payload.roleId,
-      // password / password_hash intentionally omitted — backend does not accept these from client
+      password: payload.password,
     };
     return this.http.post<BackendUser>(`${this.base}/users`, body).pipe(
       map((u) => mapBackendUser(u, new Map())),
