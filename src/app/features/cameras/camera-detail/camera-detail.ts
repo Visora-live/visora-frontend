@@ -9,10 +9,19 @@ import type { CameraConnectionStatus, CameraStatus } from '../../../core/models/
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AuthService } from '../../../core/services/auth.service';
 import { CameraService } from '../../../core/services/camera.service';
+import { EventService } from '../../../core/services/event.service';
+import { AlertService } from '../../../core/services/alert.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
+
+interface SubmitResult {
+  success: boolean;
+  eventId?: number;
+  alertId?: number;
+  message: string;
+}
 
 @Component({
   selector: 'app-camera-detail',
@@ -33,6 +42,8 @@ export class CameraDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
+  private readonly eventService = inject(EventService);
+  private readonly alertService = inject(AlertService);
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
   protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
@@ -117,5 +128,106 @@ export class CameraDetailComponent {
 
   protected copyToClipboard(url: string): void {
     navigator.clipboard.writeText(url).catch(() => {});
+  }
+
+  // ── Registro manual de evento ─────────────────────────────────────────────
+
+  protected readonly showEventForm = signal(false);
+  protected readonly isSubmitting = signal(false);
+  protected readonly submitResult = signal<SubmitResult | null>(null);
+
+  protected readonly eventTipo = signal('manual');
+  protected readonly eventSeveridad = signal('media');
+  protected readonly eventComentario = signal('');
+  protected readonly generarAlerta = signal(false);
+  protected readonly alertaTitulo = signal('');
+  protected readonly alertaDesc = signal('');
+
+  protected readonly formValid = computed(
+    () =>
+      this.eventComentario().trim().length > 0 &&
+      (!this.generarAlerta() || this.alertaTitulo().trim().length > 0),
+  );
+
+  protected toggleEventForm(): void {
+    this.showEventForm.update((v) => !v);
+    this.submitResult.set(null);
+  }
+
+  protected submitEvent(): void {
+    if (this.isSubmitting() || !this.formValid()) return;
+    this.isSubmitting.set(true);
+    this.submitResult.set(null);
+
+    this.eventService
+      .create({
+        tipo: this.eventTipo(),
+        severidad: this.eventSeveridad(),
+        camaraId: Number(this.cameraId),
+        comentario: this.eventComentario().trim(),
+      })
+      .pipe(take(1))
+      .subscribe({
+        next: (evt) => {
+          if (this.generarAlerta()) {
+            const c = this.camera();
+            this.alertService
+              .create({
+                titulo: this.alertaTitulo().trim(),
+                descripcion: this.alertaDesc().trim() || undefined,
+                tipo: this.eventTipo(),
+                severidad: this.eventSeveridad(),
+                eventoId: Number(evt.id),
+                camaraId: Number(this.cameraId),
+                tiendaId: c ? Number(c.storeId) : undefined,
+              })
+              .pipe(take(1))
+              .subscribe({
+                next: (alert) => {
+                  this.submitResult.set({
+                    success: true,
+                    eventId: Number(evt.id),
+                    alertId: Number(alert.id),
+                    message: 'Evento y alerta registrados correctamente.',
+                  });
+                  this.isSubmitting.set(false);
+                  this.resetEventForm();
+                },
+                error: () => {
+                  this.submitResult.set({
+                    success: true,
+                    eventId: Number(evt.id),
+                    message: 'Evento registrado. No se pudo crear la alerta.',
+                  });
+                  this.isSubmitting.set(false);
+                  this.resetEventForm();
+                },
+              });
+          } else {
+            this.submitResult.set({
+              success: true,
+              eventId: Number(evt.id),
+              message: 'Evento registrado correctamente.',
+            });
+            this.isSubmitting.set(false);
+            this.resetEventForm();
+          }
+        },
+        error: (err) => {
+          const msg =
+            err?.status === 403
+              ? 'No tienes permisos para registrar eventos en esta cámara.'
+              : 'Error al registrar el evento. Intenta de nuevo.';
+          this.submitResult.set({ success: false, message: msg });
+          this.isSubmitting.set(false);
+        },
+      });
+  }
+
+  private resetEventForm(): void {
+    this.eventComentario.set('');
+    this.alertaTitulo.set('');
+    this.alertaDesc.set('');
+    this.generarAlerta.set(false);
   }
 }
