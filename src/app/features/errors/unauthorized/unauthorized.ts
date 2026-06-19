@@ -12,16 +12,22 @@ import { MatIconModule } from '@angular/material/icon';
       <div class="error-icon-wrap" aria-hidden="true">
         <mat-icon class="error-icon">lock</mat-icon>
       </div>
-      <p class="error-code" aria-hidden="true">401</p>
-      <h1 class="error-title">Acceso no autorizado</h1>
+      <p class="error-code" aria-hidden="true">403</p>
+      <h1 class="error-title">Sin permisos</h1>
       <p class="error-desc">
-        No tienes permisos para acceder a esta sección del sistema VISORA.
-        Inicia sesión con una cuenta autorizada.
+        No tienes permisos para acceder a esta sección.
+        Si crees que es un error, contacta al administrador del sistema.
       </p>
-      <a mat-flat-button routerLink="/login" class="error-btn">
-        <mat-icon>login</mat-icon>
-        Ir al inicio de sesión
-      </a>
+      <div class="error-actions">
+        <a mat-flat-button routerLink="/dashboard" class="error-btn">
+          <mat-icon>home</mat-icon>
+          Volver al panel
+        </a>
+        <a mat-stroked-button routerLink="/login" class="error-btn-sec">
+          <mat-icon>login</mat-icon>
+          Cambiar cuenta
+        </a>
+      </div>
     </div>
   `,
   styles: [`
@@ -88,7 +94,9 @@ import { MatIconModule } from '@angular/material/icon';
       margin: 0 0 32px;
     }
 
+    .error-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
     .error-btn { gap: 6px; }
+    .error-btn-sec { gap: 6px; }
   `],
 })
 export class UnauthorizedComponent {}

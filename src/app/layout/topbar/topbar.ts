@@ -41,6 +41,12 @@ export class TopbarComponent {
 
   protected readonly displayName = computed(() => this.currentUser()?.username ?? '—');
   protected readonly displayRole = computed(() => this.currentUser()?.rol_tipo ?? '');
+  protected readonly roleLabel = computed(() => {
+    const r = this.currentUser()?.rol_tipo;
+    if (r === 'admin') return 'Administrador';
+    if (r === 'propietario') return 'Propietario de tienda';
+    return r ?? '';
+  });
   protected readonly avatarInitials = computed(() => {
     const u = this.currentUser()?.username;
     return u ? u.slice(0, 2).toUpperCase() : '—';

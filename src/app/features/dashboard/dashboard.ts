@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import type { BadgeStatus } from '../../shared/components/status-badge/status-badge';
+import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
@@ -26,6 +27,15 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
 })
 export class DashboardComponent {
   private readonly service = inject(DashboardService);
+  private readonly auth = inject(AuthService);
+
+  private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
+  protected readonly dashSubtitle = computed(() =>
+    this.isAdmin()
+      ? 'Resumen operativo del sistema de videovigilancia VISORA.'
+      : 'Vista general de tus tiendas y alertas asignadas.',
+  );
 
   private readonly data = toSignal(this.service.getAll(5), { initialValue: null });
 

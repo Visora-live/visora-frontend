@@ -1,6 +1,6 @@
 <app-page-header
   title="Panel principal"
-  subtitle="Resumen operativo del sistema de videovigilancia inteligente VISORA."
+  [subtitle]="dashSubtitle()"
 >
   <a mat-stroked-button routerLink="/alerts" aria-label="Ver todas las alertas">
     <mat-icon>notifications</mat-icon>
@@ -146,14 +146,25 @@
         </h2>
       </div>
       <div class="dash-quick-grid">
-        <a mat-stroked-button routerLink="/stores/new" class="dash-quick-btn">
-          <mat-icon aria-hidden="true">add_business</mat-icon>
-          <span>Registrar tienda</span>
-        </a>
-        <a mat-stroked-button routerLink="/cameras/new" class="dash-quick-btn">
-          <mat-icon aria-hidden="true">add_a_photo</mat-icon>
-          <span>Registrar cámara</span>
-        </a>
+        @if (isAdmin()) {
+          <a mat-stroked-button routerLink="/stores/new" class="dash-quick-btn">
+            <mat-icon aria-hidden="true">add_business</mat-icon>
+            <span>Registrar tienda</span>
+          </a>
+          <a mat-stroked-button routerLink="/cameras/new" class="dash-quick-btn">
+            <mat-icon aria-hidden="true">add_a_photo</mat-icon>
+            <span>Registrar cámara</span>
+          </a>
+        } @else {
+          <a mat-stroked-button routerLink="/stores" class="dash-quick-btn">
+            <mat-icon aria-hidden="true">store</mat-icon>
+            <span>Mis tiendas</span>
+          </a>
+          <a mat-stroked-button routerLink="/alerts" class="dash-quick-btn">
+            <mat-icon aria-hidden="true">notifications_active</mat-icon>
+            <span>Mis alertas</span>
+          </a>
+        }
         <a mat-stroked-button routerLink="/cameras" class="dash-quick-btn">
           <mat-icon aria-hidden="true">videocam</mat-icon>
           <span>Ver cámaras</span>

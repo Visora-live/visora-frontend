@@ -30,8 +30,8 @@
       <mat-icon>person</mat-icon>
       <span class="user-menu-info">
         <span class="user-menu-name">{{ displayName() }}</span>
-        @if (displayRole()) {
-          <span class="user-menu-role">{{ displayRole() }}</span>
+        @if (roleLabel()) {
+          <span class="user-menu-role">{{ roleLabel() }}</span>
         }
       </span>
     </button>
