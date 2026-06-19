@@ -1,10 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DatePipe, UpperCasePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { take } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import type { CameraStatus } from '../../../core/models/camera.model';
+import type { CameraConnectionStatus, CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AuthService } from '../../../core/services/auth.service';
 import { CameraService } from '../../../core/services/camera.service';
@@ -66,5 +67,57 @@ export class CameraDetailComponent {
       maintenance: 'Mantenimiento',
     };
     return m[status];
+  }
+
+  // ── IP Webcam connection ──────────────────────────────────────────────────
+
+  protected readonly connectionStatus = signal<CameraConnectionStatus | null>(null);
+  protected readonly isTesting = signal(false);
+  protected readonly showStream = signal(false);
+  protected readonly snapshotError = signal(false);
+  private readonly snapshotCacheBust = signal(Date.now());
+
+  protected readonly snapshotSrc = computed(() => {
+    const s = this.connectionStatus();
+    if (!s?.reachable || !s.snapshotUrl || this.snapshotError()) return null;
+    return `${s.snapshotUrl}?t=${this.snapshotCacheBust()}`;
+  });
+
+  protected readonly expectedSnapshotUrl = computed(() => {
+    const c = this.camera();
+    return c ? `http://${c.ipUrl}:${c.port}/shot.jpg` : '';
+  });
+
+  protected readonly expectedStreamUrl = computed(() => {
+    const c = this.camera();
+    return c ? `http://${c.ipUrl}:${c.port}/video` : '';
+  });
+
+  protected testConnection(): void {
+    if (this.isTesting()) return;
+    this.isTesting.set(true);
+    this.connectionStatus.set(null);
+    this.snapshotError.set(false);
+    this.cameraService.getCameraConnection(this.cameraId).pipe(take(1)).subscribe({
+      next: (s) => {
+        this.connectionStatus.set(s);
+        this.snapshotCacheBust.set(Date.now());
+        this.isTesting.set(false);
+      },
+      error: () => { this.isTesting.set(false); },
+    });
+  }
+
+  protected refreshSnapshot(): void {
+    this.snapshotError.set(false);
+    this.snapshotCacheBust.set(Date.now());
+  }
+
+  protected toggleStream(): void {
+    this.showStream.update((v) => !v);
+  }
+
+  protected onSnapshotError(): void {
+    this.snapshotError.set(true);
   }
 }

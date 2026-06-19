@@ -169,3 +169,171 @@
   line-height: 1.5;
   margin: 0;
 }
+
+// ── IP Webcam connection panel ───────────────────────────────────────────────
+
+.conn-panel {
+  background: var(--visora-bg-surface);
+  border: 1px solid var(--visora-border-color);
+  border-radius: var(--visora-radius-md);
+  padding: var(--visora-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--visora-space-md);
+}
+
+.conn-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--visora-space-sm);
+  flex-wrap: wrap;
+}
+
+.conn-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--visora-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--visora-accent); }
+}
+
+.conn-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--visora-space-sm);
+  margin: 0;
+
+  @media (max-width: 640px) { grid-template-columns: 1fr; }
+}
+
+.conn-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  dt {
+    font-size: 11px;
+    color: var(--visora-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}
+
+.conn-mono {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--visora-text);
+  word-break: break-all;
+}
+
+.conn-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--visora-radius-sm);
+  border: 1px solid var(--visora-border-color);
+  background: var(--visora-bg);
+
+  mat-icon { font-size: 20px; width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; }
+
+  &--ok {
+    border-color: var(--visora-status-normal, #16a34a);
+    mat-icon { color: var(--visora-status-normal, #16a34a); }
+  }
+
+  &--fail {
+    border-color: var(--visora-status-critical, #dc2626);
+    mat-icon { color: var(--visora-status-critical, #dc2626); }
+  }
+}
+
+.conn-status-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong { font-size: 13px; color: var(--visora-text); }
+}
+
+.conn-status-msg {
+  font-size: 12px;
+  color: var(--visora-text-muted);
+}
+
+.conn-meta {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--visora-text-muted);
+  margin-top: 2px;
+}
+
+.conn-snapshot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--visora-space-sm);
+}
+
+.conn-snapshot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.conn-snapshot-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--visora-text);
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+.conn-snapshot-img {
+  width: 100%;
+  border-radius: var(--visora-radius-sm);
+  border: 1px solid var(--visora-border-color);
+  display: block;
+  background: var(--visora-bg);
+}
+
+.conn-snapshot-err {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--visora-text-muted);
+  padding: 12px;
+  background: var(--visora-bg);
+  border: 1px dashed var(--visora-border-color);
+  border-radius: var(--visora-radius-sm);
+  margin: 0;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; flex-shrink: 0; }
+}
+
+.conn-stream-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--visora-space-sm);
+}
+
+.conn-stream-toggle {
+  align-self: flex-start;
+  font-size: 13px;
+}
+
+.conn-stream-img {
+  width: 100%;
+  border-radius: var(--visora-radius-sm);
+  border: 1px solid var(--visora-border-color);
+  display: block;
+  background: var(--visora-bg);
+}

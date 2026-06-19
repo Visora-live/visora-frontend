@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { Camera, CameraStatus } from '../models/camera.model';
+import type { Camera, CameraConnectionStatus, CameraStatus } from '../models/camera.model';
 import { MOCK_EVENTS } from '../../features/events/events.mock';
 
 interface BackendCamera {
@@ -18,6 +18,38 @@ interface BackendCamera {
   created_at: string;
   updated_at: string;
 }
+
+interface BackendConnectionResponse {
+  input: { host: string; port: number };
+  snapshot_url: string;
+  stream_url: string;
+  reachable: boolean;
+  status_code: number | null;
+  content_type: string | null;
+  message: string;
+}
+
+interface BackendCameraConnectionDetail {
+  camera_id: number;
+  nombre_cam: string;
+  direccion_ip: string;
+  puerto: number;
+  snapshot_url: string;
+  stream_url: string;
+  reachable: boolean;
+  status_code: number | null;
+  content_type: string | null;
+  message: string;
+}
+
+const CONNECTION_FAIL: CameraConnectionStatus = {
+  snapshotUrl: '',
+  streamUrl: '',
+  reachable: false,
+  statusCode: null,
+  contentType: null,
+  message: 'Error al contactar el servidor',
+};
 
 function mapBackendCamera(b: BackendCamera, storeName = ''): Camera {
   return {
@@ -131,5 +163,39 @@ export class CameraService {
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
       .slice(0, limit);
     return of(items);
+  }
+
+  testIpWebcam(host: string, port: number) {
+    const params = new HttpParams().set('host', host).set('port', String(port));
+    return this.http
+      .get<BackendConnectionResponse>(`${this.base}/cameras/test-ip-webcam`, { params })
+      .pipe(
+        map((b): CameraConnectionStatus => ({
+          snapshotUrl: b.snapshot_url,
+          streamUrl: b.stream_url,
+          reachable: b.reachable,
+          statusCode: b.status_code,
+          contentType: b.content_type,
+          message: b.message,
+        })),
+        catchError(() => of({ ...CONNECTION_FAIL })),
+      );
+  }
+
+  getCameraConnection(cameraId: string) {
+    return this.http
+      .get<BackendCameraConnectionDetail>(`${this.base}/cameras/${cameraId}/connection`)
+      .pipe(
+        map((b): CameraConnectionStatus => ({
+          cameraId: b.camera_id,
+          snapshotUrl: b.snapshot_url,
+          streamUrl: b.stream_url,
+          reachable: b.reachable,
+          statusCode: b.status_code,
+          contentType: b.content_type,
+          message: b.message,
+        })),
+        catchError(() => of({ ...CONNECTION_FAIL, message: 'Sin acceso o cámara no encontrada' })),
+      );
   }
 }

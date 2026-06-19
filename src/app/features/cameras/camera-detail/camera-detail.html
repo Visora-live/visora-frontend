@@ -126,6 +126,105 @@
         }
       </section>
 
+      <!-- Conexión IP Webcam -->
+      <section class="conn-panel" aria-label="Conexión IP Webcam">
+        <div class="conn-header">
+          <h2 class="conn-title">
+            <mat-icon aria-hidden="true">wifi</mat-icon>
+            Conexión IP Webcam
+          </h2>
+          <button
+            mat-stroked-button
+            class="conn-test-btn"
+            (click)="testConnection()"
+            [disabled]="isTesting()"
+            aria-label="Probar conexión con IP Webcam"
+          >
+            <mat-icon>{{ isTesting() ? 'sync' : 'wifi_tethering' }}</mat-icon>
+            {{ isTesting() ? 'Probando...' : 'Probar conexión' }}
+          </button>
+        </div>
+
+        <dl class="conn-info">
+          <div class="conn-info-item">
+            <dt>Host / IP</dt>
+            <dd class="conn-mono">{{ c.ipUrl }}</dd>
+          </div>
+          <div class="conn-info-item">
+            <dt>Puerto</dt>
+            <dd class="conn-mono">{{ c.port }}</dd>
+          </div>
+          <div class="conn-info-item">
+            <dt>Snapshot URL</dt>
+            <dd class="conn-mono">{{ expectedSnapshotUrl() }}</dd>
+          </div>
+          <div class="conn-info-item">
+            <dt>Stream URL</dt>
+            <dd class="conn-mono">{{ expectedStreamUrl() }}</dd>
+          </div>
+        </dl>
+
+        @if (connectionStatus(); as cs) {
+          <div
+            class="conn-status"
+            [class.conn-status--ok]="cs.reachable"
+            [class.conn-status--fail]="!cs.reachable"
+            role="status"
+          >
+            <mat-icon aria-hidden="true">{{ cs.reachable ? 'check_circle' : 'cancel' }}</mat-icon>
+            <div class="conn-status-body">
+              <strong>{{ cs.reachable ? 'Conectada' : 'No conectada' }}</strong>
+              <span class="conn-status-msg">{{ cs.message }}</span>
+              @if (cs.statusCode) {
+                <span class="conn-meta">HTTP {{ cs.statusCode }} · {{ cs.contentType ?? 'sin tipo' }}</span>
+              }
+            </div>
+          </div>
+
+          @if (cs.reachable) {
+            <div class="conn-snapshot">
+              <div class="conn-snapshot-header">
+                <span class="conn-snapshot-label">
+                  <mat-icon aria-hidden="true">photo_camera</mat-icon>
+                  Vista previa
+                </span>
+                <button mat-icon-button (click)="refreshSnapshot()" aria-label="Actualizar snapshot">
+                  <mat-icon>refresh</mat-icon>
+                </button>
+              </div>
+              @if (snapshotSrc()) {
+                <img
+                  class="conn-snapshot-img"
+                  [src]="snapshotSrc()"
+                  [alt]="'Snapshot de ' + c.name"
+                  (error)="onSnapshotError()"
+                />
+              } @else if (snapshotError()) {
+                <p class="conn-snapshot-err">
+                  <mat-icon aria-hidden="true">broken_image</mat-icon>
+                  No se pudo cargar el snapshot desde el navegador.
+                  Verifica que el dispositivo esté en la misma red.
+                </p>
+              }
+            </div>
+
+            <div class="conn-stream-section">
+              <button mat-button class="conn-stream-toggle" (click)="toggleStream()">
+                <mat-icon>{{ showStream() ? 'expand_less' : 'expand_more' }}</mat-icon>
+                {{ showStream() ? 'Ocultar stream MJPEG' : 'Ver stream básico (MJPEG)' }}
+              </button>
+              @if (showStream()) {
+                <img
+                  class="conn-stream-img"
+                  [src]="cs.streamUrl"
+                  [alt]="'Stream MJPEG de ' + c.name"
+                />
+              }
+            </div>
+          }
+        }
+      </section>
+
     </div>
 
     <!-- Right: info + capabilities -->

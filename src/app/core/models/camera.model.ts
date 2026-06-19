@@ -1,5 +1,15 @@
 export type CameraStatus = 'online' | 'offline' | 'error' | 'maintenance';
 
+export interface CameraConnectionStatus {
+  cameraId?: number;
+  snapshotUrl: string;
+  streamUrl: string;
+  reachable: boolean;
+  statusCode: number | null;
+  contentType: string | null;
+  message: string;
+}
+
 export interface CameraCapabilities {
   facialRecognition: boolean;
   weaponDetection: boolean;
