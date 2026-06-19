@@ -86,36 +86,6 @@
   background: #0a0e1a;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-
-  &--offline { background: #111; }
-  &--error { background: #1a0a0a; }
-  &--maintenance { background: #100d0a; }
-}
-
-.corner {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  z-index: 2;
-
-  &--tl { top: 8px; left: 8px; border-top: 2px solid var(--visora-accent); border-left: 2px solid var(--visora-accent); }
-  &--tr { top: 8px; right: 8px; border-top: 2px solid var(--visora-accent); border-right: 2px solid var(--visora-accent); }
-  &--bl { bottom: 28px; left: 8px; border-bottom: 2px solid var(--visora-accent); border-left: 2px solid var(--visora-accent); }
-  &--br { bottom: 28px; right: 8px; border-bottom: 2px solid var(--visora-accent); border-right: 2px solid var(--visora-accent); }
-}
-
-.scanlines {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 2px,
-    rgba(0, 0, 0, 0.07) 2px,
-    rgba(0, 0, 0, 0.07) 4px
-  );
-  pointer-events: none;
-  z-index: 1;
 }
 
 .preview-center {
@@ -131,35 +101,9 @@
   font-size: 36px;
   width: 36px;
   height: 36px;
-  color: rgba(47, 136, 245, 0.4);
-
-  &--offline { color: rgba(107, 114, 128, 0.4); }
+  color: rgba(107, 114, 128, 0.4);
 }
 
-.live-badge {
-  position: absolute;
-  top: 10px;
-  right: 36px;
-  background: var(--visora-status-critical);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 2px 6px;
-  border-radius: 3px;
-  z-index: 3;
-}
-
-.detection-box {
-  position: absolute;
-  top: 30%;
-  left: 25%;
-  width: 28%;
-  height: 40%;
-  border: 1.5px solid rgba(47, 136, 245, 0.6);
-  border-radius: 2px;
-  z-index: 2;
-}
 
 .status-overlay {
   position: absolute;

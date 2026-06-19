@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { DatePipe, UpperCasePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,7 +19,6 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
   imports: [
     RouterLink,
     DatePipe,
-    UpperCasePipe,
     MatButtonModule,
     MatIconModule,
     EmptyStateComponent,
@@ -73,15 +72,14 @@ export class CameraDetailComponent {
 
   protected readonly connectionStatus = signal<CameraConnectionStatus | null>(null);
   protected readonly isTesting = signal(false);
-  protected readonly showStream = signal(false);
-  protected readonly snapshotError = signal(false);
-  private readonly snapshotCacheBust = signal(Date.now());
 
-  protected readonly snapshotSrc = computed(() => {
-    const s = this.connectionStatus();
-    if (!s?.reachable || !s.snapshotUrl || this.snapshotError()) return null;
-    return `${s.snapshotUrl}?t=${this.snapshotCacheBust()}`;
-  });
+  protected readonly hasLiveStream = computed(
+    () => (this.connectionStatus()?.reachable ?? false) && !!this.connectionStatus()?.streamUrl,
+  );
+
+  protected readonly mainStreamUrl = computed(
+    () => (this.hasLiveStream() ? (this.connectionStatus()?.streamUrl ?? '') : ''),
+  );
 
   protected readonly expectedSnapshotUrl = computed(() => {
     const c = this.camera();
@@ -97,27 +95,16 @@ export class CameraDetailComponent {
     if (this.isTesting()) return;
     this.isTesting.set(true);
     this.connectionStatus.set(null);
-    this.snapshotError.set(false);
     this.cameraService.getCameraConnection(this.cameraId).pipe(take(1)).subscribe({
       next: (s) => {
         this.connectionStatus.set(s);
-        this.snapshotCacheBust.set(Date.now());
         this.isTesting.set(false);
       },
       error: () => { this.isTesting.set(false); },
     });
   }
 
-  protected refreshSnapshot(): void {
-    this.snapshotError.set(false);
-    this.snapshotCacheBust.set(Date.now());
-  }
-
-  protected toggleStream(): void {
-    this.showStream.update((v) => !v);
-  }
-
-  protected onSnapshotError(): void {
-    this.snapshotError.set(true);
+  protected disconnectStream(): void {
+    this.connectionStatus.set(null);
   }
 }

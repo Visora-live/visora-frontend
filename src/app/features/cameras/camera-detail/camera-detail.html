@@ -49,48 +49,28 @@
     <!-- Left: video + events -->
     <div class="col-main">
 
-      <!-- Simulated video panel -->
-      <section class="video-panel" [class]="'video-panel--' + c.status" aria-label="Panel de video">
-        <div class="corner corner--tl"></div>
-        <div class="corner corner--tr"></div>
-        <div class="corner corner--bl"></div>
-        <div class="corner corner--br"></div>
-
-        @if (c.status === 'online') {
-          <div class="scanlines" aria-hidden="true"></div>
-          <div class="video-hud" aria-hidden="true">
-            <div class="hud-top">
-              <span class="hud-id">CAM-{{ c.id | uppercase }}</span>
-              <span class="hud-live">● LIVE</span>
-            </div>
-            <div class="hud-center">
-              <mat-icon class="hud-icon">videocam</mat-icon>
-              <div class="detection-box det-1" aria-hidden="true"></div>
-              <div class="detection-box det-2" aria-hidden="true"></div>
-            </div>
-            <div class="hud-bottom">
-              <span class="hud-res">{{ c.resolution }}</span>
-              <span class="hud-ip">{{ c.ipUrl }}</span>
-              <span class="hud-time">14:32:07</span>
-            </div>
-          </div>
+      <!-- Visor principal -->
+      <section class="video-panel" aria-label="Panel de video">
+        @if (hasLiveStream()) {
+          <img
+            class="main-live-stream"
+            [src]="mainStreamUrl()"
+            [alt]="'Stream en vivo de ' + c.name"
+          />
+          <button
+            class="stream-disconnect-btn"
+            mat-stroked-button
+            (click)="disconnectStream()"
+            aria-label="Desconectar stream"
+          >
+            <mat-icon>wifi_off</mat-icon>
+            Desconectar
+          </button>
         } @else {
           <div class="video-offline" aria-label="Cámara sin señal">
             <mat-icon class="offline-icon">videocam_off</mat-icon>
-            <div class="offline-status-label">
-              @switch (c.status) {
-                @case ('offline') { SIN SEÑAL }
-                @case ('error') { ERROR DE CÁMARA }
-                @case ('maintenance') { EN MANTENIMIENTO }
-              }
-            </div>
-            <p class="offline-desc">
-              @switch (c.status) {
-                @case ('offline') { La cámara no está transmitiendo. Verifica la conexión de red. }
-                @case ('error') { La cámara reportó un error de hardware o firmware. }
-                @case ('maintenance') { La cámara está temporalmente fuera de servicio para mantenimiento. }
-              }
-            </p>
+            <div class="offline-status-label">SIN SEÑAL</div>
+            <p class="offline-desc">La cámara no está transmitiendo. Verifica la conexión de red.</p>
           </div>
         }
       </section>
@@ -133,16 +113,28 @@
             <mat-icon aria-hidden="true">wifi</mat-icon>
             Conexión IP Webcam
           </h2>
-          <button
-            mat-stroked-button
-            class="conn-test-btn"
-            (click)="testConnection()"
-            [disabled]="isTesting()"
-            aria-label="Probar conexión con IP Webcam"
-          >
-            <mat-icon>{{ isTesting() ? 'sync' : 'wifi_tethering' }}</mat-icon>
-            {{ isTesting() ? 'Probando...' : 'Probar conexión' }}
-          </button>
+          <div class="conn-actions">
+            @if (hasLiveStream()) {
+              <button
+                mat-stroked-button
+                (click)="disconnectStream()"
+                aria-label="Desconectar stream del visor"
+              >
+                <mat-icon>wifi_off</mat-icon>
+                Desconectar
+              </button>
+            }
+            <button
+              mat-stroked-button
+              class="conn-test-btn"
+              (click)="testConnection()"
+              [disabled]="isTesting()"
+              aria-label="Probar conexión con IP Webcam"
+            >
+              <mat-icon>{{ isTesting() ? 'sync' : 'wifi_tethering' }}</mat-icon>
+              {{ isTesting() ? 'Probando...' : 'Probar conexión' }}
+            </button>
+          </div>
         </div>
 
         <dl class="conn-info">
@@ -173,55 +165,13 @@
           >
             <mat-icon aria-hidden="true">{{ cs.reachable ? 'check_circle' : 'cancel' }}</mat-icon>
             <div class="conn-status-body">
-              <strong>{{ cs.reachable ? 'Conectada' : 'No conectada' }}</strong>
+              <strong>{{ cs.reachable ? 'Conectada — stream activo en visor' : 'No conectada' }}</strong>
               <span class="conn-status-msg">{{ cs.message }}</span>
               @if (cs.statusCode) {
                 <span class="conn-meta">HTTP {{ cs.statusCode }} · {{ cs.contentType ?? 'sin tipo' }}</span>
               }
             </div>
           </div>
-
-          @if (cs.reachable) {
-            <div class="conn-snapshot">
-              <div class="conn-snapshot-header">
-                <span class="conn-snapshot-label">
-                  <mat-icon aria-hidden="true">photo_camera</mat-icon>
-                  Vista previa
-                </span>
-                <button mat-icon-button (click)="refreshSnapshot()" aria-label="Actualizar snapshot">
-                  <mat-icon>refresh</mat-icon>
-                </button>
-              </div>
-              @if (snapshotSrc()) {
-                <img
-                  class="conn-snapshot-img"
-                  [src]="snapshotSrc()"
-                  [alt]="'Snapshot de ' + c.name"
-                  (error)="onSnapshotError()"
-                />
-              } @else if (snapshotError()) {
-                <p class="conn-snapshot-err">
-                  <mat-icon aria-hidden="true">broken_image</mat-icon>
-                  No se pudo cargar el snapshot desde el navegador.
-                  Verifica que el dispositivo esté en la misma red.
-                </p>
-              }
-            </div>
-
-            <div class="conn-stream-section">
-              <button mat-button class="conn-stream-toggle" (click)="toggleStream()">
-                <mat-icon>{{ showStream() ? 'expand_less' : 'expand_more' }}</mat-icon>
-                {{ showStream() ? 'Ocultar stream MJPEG' : 'Ver stream básico (MJPEG)' }}
-              </button>
-              @if (showStream()) {
-                <img
-                  class="conn-stream-img"
-                  [src]="cs.streamUrl"
-                  [alt]="'Stream MJPEG de ' + c.name"
-                />
-              }
-            </div>
-          }
         }
       </section>
 

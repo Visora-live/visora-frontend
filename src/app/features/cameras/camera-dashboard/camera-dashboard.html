@@ -111,32 +111,11 @@
       <article class="camera-card" [class]="'camera-card camera-card--' + camera.status" role="listitem">
 
         <!-- Video preview area -->
-        <div class="cam-preview" [class]="'cam-preview--' + camera.status" aria-hidden="true">
-          <div class="corner corner--tl"></div>
-          <div class="corner corner--tr"></div>
-          <div class="corner corner--bl"></div>
-          <div class="corner corner--br"></div>
-
-          @if (camera.status === 'online') {
-            <div class="scanlines"></div>
-            <div class="preview-center">
-              <mat-icon class="preview-icon">videocam</mat-icon>
-            </div>
-            <span class="live-badge">● LIVE</span>
-            <div class="detection-box"></div>
-          } @else {
-            <div class="preview-center">
-              <mat-icon class="preview-icon preview-icon--offline">videocam_off</mat-icon>
-            </div>
-            <div class="status-overlay">
-              @switch (camera.status) {
-                @case ('offline') { SIN SEÑAL }
-                @case ('error') { ERROR }
-                @case ('maintenance') { MANTENIMIENTO }
-              }
-            </div>
-          }
-
+        <div class="cam-preview" aria-hidden="true">
+          <div class="preview-center">
+            <mat-icon class="preview-icon">videocam_off</mat-icon>
+          </div>
+          <div class="status-overlay">SIN SEÑAL</div>
           <div class="preview-footer">
             <span class="preview-res">{{ camera.resolution }}</span>
             <span class="preview-ip">{{ camera.ipUrl }}</span>
