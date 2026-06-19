@@ -7,11 +7,11 @@ import { MOCK_EVENTS } from '../../features/events/events.mock';
 
 interface BackendCamera {
   id: number;
-  nombre: string;
-  host: string;
+  nombre_cam: string;
+  direccion_ip: string;
   puerto: number;
-  ubicacion: string | null;
-  estado: string;
+  ubicacion_camara: string | null;
+  estado: boolean;
   source_type: string;
   protocolo: string;
   tienda_id: number;
@@ -22,14 +22,14 @@ interface BackendCamera {
 function mapBackendCamera(b: BackendCamera, storeName = ''): Camera {
   return {
     id: String(b.id),
-    name: b.nombre,
+    name: b.nombre_cam,
     storeId: String(b.tienda_id),
     storeName,
-    location: b.ubicacion ?? '',
-    ipUrl: b.host,
+    location: b.ubicacion_camara ?? '',
+    ipUrl: b.direccion_ip,
     port: b.puerto,
     resolution: '1080p',
-    status: b.estado as CameraStatus,
+    status: b.estado ? 'online' : 'offline',
     capabilities: {
       facialRecognition: false,
       weaponDetection: false,
@@ -93,12 +93,12 @@ export class CameraService {
 
   create(payload: CameraPayload) {
     const body = {
-      nombre: payload.name,
-      host: payload.ipUrl,
+      nombre_cam: payload.name,
+      direccion_ip: payload.ipUrl,
       puerto: payload.port ?? 8080,
       tienda_id: Number(payload.storeId),
-      ubicacion: payload.location || null,
-      estado: payload.status,
+      ubicacion_camara: payload.location || null,
+      estado: payload.status === 'online',
     };
     return this.http.post<BackendCamera>(`${this.base}/cameras`, body).pipe(
       map((b) => mapBackendCamera(b)),
@@ -107,12 +107,12 @@ export class CameraService {
 
   update(id: string, payload: CameraPayload) {
     const body = {
-      nombre: payload.name,
-      host: payload.ipUrl,
+      nombre_cam: payload.name,
+      direccion_ip: payload.ipUrl,
       puerto: payload.port ?? 8080,
       tienda_id: Number(payload.storeId),
-      ubicacion: payload.location || null,
-      estado: payload.status,
+      ubicacion_camara: payload.location || null,
+      estado: payload.status === 'online',
     };
     return this.http.patch<BackendCamera>(`${this.base}/cameras/${id}`, body).pipe(
       map((b) => mapBackendCamera(b)),

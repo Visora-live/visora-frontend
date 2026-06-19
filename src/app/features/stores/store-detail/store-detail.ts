@@ -32,7 +32,7 @@ export class StoreDetailComponent {
   private readonly storeService = inject(StoreService);
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
-  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   protected readonly storeId = this.route.snapshot.paramMap.get('id') ?? '';
 

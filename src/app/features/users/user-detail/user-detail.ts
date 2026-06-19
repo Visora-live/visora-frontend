@@ -33,7 +33,7 @@ export class UserDetailComponent {
   private readonly userService = inject(UserService);
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
-  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   protected readonly userId = this.route.snapshot.paramMap.get('id') ?? '';
 

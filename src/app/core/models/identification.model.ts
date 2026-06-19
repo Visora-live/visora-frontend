@@ -1,27 +1,27 @@
 export interface Identification {
   id: string;
-  evidenceId: string;  // evidencia_id
+  eventoImagenId: string;
   nombre?: string;
   apellido?: string;
   dni?: string;
-  confianza?: number;  // manually entered confidence value — no AI computation
-  fuente: string;      // 'manual' by default
-  createdAt: string;   // created_at
+  confianzaIdentificacion: number;
+  fuente: string;
+  createdAt: string;
 }
 
 export interface IdentificationCreatePayload {
-  evidenceId: number;  // evidencia_id
+  eventoImagenId: number;
   nombre?: string;
   apellido?: string;
   dni?: string;
-  confianza?: number;
-  fuente?: string;     // defaults to 'manual'
+  confianzaIdentificacion?: number;
+  fuente?: string;
 }
 
 export interface IdentificationUpdatePayload {
   nombre?: string;
   apellido?: string;
   dni?: string;
-  confianza?: number;
+  confianzaIdentificacion?: number;
   fuente?: string;
 }

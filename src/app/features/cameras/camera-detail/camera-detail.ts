@@ -35,7 +35,7 @@ export class CameraDetailComponent {
   private readonly cameraService = inject(CameraService);
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
-  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
 

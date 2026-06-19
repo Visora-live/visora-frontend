@@ -51,7 +51,7 @@ export class StoreListComponent {
   private readonly eventService = inject(EventService);
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
-  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   private readonly isNarrow = toSignal(
     this.breakpointObserver.observe('(max-width: 768px)').pipe(map((r) => r.matches)),

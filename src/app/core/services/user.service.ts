@@ -9,16 +9,16 @@ interface BackendUser {
   id: number;
   username: string;
   email: string | null;
-  estado: string;
+  estado_acceso: boolean;
   rol_id: number;
   created_at: string;
   updated_at: string;
 }
 
-function deriveUserRole(roleName: string): UserRole {
-  const n = roleName.toLowerCase();
-  if (n.includes('admin')) return 'admin';
-  if (n.includes('oper')) return 'operator';
+function deriveUserRole(roleTipo: string): UserRole {
+  const t = roleTipo.toLowerCase();
+  if (t === 'admin') return 'admin';
+  if (t === 'propietario') return 'operator';
   return 'viewer';
 }
 
@@ -31,9 +31,9 @@ function mapBackendUser(b: BackendUser, roleMap: Map<number, string>): User {
     role: deriveUserRole(roleName),
     roleId: b.rol_id,
     roleName,
-    status: b.estado === 'activo' ? 'active' : 'inactive',
+    status: b.estado_acceso ? 'active' : 'inactive',
     createdAt: b.created_at.slice(0, 10),
-    recentActivity: [], // backend has no activity log
+    recentActivity: [],
   };
 }
 
@@ -104,7 +104,7 @@ export class UserService {
     const body = {
       username: payload.fullName,
       email: payload.email || null,
-      estado: payload.status === 'active' ? 'activo' : 'inactivo',
+      estado_acceso: payload.status === 'active',
       rol_id: payload.roleId,
       password: payload.password,
     };
@@ -117,7 +117,7 @@ export class UserService {
     const body: Record<string, unknown> = {};
     if (payload.fullName !== undefined) body['username'] = payload.fullName;
     if (payload.email !== undefined) body['email'] = payload.email || null;
-    if (payload.status !== undefined) body['estado'] = payload.status === 'active' ? 'activo' : 'inactivo';
+    if (payload.status !== undefined) body['estado_acceso'] = payload.status === 'active';
     if (payload.roleId !== undefined) body['rol_id'] = payload.roleId;
     return this.http.patch<BackendUser>(`${this.base}/users/${id}`, body).pipe(
       map((u) => mapBackendUser(u, new Map())),
@@ -125,7 +125,6 @@ export class UserService {
   }
 
   delete(id: string) {
-    // Logical delete — backend sets estado to 'inactivo' and returns updated user
     return this.http.delete<BackendUser>(`${this.base}/users/${id}`).pipe(
       map((u) => mapBackendUser(u, new Map())),
     );

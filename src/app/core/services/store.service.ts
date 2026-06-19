@@ -11,7 +11,7 @@ interface BackendStore {
   nombre: string;
   direccion: string | null;
   ruc: string | null;
-  estado: string;
+  estado_tienda: boolean;
   licencia_inicio: string | null;
   licencia_fin: string | null;
   created_at: string;
@@ -25,7 +25,7 @@ function mapBackendStore(b: BackendStore): Store {
     address: b.direccion ?? '',
     city: '',
     ruc: b.ruc ?? undefined,
-    status: b.estado === 'activa' ? 'active' : 'inactive',
+    status: b.estado_tienda ? 'active' : 'inactive',
     cameraCount: 0,
     createdAt: b.created_at.slice(0, 10),
   };
@@ -72,7 +72,7 @@ export class StoreService {
       nombre: payload.name,
       direccion: payload.address || null,
       ruc: payload.ruc || null,
-      estado: payload.status === 'active' ? 'activa' : 'inactiva',
+      estado_tienda: payload.status === 'active',
     };
     return this.http.post<BackendStore>(`${this.base}/stores`, body).pipe(
       map((b) => mapBackendStore(b)),
@@ -84,7 +84,7 @@ export class StoreService {
       nombre: payload.name,
       direccion: payload.address || null,
       ruc: payload.ruc || null,
-      estado: payload.status === 'active' ? 'activa' : 'inactiva',
+      estado_tienda: payload.status === 'active',
     };
     return this.http.patch<BackendStore>(`${this.base}/stores/${id}`, body).pipe(
       map((b) => mapBackendStore(b)),
@@ -98,8 +98,6 @@ export class StoreService {
   }
 
   getMetricsByStore(id: string) {
-    // Metrics are mock-only. Backend IDs are numeric strings ("1", "2", …) while
-    // mock data uses "store-001" style — counts will always be 0 until alerts/events connect.
     const metrics: StoreMetrics = {
       alertsOpen: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'open').length,
       alertsResolved: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'resolved').length,

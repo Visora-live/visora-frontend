@@ -8,7 +8,7 @@ export const adminGuard = () => {
   const router = inject(Router);
   return auth.getCurrentUser().pipe(
     map((user) =>
-      auth.isAdminRole(user?.rol_nombre)
+      auth.isAdminRole(user?.rol_tipo)
         ? true
         : router.createUrlTree(['/unauthorized']),
     ),

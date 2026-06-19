@@ -10,11 +10,11 @@ import type {
 
 interface BackendIdentification {
   id: number;
-  evidencia_id: number;
+  evento_imagen_id: number;
   nombre: string | null;
   apellido: string | null;
   dni: string | null;
-  confianza: number | null;
+  confianza_identificacion: number;
   fuente: string;
   created_at: string;
 }
@@ -22,11 +22,11 @@ interface BackendIdentification {
 function mapIdentification(b: BackendIdentification): Identification {
   return {
     id: String(b.id),
-    evidenceId: String(b.evidencia_id),
+    eventoImagenId: String(b.evento_imagen_id),
     nombre: b.nombre ?? undefined,
     apellido: b.apellido ?? undefined,
     dni: b.dni ?? undefined,
-    confianza: b.confianza ?? undefined, // display-only — always manually entered, never AI-computed
+    confianzaIdentificacion: b.confianza_identificacion,
     fuente: b.fuente,
     createdAt: b.created_at,
   };
@@ -37,17 +37,17 @@ export class IdentificationService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
-  list(params: { evidenciaId?: number; fuente?: string } = {}) {
+  list(params: { eventoImagenId?: number; fuente?: string } = {}) {
     let httpParams = new HttpParams();
-    if (params.evidenciaId !== undefined) httpParams = httpParams.set('evidencia_id', String(params.evidenciaId));
+    if (params.eventoImagenId !== undefined) httpParams = httpParams.set('evento_imagen_id', String(params.eventoImagenId));
     if (params.fuente) httpParams = httpParams.set('fuente', params.fuente);
     return this.http
       .get<BackendIdentification[]>(`${this.base}/identifications`, { params: httpParams })
       .pipe(map((arr) => arr.map(mapIdentification)));
   }
 
-  listByEvidence(evidenceId: string) {
-    return this.list({ evidenciaId: Number(evidenceId) });
+  listByEventImage(eventImageId: string) {
+    return this.list({ eventoImagenId: Number(eventImageId) });
   }
 
   getById(id: string) {
@@ -59,11 +59,11 @@ export class IdentificationService {
 
   create(payload: IdentificationCreatePayload) {
     const body = {
-      evidencia_id: payload.evidenceId,
+      evento_imagen_id: payload.eventoImagenId,
       nombre: payload.nombre ?? null,
       apellido: payload.apellido ?? null,
       dni: payload.dni ?? null,
-      confianza: payload.confianza ?? null,
+      confianza_identificacion: payload.confianzaIdentificacion ?? 0,
       fuente: payload.fuente ?? 'manual',
     };
     return this.http
@@ -76,7 +76,7 @@ export class IdentificationService {
     if (payload.nombre !== undefined) body['nombre'] = payload.nombre ?? null;
     if (payload.apellido !== undefined) body['apellido'] = payload.apellido ?? null;
     if (payload.dni !== undefined) body['dni'] = payload.dni ?? null;
-    if (payload.confianza !== undefined) body['confianza'] = payload.confianza ?? null;
+    if (payload.confianzaIdentificacion !== undefined) body['confianza_identificacion'] = payload.confianzaIdentificacion;
     if (payload.fuente !== undefined) body['fuente'] = payload.fuente;
     return this.http
       .patch<BackendIdentification>(`${this.base}/identifications/${id}`, body)

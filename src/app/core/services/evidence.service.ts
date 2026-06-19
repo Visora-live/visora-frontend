@@ -8,30 +8,30 @@ import type {
   EvidenceUpdatePayload,
 } from '../models/evidence.model';
 
-interface BackendEvidence {
+interface BackendEventImage {
   id: number;
   evento_id: number;
-  tipo: string;
+  storage_ref: string;
   storage_provider: string;
-  storage_path: string;
-  storage_bucket: string | null;
   filename: string | null;
   content_type: string | null;
-  ai_processed: boolean;
+  es_frame_representativo: boolean;
+  confianza_arma: number;
+  confianza_rostro: number;
   created_at: string;
 }
 
-function mapEvidence(b: BackendEvidence): EvidenceRecord {
+function mapEventImage(b: BackendEventImage): EvidenceRecord {
   return {
     id: String(b.id),
     eventId: String(b.evento_id),
-    tipo: b.tipo,
-    storagePath: b.storage_path,
+    storageRef: b.storage_ref,
     storageProvider: b.storage_provider,
-    storageBucket: b.storage_bucket ?? undefined,
     filename: b.filename ?? undefined,
     contentType: b.content_type ?? undefined,
-    aiProcessed: b.ai_processed, // read-only flag from backend — no AI logic triggered in frontend
+    esFrameRepresentativo: b.es_frame_representativo,
+    confianzaArma: b.confianza_arma,
+    confianzaRostro: b.confianza_rostro,
     createdAt: b.created_at,
   };
 }
@@ -41,14 +41,12 @@ export class EvidenceService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
-  list(params: { eventoId?: number; tipo?: string; storageProvider?: string } = {}) {
+  list(params: { eventoId?: number } = {}) {
     let httpParams = new HttpParams();
     if (params.eventoId !== undefined) httpParams = httpParams.set('evento_id', String(params.eventoId));
-    if (params.tipo) httpParams = httpParams.set('tipo', params.tipo);
-    if (params.storageProvider) httpParams = httpParams.set('storage_provider', params.storageProvider);
     return this.http
-      .get<BackendEvidence[]>(`${this.base}/evidences`, { params: httpParams })
-      .pipe(map((arr) => arr.map(mapEvidence)));
+      .get<BackendEventImage[]>(`${this.base}/event-images`, { params: httpParams })
+      .pipe(map((arr) => arr.map(mapEventImage)));
   }
 
   listByEvent(eventId: string) {
@@ -56,8 +54,8 @@ export class EvidenceService {
   }
 
   getById(id: string) {
-    return this.http.get<BackendEvidence>(`${this.base}/evidences/${id}`).pipe(
-      map(mapEvidence),
+    return this.http.get<BackendEventImage>(`${this.base}/event-images/${id}`).pipe(
+      map(mapEventImage),
       catchError(() => of(null)),
     );
   }
@@ -65,48 +63,49 @@ export class EvidenceService {
   create(payload: EvidenceCreatePayload) {
     const body = {
       evento_id: payload.eventId,
-      tipo: payload.tipo ?? 'snapshot',
-      storage_path: payload.storagePath,
+      storage_ref: payload.storageRef,
       storage_provider: payload.storageProvider ?? 'local',
-      storage_bucket: payload.storageBucket ?? null,
       filename: payload.filename ?? null,
       content_type: payload.contentType ?? null,
+      es_frame_representativo: payload.esFrameRepresentativo ?? false,
+      confianza_arma: payload.confianzaArma ?? 0,
+      confianza_rostro: payload.confianzaRostro ?? 0,
     };
     return this.http
-      .post<BackendEvidence>(`${this.base}/evidences`, body)
-      .pipe(map(mapEvidence));
+      .post<BackendEventImage>(`${this.base}/event-images`, body)
+      .pipe(map(mapEventImage));
   }
 
-  // Sends file bytes to backend via FormData — frontend does NOT read or process file content.
-  upload(eventoId: number, file: File, tipo = 'snapshot') {
+  upload(eventoId: number, file: File, esFrameRepresentativo = false) {
     const formData = new FormData();
     formData.append('evento_id', String(eventoId));
-    formData.append('tipo', tipo);
+    formData.append('es_frame_representativo', String(esFrameRepresentativo));
     formData.append('file', file);
     return this.http
-      .post<BackendEvidence>(`${this.base}/evidences/upload`, formData)
+      .post<BackendEventImage>(`${this.base}/event-images/upload`, formData)
       .pipe(
-        map(mapEvidence),
+        map(mapEventImage),
         catchError(() => of(null)),
       );
   }
 
   update(id: string, payload: EvidenceUpdatePayload) {
     const body: Record<string, unknown> = {};
-    if (payload.tipo !== undefined) body['tipo'] = payload.tipo;
-    if (payload.storagePath !== undefined) body['storage_path'] = payload.storagePath;
+    if (payload.storageRef !== undefined) body['storage_ref'] = payload.storageRef;
     if (payload.storageProvider !== undefined) body['storage_provider'] = payload.storageProvider;
-    if (payload.storageBucket !== undefined) body['storage_bucket'] = payload.storageBucket;
     if (payload.filename !== undefined) body['filename'] = payload.filename;
     if (payload.contentType !== undefined) body['content_type'] = payload.contentType;
+    if (payload.esFrameRepresentativo !== undefined) body['es_frame_representativo'] = payload.esFrameRepresentativo;
+    if (payload.confianzaArma !== undefined) body['confianza_arma'] = payload.confianzaArma;
+    if (payload.confianzaRostro !== undefined) body['confianza_rostro'] = payload.confianzaRostro;
     return this.http
-      .patch<BackendEvidence>(`${this.base}/evidences/${id}`, body)
-      .pipe(map(mapEvidence));
+      .patch<BackendEventImage>(`${this.base}/event-images/${id}`, body)
+      .pipe(map(mapEventImage));
   }
 
   delete(id: string) {
-    return this.http.delete<BackendEvidence>(`${this.base}/evidences/${id}`).pipe(
-      map(mapEvidence),
+    return this.http.delete<BackendEventImage>(`${this.base}/event-images/${id}`).pipe(
+      map(mapEventImage),
       catchError(() => of(null)),
     );
   }

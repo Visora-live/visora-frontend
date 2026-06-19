@@ -40,7 +40,7 @@ export class TopbarComponent {
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
 
   protected readonly displayName = computed(() => this.currentUser()?.username ?? '—');
-  protected readonly displayRole = computed(() => this.currentUser()?.rol_nombre ?? '');
+  protected readonly displayRole = computed(() => this.currentUser()?.rol_tipo ?? '');
   protected readonly avatarInitials = computed(() => {
     const u = this.currentUser()?.username;
     return u ? u.slice(0, 2).toUpperCase() : '—';

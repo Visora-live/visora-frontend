@@ -51,7 +51,7 @@ export class CameraDashboardComponent {
   private readonly storeService = inject(StoreService);
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
-  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 600px)').pipe(map((r) => r.matches)),

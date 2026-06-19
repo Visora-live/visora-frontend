@@ -5,23 +5,20 @@ import { environment } from '../../../environments/environment';
 
 interface BackendRole {
   id: number;
-  nombre: string;
-  descripcion: string | null;
+  tipo: string;
 }
 
 export interface Role {
   id: number;
   name: string;
-  description: string;
 }
 
 export interface RolePayload {
   name: string;
-  description?: string;
 }
 
 function mapBackendRole(b: BackendRole): Role {
-  return { id: b.id, name: b.nombre, description: b.descripcion ?? '' };
+  return { id: b.id, name: b.tipo };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -43,23 +40,21 @@ export class RoleService {
   }
 
   create(payload: RolePayload) {
-    const body = { nombre: payload.name, descripcion: payload.description ?? null };
+    const body = { tipo: payload.name };
     return this.http.post<BackendRole>(`${this.base}/roles`, body).pipe(
       map((b) => mapBackendRole(b)),
     );
   }
 
   update(id: number, payload: Partial<RolePayload>) {
-    const body: { nombre?: string; descripcion?: string | null } = {};
-    if (payload.name !== undefined) body.nombre = payload.name;
-    if (payload.description !== undefined) body.descripcion = payload.description ?? null;
+    const body: { tipo?: string } = {};
+    if (payload.name !== undefined) body.tipo = payload.name;
     return this.http.patch<BackendRole>(`${this.base}/roles/${id}`, body).pipe(
       map((b) => mapBackendRole(b)),
     );
   }
 
   delete(id: number) {
-    // Backend returns 409 if role has associated users — catchError returns null in that case
     return this.http.delete<BackendRole>(`${this.base}/roles/${id}`).pipe(
       map((b) => mapBackendRole(b)),
       catchError(() => of(null)),

@@ -36,15 +36,47 @@ export interface DashboardData {
   recentEvents: DashboardRecentEvent[];
 }
 
-interface BackendStore { id: number; nombre: string; estado: string; }
-interface BackendCamera { id: number; nombre: string; estado: string; tienda_id: number; }
-interface BackendAlert {
-  id: number; titulo: string; severidad: string; estado: string;
-  camara_id: number | null; tienda_id: number | null; created_at: string;
+interface BackendStore {
+  id: number;
+  nombre: string;
+  direccion: string | null;
+  ruc: string | null;
+  estado_tienda: boolean;
+  licencia_inicio: string | null;
+  licencia_fin: string | null;
+  created_at: string;
+  updated_at: string;
 }
+
+interface BackendCamera {
+  id: number;
+  nombre_cam: string;
+  direccion_ip: string;
+  puerto: number;
+  ubicacion_camara: string | null;
+  estado: boolean;
+  tienda_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface BackendAlert {
+  id: number;
+  titulo: string;
+  severidad: string;
+  estado: string;
+  camara_id: number | null;
+  tienda_id: number | null;
+  created_at: string;
+}
+
 interface BackendEvent {
-  id: number; tipo: string; severidad: string;
-  comentario: string | null; camara_id: number; fecha_hora: string;
+  id: number;
+  tipo: string;
+  severidad: string;
+  comentario: string | null;
+  camara_id: number;
+  fecha_hora: string;
 }
 
 const EMPTY_DATA: DashboardData = {
@@ -60,7 +92,7 @@ function severityLabel(s: string): string {
   const n = s.toLowerCase();
   if (n === 'normal' || n === 'baja') return 'normal';
   if (n === 'alta' || n === 'critical' || n === 'critica') return 'critical';
-  return 'suspicious'; // 'media' → suspicious
+  return 'suspicious';
 }
 
 function isCritical(s: string): boolean {
@@ -98,10 +130,10 @@ export class DashboardService {
         const storeMap = new Map(stores.map((s) => [s.id, s.nombre]));
 
         const metrics: DashboardMetrics = {
-          activeStores: stores.filter((s) => s.estado === 'activa').length,
-          onlineCameras: cameras.filter((c) => c.estado === 'activa').length,
-          offlineCameras: cameras.filter((c) => c.estado === 'inactiva').length,
-          maintenanceCameras: cameras.filter((c) => c.estado !== 'activa' && c.estado !== 'inactiva').length,
+          activeStores: stores.filter((s) => s.estado_tienda === true).length,
+          onlineCameras: cameras.filter((c) => c.estado === true).length,
+          offlineCameras: cameras.filter((c) => c.estado === false).length,
+          maintenanceCameras: 0,
           openAlerts: alerts.filter((a) => a.estado === 'abierta').length,
           criticalAlerts: alerts.filter((a) => a.estado === 'abierta' && isCritical(a.severidad)).length,
           suspiciousEvents: events.filter((e) => isSuspicious(e.severidad)).length,
@@ -130,7 +162,7 @@ export class DashboardService {
             id: String(e.id),
             description: e.comentario?.trim() || tipoLabel(e.tipo),
             severity: severityLabel(e.severidad),
-            cameraName: camMap.get(e.camara_id)?.nombre ?? `Cámara ${e.camara_id}`,
+            cameraName: camMap.get(e.camara_id)?.nombre_cam ?? `Cámara ${e.camara_id}`,
             timestamp: e.fecha_hora,
           }));
 

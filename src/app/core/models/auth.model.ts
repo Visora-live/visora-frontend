@@ -12,7 +12,7 @@ export interface CurrentUser {
   id: number;
   username: string;
   email: string | null;
-  estado: string;
+  estado_acceso: boolean;
   rol_id: number;
-  rol_nombre: string | null;
+  rol_tipo: string | null;
 }
