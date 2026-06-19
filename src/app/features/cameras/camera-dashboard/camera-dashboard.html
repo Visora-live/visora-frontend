@@ -2,10 +2,12 @@
   title="Cámaras"
   subtitle="Panel de monitoreo y gestión de cámaras registradas en el sistema VISORA."
 >
-  <button mat-flat-button routerLink="/cameras/new">
-    <mat-icon>add</mat-icon>
-    Registrar cámara
-  </button>
+  @if (isAdmin()) {
+    <button mat-flat-button routerLink="/cameras/new">
+      <mat-icon>add</mat-icon>
+      Registrar cámara
+    </button>
+  }
 </app-page-header>
 
 <!-- Stat cards -->
@@ -190,15 +192,17 @@
               <mat-icon>visibility</mat-icon>
               @if (!compact()) { Ver }
             </button>
-            <button
-              mat-stroked-button
-              [routerLink]="['/cameras', camera.id, 'edit']"
-              class="card-btn"
-              [attr.aria-label]="'Editar ' + camera.name"
-            >
-              <mat-icon>edit</mat-icon>
-              @if (!compact()) { Editar }
-            </button>
+            @if (isAdmin()) {
+              <button
+                mat-stroked-button
+                [routerLink]="['/cameras', camera.id, 'edit']"
+                class="card-btn"
+                [attr.aria-label]="'Editar ' + camera.name"
+              >
+                <mat-icon>edit</mat-icon>
+                @if (!compact()) { Editar }
+              </button>
+            }
           </div>
         </div>
 
@@ -224,10 +228,12 @@
         title="Sin cámaras registradas"
         description="Registra la primera cámara de vigilancia para comenzar el monitoreo VISORA."
       >
-        <button mat-flat-button routerLink="/cameras/new">
-          <mat-icon>add</mat-icon>
-          Registrar cámara
-        </button>
+        @if (isAdmin()) {
+          <button mat-flat-button routerLink="/cameras/new">
+            <mat-icon>add</mat-icon>
+            Registrar cámara
+          </button>
+        }
       </app-empty-state>
     }
   </div>

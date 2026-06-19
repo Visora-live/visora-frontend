@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -43,6 +44,7 @@ export const routes: Routes = [
       },
       {
         path: 'stores/new',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/stores/store-new/store-new').then(
             (m) => m.StoreNewComponent,
@@ -57,6 +59,7 @@ export const routes: Routes = [
       },
       {
         path: 'stores/:id/edit',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/stores/store-edit/store-edit').then(
             (m) => m.StoreEditComponent,
@@ -71,6 +74,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras/new',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/cameras/camera-new/camera-new').then(
             (m) => m.CameraNewComponent,
@@ -85,6 +89,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras/:id/edit',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/cameras/camera-edit/camera-edit').then(
             (m) => m.CameraEditComponent,
@@ -125,6 +130,7 @@ export const routes: Routes = [
       },
       {
         path: 'users/new',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/users/user-new/user-new').then((m) => m.UserNewComponent),
       },
@@ -135,6 +141,7 @@ export const routes: Routes = [
       },
       {
         path: 'users/:id/edit',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/users/user-edit/user-edit').then((m) => m.UserEditComponent),
       },

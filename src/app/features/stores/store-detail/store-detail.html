@@ -13,10 +13,12 @@
       <mat-icon>videocam</mat-icon>
       Ver cámaras
     </button>
-    <button mat-flat-button [routerLink]="['/stores', s.id, 'edit']">
-      <mat-icon>edit</mat-icon>
-      Editar tienda
-    </button>
+    @if (isAdmin()) {
+      <button mat-flat-button [routerLink]="['/stores', s.id, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Editar tienda
+      </button>
+    }
   </app-page-header>
 
   <!-- Stat cards -->

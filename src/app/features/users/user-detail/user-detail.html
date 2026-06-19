@@ -30,10 +30,12 @@
         Ver tienda
       </button>
     }
-    <button mat-flat-button [routerLink]="['/users', u.id, 'edit']">
-      <mat-icon>edit</mat-icon>
-      Editar usuario
-    </button>
+    @if (isAdmin()) {
+      <button mat-flat-button [routerLink]="['/users', u.id, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Editar usuario
+      </button>
+    }
   </app-page-header>
 
   <!-- Stat cards -->

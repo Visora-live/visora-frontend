@@ -2,10 +2,12 @@
   title="Usuarios"
   subtitle="Administra los usuarios responsables del monitoreo y gestión de VISORA."
 >
-  <button mat-flat-button class="register-btn" routerLink="/users/new">
-    <mat-icon>person_add</mat-icon>
-    Registrar usuario
-  </button>
+  @if (isAdmin()) {
+    <button mat-flat-button class="register-btn" routerLink="/users/new">
+      <mat-icon>person_add</mat-icon>
+      Registrar usuario
+    </button>
+  }
 </app-page-header>
 
 <!-- Stat cards -->
@@ -145,14 +147,16 @@
               >
                 <mat-icon>visibility</mat-icon>
               </button>
-              <button
-                mat-icon-button
-                matTooltip="Editar usuario"
-                [attr.aria-label]="'Editar ' + user.fullName"
-                [routerLink]="['/users', user.id, 'edit']"
-              >
-                <mat-icon>edit</mat-icon>
-              </button>
+              @if (isAdmin()) {
+                <button
+                  mat-icon-button
+                  matTooltip="Editar usuario"
+                  [attr.aria-label]="'Editar ' + user.fullName"
+                  [routerLink]="['/users', user.id, 'edit']"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+              }
             </div>
           </td>
         </ng-container>
@@ -188,10 +192,12 @@
       title="No hay usuarios registrados"
       description="Registra el primer usuario para otorgar acceso al sistema de vigilancia VISORA."
     >
-      <button mat-flat-button routerLink="/users/new">
-        <mat-icon>person_add</mat-icon>
-        Registrar usuario
-      </button>
+      @if (isAdmin()) {
+        <button mat-flat-button routerLink="/users/new">
+          <mat-icon>person_add</mat-icon>
+          Registrar usuario
+        </button>
+      }
     </app-empty-state>
   </div>
 }

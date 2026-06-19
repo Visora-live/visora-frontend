@@ -12,6 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { map } from 'rxjs';
 import type { UserRole, UserStatus } from '../../../core/models/user.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
@@ -43,7 +44,11 @@ type StatusFilterType = 'all' | UserStatus;
 })
 export class UserListComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
+
+  private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
 
   private readonly isNarrow = toSignal(
     this.breakpointObserver.observe('(max-width: 768px)').pipe(map((r) => r.matches)),

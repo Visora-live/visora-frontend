@@ -28,10 +28,12 @@
       <mat-icon>event_note</mat-icon>
       Ver eventos
     </button>
-    <button mat-flat-button [routerLink]="['/cameras', cameraId, 'edit']">
-      <mat-icon>edit</mat-icon>
-      Editar
-    </button>
+    @if (isAdmin()) {
+      <button mat-flat-button [routerLink]="['/cameras', cameraId, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Editar
+      </button>
+    }
   </app-page-header>
 
   <!-- Stat cards -->

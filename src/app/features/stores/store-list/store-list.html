@@ -2,10 +2,12 @@
   title="Tiendas"
   subtitle="Gestiona los establecimientos conectados al sistema de videovigilancia inteligente."
 >
-  <button mat-flat-button class="register-btn" routerLink="/stores/new">
-    <mat-icon>add</mat-icon>
-    Registrar tienda
-  </button>
+  @if (isAdmin()) {
+    <button mat-flat-button class="register-btn" routerLink="/stores/new">
+      <mat-icon>add</mat-icon>
+      Registrar tienda
+    </button>
+  }
 </app-page-header>
 
 <!-- Stat cards -->
@@ -138,14 +140,16 @@
               >
                 <mat-icon>visibility</mat-icon>
               </button>
-              <button
-                mat-icon-button
-                matTooltip="Editar tienda"
-                [attr.aria-label]="'Editar ' + store.name"
-                [routerLink]="['/stores', store.id, 'edit']"
-              >
-                <mat-icon>edit</mat-icon>
-              </button>
+              @if (isAdmin()) {
+                <button
+                  mat-icon-button
+                  matTooltip="Editar tienda"
+                  [attr.aria-label]="'Editar ' + store.name"
+                  [routerLink]="['/stores', store.id, 'edit']"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+              }
             </div>
           </td>
         </ng-container>
@@ -181,10 +185,12 @@
       title="No hay tiendas registradas"
       description="Registra tu primera tienda para comenzar a monitorear el establecimiento con VISORA."
     >
-      <button mat-flat-button routerLink="/stores/new">
-        <mat-icon>add</mat-icon>
-        Registrar tienda
-      </button>
+      @if (isAdmin()) {
+        <button mat-flat-button routerLink="/stores/new">
+          <mat-icon>add</mat-icon>
+          Registrar tienda
+        </button>
+      }
     </app-empty-state>
   </div>
 }

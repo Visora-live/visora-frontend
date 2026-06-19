@@ -12,6 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { catchError, map, of } from 'rxjs';
 import type { StoreStatus } from '../../../core/models/store.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { StoreService } from '../../../core/services/store.service';
 import { AlertService, type AlertListResponse } from '../../../core/services/alert.service';
 import { EventService, type EventListResponse } from '../../../core/services/event.service';
@@ -44,9 +45,13 @@ type StatusFilter = 'all' | StoreStatus;
 })
 export class StoreListComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly auth = inject(AuthService);
   private readonly storeService = inject(StoreService);
   private readonly alertService = inject(AlertService);
   private readonly eventService = inject(EventService);
+
+  private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
 
   private readonly isNarrow = toSignal(
     this.breakpointObserver.observe('(max-width: 768px)').pipe(map((r) => r.matches)),

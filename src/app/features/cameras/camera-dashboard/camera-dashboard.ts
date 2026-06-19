@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import type { CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
+import { AuthService } from '../../../core/services/auth.service';
 import { CameraService } from '../../../core/services/camera.service';
 import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
@@ -45,8 +46,12 @@ const EMPTY_STORE_LIST = { items: [], total: 0 };
 })
 export class CameraDashboardComponent {
   private readonly bp = inject(BreakpointObserver);
+  private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
   private readonly storeService = inject(StoreService);
+
+  private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_nombre));
 
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 600px)').pipe(map((r) => r.matches)),
