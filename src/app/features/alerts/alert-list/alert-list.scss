@@ -91,13 +91,24 @@
   &:hover { background: rgba(0, 0, 0, 0.02); }
   &--critical { border-left: 3px solid var(--visora-status-critical); }
   &--open { border-left: 3px solid var(--visora-status-suspicious); }
+  &--unread { font-weight: 600; }
 }
 
 // ── Cell content ──────────────────────────────────────────────────────────────
 
 .cell-datetime { display: flex; flex-direction: column; gap: 2px; }
+.dt-row { display: flex; align-items: center; gap: 6px; }
 .dt-date { font-size: 13px; font-weight: 600; color: var(--visora-text); }
 .dt-time { font-size: 11px; color: var(--visora-text-muted); font-family: monospace; }
+
+.unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--visora-status-critical, #dc2626);
+  flex-shrink: 0;
+}
 
 .cell-text {
   font-size: 13px;

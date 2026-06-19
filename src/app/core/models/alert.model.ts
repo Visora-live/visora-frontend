@@ -25,6 +25,7 @@ export interface Alert {
   createdAt: string;
   updatedAt?: string;
   resolvedAt?: string;
+  leida: boolean;
   assignedTo?: string;
   evidence: Evidence[];
   timeline: AlertTimelineEntry[];

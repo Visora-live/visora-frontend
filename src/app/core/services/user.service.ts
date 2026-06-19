@@ -16,10 +16,7 @@ interface BackendUser {
 }
 
 function deriveUserRole(roleTipo: string): UserRole {
-  const t = roleTipo.toLowerCase();
-  if (t === 'admin') return 'admin';
-  if (t === 'propietario') return 'operator';
-  return 'viewer';
+  return roleTipo.toLowerCase() === 'admin' ? 'admin' : 'propietario';
 }
 
 function mapBackendUser(b: BackendUser, roleMap: Map<number, string>): User {
@@ -42,7 +39,7 @@ export interface UserListResponse {
   total: number;
   activeCount: number;
   adminCount: number;
-  operatorCount: number;
+  propietarioCount: number;
   inactiveCount: number;
 }
 
@@ -80,7 +77,7 @@ export class UserService {
           total: items.length,
           activeCount: items.filter((u) => u.status === 'active').length,
           adminCount: items.filter((u) => u.role === 'admin').length,
-          operatorCount: items.filter((u) => u.role === 'operator').length,
+          propietarioCount: items.filter((u) => u.role === 'propietario').length,
           inactiveCount: items.filter((u) => u.status === 'inactive').length,
         };
       }),

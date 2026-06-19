@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'operator' | 'viewer';
+export type UserRole = 'admin' | 'propietario';
 export type UserStatus = 'active' | 'inactive';
 
 export interface UserActivity {
@@ -11,9 +11,9 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
-  role: UserRole;       // derived from roleName via heuristic (contains 'admin'/'oper'/fallback 'viewer')
-  roleId?: number;     // backend rol_id — always set on backend data, absent on legacy mocks
-  roleName?: string;   // backend role nombre — always set on backend data, absent on legacy mocks
+  role: UserRole;      // derived from rol.tipo: 'admin' | 'propietario'
+  roleId?: number;    // backend rol_id
+  roleName?: string;  // backend rol.tipo value
   status: UserStatus;
   storeId?: string;
   storeName?: string;

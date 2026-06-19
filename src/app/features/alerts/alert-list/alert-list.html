@@ -105,7 +105,12 @@
         <th mat-header-cell *matHeaderCellDef>Fecha / Hora</th>
         <td mat-cell *matCellDef="let a">
           <div class="cell-datetime">
-            <span class="dt-date">{{ a.createdAt | date:'dd/MM/yyyy' }}</span>
+            <div class="dt-row">
+              @if (!a.leida) {
+                <span class="unread-dot" aria-label="No leída" title="No leída"></span>
+              }
+              <span class="dt-date">{{ a.createdAt | date:'dd/MM/yyyy' }}</span>
+            </div>
             <span class="dt-time">{{ a.createdAt | date:'HH:mm:ss' }}</span>
           </div>
         </td>
@@ -208,6 +213,7 @@
         class="alerts-row"
         [class.alerts-row--critical]="row.severity === 'critical'"
         [class.alerts-row--open]="row.status === 'open' && row.severity !== 'critical'"
+        [class.alerts-row--unread]="!row.leida"
       ></tr>
     </table>
   </div>

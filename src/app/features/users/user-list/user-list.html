@@ -14,7 +14,7 @@
 <div class="stats-grid">
   <app-stat-card title="Usuarios activos" [value]="activeCount()" icon="person" />
   <app-stat-card title="Administradores" [value]="adminCount()" icon="admin_panel_settings" />
-  <app-stat-card title="Operadores" [value]="operatorCount()" icon="manage_accounts" />
+  <app-stat-card title="Propietarios" [value]="propietarioCount()" icon="store" />
   <app-stat-card title="Usuarios inactivos" [value]="inactiveCount()" icon="person_off" />
 </div>
 
@@ -48,8 +48,7 @@
     <mat-select [value]="roleFilter()" (valueChange)="roleFilter.set($event)">
       <mat-option value="all">Todos</mat-option>
       <mat-option value="admin">Administrador</mat-option>
-      <mat-option value="operator">Operador</mat-option>
-      <mat-option value="viewer">Visualizador</mat-option>
+      <mat-option value="propietario">Propietario de tienda</mat-option>
     </mat-select>
   </mat-form-field>
 

@@ -273,6 +273,19 @@
             </dd>
           </div>
 
+          <div class="alrt-info-item">
+            <dt class="alrt-info-label">
+              <mat-icon aria-hidden="true">{{ a.leida ? 'mark_email_read' : 'mark_email_unread' }}</mat-icon>
+              Leída
+            </dt>
+            <dd class="alrt-info-value">
+              <app-status-badge
+                [status]="a.leida ? 'normal' : 'critical'"
+                [label]="a.leida ? 'Leída' : 'No leída'"
+              />
+            </dd>
+          </div>
+
           @if (a.assignedTo) {
             <div class="alrt-info-item">
               <dt class="alrt-info-label">

@@ -56,7 +56,7 @@ export class UserListComponent {
   );
 
   private readonly listRes = toSignal(this.userService.list(), {
-    initialValue: { items: [], total: 0, activeCount: 0, adminCount: 0, operatorCount: 0, inactiveCount: 0 },
+    initialValue: { items: [], total: 0, activeCount: 0, adminCount: 0, propietarioCount: 0, inactiveCount: 0 },
   });
 
   protected readonly users = computed(() => this.listRes().items);
@@ -82,7 +82,7 @@ export class UserListComponent {
 
   protected readonly activeCount = computed(() => this.listRes().activeCount);
   protected readonly adminCount = computed(() => this.listRes().adminCount);
-  protected readonly operatorCount = computed(() => this.listRes().operatorCount);
+  protected readonly propietarioCount = computed(() => this.listRes().propietarioCount);
   protected readonly inactiveCount = computed(() => this.listRes().inactiveCount);
 
   protected readonly isFiltered = computed(
@@ -99,12 +99,7 @@ export class UserListComponent {
   );
 
   protected roleLabel(role: UserRole): string {
-    const m: Record<UserRole, string> = {
-      admin: 'Administrador',
-      operator: 'Operador',
-      viewer: 'Visualizador',
-    };
-    return m[role];
+    return role === 'admin' ? 'Administrador' : 'Propietario de tienda';
   }
 
   protected onSearch(event: Event): void {

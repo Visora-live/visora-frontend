@@ -15,6 +15,7 @@ interface BackendAlert {
   evento_id: number | null;
   camara_id: number | null;
   tienda_id: number | null;
+  leida: boolean;
   resolved_at: string | null;
   created_at: string;
   updated_at: string;
@@ -22,8 +23,8 @@ interface BackendAlert {
 
 interface BackendCameraMin {
   id: number;
-  nombre: string;
-  ubicacion: string | null;
+  nombre_cam: string;
+  ubicacion_camara: string | null;
   tienda_id: number;
 }
 
@@ -72,12 +73,13 @@ function mapAlert(
     status: mapEstadoAlerta(b.estado),
     title: b.titulo,
     description: b.descripcion ?? '',
+    leida: b.leida ?? false,
     createdAt: b.created_at,
     updatedAt: b.updated_at || undefined,
     resolvedAt: b.resolved_at || undefined,
-    evidence: [],          // not stored in backend alerts
-    timeline: [],          // not stored in backend alerts
-    recommendedActions: [], // not stored in backend alerts
+    evidence: [],
+    timeline: [],
+    recommendedActions: [],
   };
 }
 
@@ -109,9 +111,9 @@ export class AlertService {
           const storeId = a.tienda_id ?? cam?.tienda_id ?? null;
           return mapAlert(
             a,
-            cam?.nombre ?? (a.camara_id ? `Cámara ${a.camara_id}` : ''),
+            cam?.nombre_cam ?? (a.camara_id ? `Cámara ${a.camara_id}` : ''),
             storeId ? (storeMap.get(storeId) ?? '') : '',
-            cam?.ubicacion ?? '',
+            cam?.ubicacion_camara ?? '',
           );
         });
         return {
@@ -135,11 +137,11 @@ export class AlertService {
           catchError(() => of(null as BackendCameraMin | null)),
           switchMap((cam) => {
             const storeId = alert.tienda_id ?? cam?.tienda_id ?? null;
-            if (!storeId) return of(mapAlert(alert, cam?.nombre ?? '', '', cam?.ubicacion ?? ''));
+            if (!storeId) return of(mapAlert(alert, cam?.nombre_cam ?? '', '', cam?.ubicacion_camara ?? ''));
             return this.http.get<BackendStoreMin>(`${this.base}/stores/${storeId}`).pipe(
               catchError(() => of(null as BackendStoreMin | null)),
               map((store) =>
-                mapAlert(alert, cam?.nombre ?? '', store?.nombre ?? '', cam?.ubicacion ?? ''),
+                mapAlert(alert, cam?.nombre_cam ?? '', store?.nombre ?? '', cam?.ubicacion_camara ?? ''),
               ),
             );
           }),

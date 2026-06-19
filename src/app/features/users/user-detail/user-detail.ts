@@ -42,20 +42,10 @@ export class UserDetailComponent {
   });
 
   protected roleLabel(role: UserRole): string {
-    const m: Record<UserRole, string> = {
-      admin: 'Administrador',
-      operator: 'Operador',
-      viewer: 'Visualizador',
-    };
-    return m[role];
+    return role === 'admin' ? 'Administrador' : 'Propietario de tienda';
   }
 
   protected roleIcon(role: UserRole): string {
-    const m: Record<UserRole, string> = {
-      admin: 'admin_panel_settings',
-      operator: 'manage_accounts',
-      viewer: 'visibility',
-    };
-    return m[role];
+    return role === 'admin' ? 'admin_panel_settings' : 'store';
   }
 }
