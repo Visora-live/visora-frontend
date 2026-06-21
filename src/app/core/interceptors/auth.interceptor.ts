@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
+let redirectingToLogin = false;
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -15,11 +17,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(outgoing).pipe(
     catchError((err) => {
-      // Skip global error handling for the login endpoint — LoginComponent shows its own messages.
+      // Skip global error handling for the login endpoint — LoginComponent handles its own errors.
       if (!req.url.endsWith('/auth/login')) {
         if (err.status === 401) {
           auth.logout();
-          void router.navigate(['/login']);
+          if (!redirectingToLogin) {
+            redirectingToLogin = true;
+            void router.navigate(['/login']).then(() => {
+              redirectingToLogin = false;
+            });
+          }
         } else if (err.status === 403) {
           void router.navigate(['/unauthorized']);
         }

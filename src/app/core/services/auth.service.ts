@@ -40,9 +40,13 @@ export class AuthService {
   }
 
   getCurrentUser(): Observable<CurrentUser | null> {
+    if (!this.getToken()) return of(null);
     if (!this.userCache$) {
       this.userCache$ = this.http.get<CurrentUser>(`${this.base}/auth/me`).pipe(
-        catchError(() => of(null)),
+        catchError(() => {
+          this.userCache$ = null;
+          return of(null);
+        }),
         shareReplay(1),
       );
     }
