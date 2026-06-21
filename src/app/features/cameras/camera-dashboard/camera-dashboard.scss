@@ -136,3 +136,98 @@
   color: rgba(255, 255, 255, 0.6);
   font-family: monospace;
 }
+
+// ── Card body ─────────────────────────────────────────────────────────────────
+
+.card-body {
+  padding: var(--visora-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--visora-space-xs);
+  flex: 1;
+}
+
+.cam-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--visora-text);
+  margin: 0 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cam-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--visora-text-muted);
+  min-width: 0;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; flex-shrink: 0; }
+  span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+}
+
+.cam-status { margin-top: 4px; }
+
+.cam-last-event {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--visora-text-muted);
+  min-width: 0;
+  mat-icon { font-size: 13px; width: 13px; height: 13px; flex-shrink: 0; }
+  span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+.capability-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  &--face   { background: rgba(22, 82, 163, 0.1); color: var(--visora-primary); }
+  &--weapon { background: rgba(220, 38, 38, 0.08); color: var(--visora-status-critical); }
+  &--rec    { background: rgba(22, 163, 74, 0.08); color: var(--visora-status-normal); }
+}
+
+.card-actions {
+  display: flex;
+  gap: var(--visora-space-xs);
+  margin-top: auto;
+  padding-top: var(--visora-space-sm);
+  border-top: 1px solid var(--visora-border-color);
+}
+
+.card-btn { flex: 1; font-size: 12px; gap: 4px; }
+
+// ── Results / empty ───────────────────────────────────────────────────────────
+
+.visora-cam-results {
+  font-size: 13px;
+  color: var(--visora-text-muted);
+  margin: 0 0 var(--visora-space-md);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.visora-cam-results-filtered {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(47, 136, 245, 0.1);
+  color: var(--visora-accent);
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.empty-wrap { display: flex; justify-content: center; padding: var(--visora-space-xl); }

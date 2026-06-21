@@ -114,9 +114,10 @@
   font-weight: 600;
   white-space: nowrap;
 
-  &--admin    { background: rgba(22, 82, 163, 0.1); color: var(--visora-primary); }
-  &--operator { background: rgba(217, 119, 6, 0.1); color: var(--visora-status-suspicious); }
-  &--viewer   { background: var(--visora-status-inactive-bg); color: var(--visora-status-inactive); }
+  &--admin       { background: rgba(22, 82, 163, 0.1); color: var(--visora-primary); }
+  &--propietario { background: rgba(217, 119, 6, 0.1); color: var(--visora-status-suspicious); }
+  &--operator    { background: rgba(217, 119, 6, 0.1); color: var(--visora-status-suspicious); }
+  &--viewer      { background: var(--visora-status-inactive-bg); color: var(--visora-status-inactive); }
 }
 
 .cell-store {

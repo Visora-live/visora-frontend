@@ -24,14 +24,18 @@
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
-    <button mat-stroked-button [routerLink]="['/events', a.eventId]">
-      <mat-icon>event</mat-icon>
-      Ver evento
-    </button>
-    <button mat-stroked-button [routerLink]="['/cameras', a.cameraId]">
-      <mat-icon>videocam</mat-icon>
-      Ver cámara
-    </button>
+    @if (a.eventId) {
+      <button mat-stroked-button [routerLink]="['/events', a.eventId]">
+        <mat-icon>event</mat-icon>
+        Ver evento
+      </button>
+    }
+    @if (a.cameraId) {
+      <button mat-stroked-button [routerLink]="['/cameras', a.cameraId]">
+        <mat-icon>videocam</mat-icon>
+        Ver cámara
+      </button>
+    }
   </app-page-header>
 
   <!-- Status bar -->
