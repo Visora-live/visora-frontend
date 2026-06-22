@@ -125,6 +125,7 @@ export const routes: Routes = [
       },
       {
         path: 'users',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/users/user-list/user-list').then((m) => m.UserListComponent),
       },
@@ -136,6 +137,7 @@ export const routes: Routes = [
       },
       {
         path: 'users/:id',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/users/user-detail/user-detail').then((m) => m.UserDetailComponent),
       },
