@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { catchError, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Camera, CameraConnectionStatus, CameraStatus } from '../models/camera.model';
-import { MOCK_EVENTS } from '../../features/events/events.mock';
+import type { VisoraEvent, EventSeverity } from '../models/event.model';
 
 interface BackendCamera {
   id: number;
@@ -50,6 +50,39 @@ const CONNECTION_FAIL: CameraConnectionStatus = {
   contentType: null,
   message: 'Error al contactar el servidor',
 };
+
+interface BackendRecentEvent {
+  id: number;
+  tipo: string;
+  severidad: string;
+  estado: string;
+  fecha_hora: string;
+  comentario: string | null;
+  camara_id: number;
+}
+
+function mapRecentEvent(b: BackendRecentEvent): VisoraEvent {
+  const sev = b.severidad.toLowerCase();
+  const severity: EventSeverity =
+    sev === 'alta' || sev === 'critica' ? 'critical'
+    : sev === 'baja' || sev === 'normal' ? 'normal'
+    : 'suspicious';
+  return {
+    id: String(b.id),
+    cameraId: String(b.camara_id),
+    cameraName: '',
+    storeId: '',
+    storeName: '',
+    location: '',
+    severity,
+    type: 'suspicious_activity',
+    status: 'pending',
+    description: b.comentario ?? b.tipo,
+    timestamp: b.fecha_hora,
+    evidence: [],
+    recommendedActions: [],
+  };
+}
 
 function mapBackendCamera(b: BackendCamera, storeName = ''): Camera {
   return {
@@ -158,11 +191,15 @@ export class CameraService {
   }
 
   getRecentEvents(cameraId: string, limit = 5) {
-    const items = MOCK_EVENTS
-      .filter((e) => e.cameraId === cameraId)
-      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-      .slice(0, limit);
-    return of(items);
+    const params = new HttpParams()
+      .set('camara_id', cameraId)
+      .set('limit', String(limit));
+    return this.http
+      .get<BackendRecentEvent[]>(`${this.base}/events`, { params })
+      .pipe(
+        map((events) => events.map(mapRecentEvent)),
+        catchError(() => of([] as VisoraEvent[])),
+      );
   }
 
   testIpWebcam(host: string, port: number) {

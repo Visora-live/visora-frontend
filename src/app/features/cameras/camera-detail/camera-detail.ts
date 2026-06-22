@@ -3,6 +3,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
+import type { VisoraEvent } from '../../../core/models/event.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import type { CameraConnectionStatus, CameraStatus } from '../../../core/models/camera.model';
@@ -56,7 +57,7 @@ export class CameraDetailComponent {
 
   protected readonly recentEvents = toSignal(
     this.cameraService.getRecentEvents(this.cameraId, 5),
-    { requireSync: true },
+    { initialValue: [] as VisoraEvent[] },
   );
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {

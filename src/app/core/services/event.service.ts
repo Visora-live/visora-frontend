@@ -18,8 +18,8 @@ interface BackendEvent {
 
 interface BackendCameraMin {
   id: number;
-  nombre: string;
-  ubicacion: string | null;
+  nombre_cam: string;
+  ubicacion_camara: string | null;
   tienda_id: number;
 }
 
@@ -101,10 +101,10 @@ export class EventService {
           const cam = camMap.get(e.camara_id);
           return mapEvent(
             e,
-            cam?.nombre ?? `Cámara ${e.camara_id}`,
+            cam?.nombre_cam ?? `Cámara ${e.camara_id}`,
             cam ? String(cam.tienda_id) : '',
             cam ? (storeMap.get(cam.tienda_id) ?? '') : '',
-            cam?.ubicacion ?? '',
+            cam?.ubicacion_camara ?? '',
           );
         });
         return {
@@ -129,7 +129,7 @@ export class EventService {
             return this.http.get<BackendStoreMin>(`${this.base}/stores/${cam.tienda_id}`).pipe(
               catchError(() => of(null as BackendStoreMin | null)),
               map((store) =>
-                mapEvent(evt, cam.nombre, String(cam.tienda_id), store?.nombre ?? '', cam.ubicacion ?? ''),
+                mapEvent(evt, cam.nombre_cam, String(cam.tienda_id), store?.nombre ?? '', cam.ubicacion_camara ?? ''),
               ),
             );
           }),

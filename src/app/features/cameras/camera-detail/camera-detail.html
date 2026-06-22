@@ -453,26 +453,6 @@
             <span>Grabación continua</span>
             <span class="cap-status">{{ c.capabilities.recording ? 'Activa' : 'Inactiva' }}</span>
           </li>
-          <li
-            class="cap-item"
-            [class.cap-item--active]="c.capabilities.facialRecognition"
-            [class.cap-item--inactive]="!c.capabilities.facialRecognition"
-            role="listitem"
-          >
-            <mat-icon aria-hidden="true">face</mat-icon>
-            <span>Reconocimiento facial</span>
-            <span class="cap-status">{{ c.capabilities.facialRecognition ? 'Activo' : 'Inactivo' }}</span>
-          </li>
-          <li
-            class="cap-item"
-            [class.cap-item--active]="c.capabilities.weaponDetection"
-            [class.cap-item--inactive]="!c.capabilities.weaponDetection"
-            role="listitem"
-          >
-            <mat-icon aria-hidden="true">security</mat-icon>
-            <span>Detección de armas</span>
-            <span class="cap-status">{{ c.capabilities.weaponDetection ? 'Activa' : 'Inactiva' }}</span>
-          </li>
         </ul>
       </div>
 
