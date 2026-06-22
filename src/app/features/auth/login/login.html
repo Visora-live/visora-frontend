@@ -1,112 +1,208 @@
-<div class="auth-page">
+<div class="login-wrap">
 
-  <!-- Left brand panel -->
-  <aside class="brand-panel" aria-hidden="true">
-    <div class="brand-content">
-      <p class="brand-logo">VISORA</p>
-      <p class="brand-tagline">Vigilancia inteligente<br />para tus tiendas.</p>
-      <p class="brand-sub">
-        Monitorea cámaras, detecta eventos y actúa<br />en tiempo real desde un solo lugar.
-      </p>
-      <ul class="brand-features">
-        <li class="brand-feature">
-          <mat-icon>videocam</mat-icon>
-          <span>Cámaras en tiempo real</span>
-        </li>
-        <li class="brand-feature">
-          <mat-icon>notifications_active</mat-icon>
-          <span>Alertas inteligentes</span>
-        </li>
-        <li class="brand-feature">
-          <mat-icon>analytics</mat-icon>
-          <span>Análisis de eventos</span>
-        </li>
-      </ul>
-    </div>
-    <mat-icon class="brand-bg-icon">videocam</mat-icon>
-  </aside>
+  <!-- ── Left: access form ───────────────────────────────────────────────── -->
+  <section class="login-left">
+    <span class="deco deco--blur-a" aria-hidden="true"></span>
+    <span class="deco deco--blur-b" aria-hidden="true"></span>
+    <span class="deco deco--dots" aria-hidden="true"></span>
 
-  <!-- Right form area -->
-  <main class="form-area">
-    <div class="form-card">
+    <div class="login-card">
 
-      <p class="form-logo">VISORA</p>
-      <h1 class="form-title">Bienvenido a VISORA</h1>
-      <p class="form-subtitle">Inicia sesión para continuar.</p>
+      <!-- Heading -->
+      <div class="login-heading">
+        <p class="welcome">Bienvenido a</p>
+        <h1 class="brand-title">VISORA</h1>
+        <span class="accent-line" aria-hidden="true"></span>
+      </div>
 
+      <!-- Login form -->
       <form
         [formGroup]="form"
         (ngSubmit)="onSubmit()"
-        class="auth-form"
+        class="login-form"
         novalidate
       >
 
-        <!-- Identifier -->
-        <mat-form-field appearance="outline" class="field">
-          <mat-label>Usuario o correo electrónico</mat-label>
-          <mat-icon matPrefix aria-hidden="true">person</mat-icon>
-          <input
-            matInput
-            type="text"
-            formControlName="identifier"
-            autocomplete="username"
-          />
-          @if (form.controls.identifier.hasError('required')) {
-            <mat-error>Este campo es obligatorio.</mat-error>
+        <!-- Usuario -->
+        <div class="field">
+          <label class="field-label" for="login-identifier">Usuario</label>
+          <div class="input-shell">
+            <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input
+              id="login-identifier"
+              class="input-control"
+              type="text"
+              formControlName="identifier"
+              placeholder="Nombre de usuario"
+              autocomplete="username"
+            />
+          </div>
+          @if (form.controls.identifier.touched && form.controls.identifier.hasError('required')) {
+            <p class="field-hint">Este campo es obligatorio.</p>
           }
-        </mat-form-field>
+        </div>
 
-        <!-- Password -->
-        <mat-form-field appearance="outline" class="field">
-          <mat-label>Contraseña</mat-label>
-          <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
-          <input
-            matInput
-            [type]="showPassword() ? 'text' : 'password'"
-            formControlName="password"
-            autocomplete="current-password"
-          />
-          <button
-            matSuffix
-            mat-icon-button
-            type="button"
-            (click)="togglePassword()"
-            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-          >
-            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          @if (form.controls.password.hasError('required')) {
-            <mat-error>La contraseña es obligatoria.</mat-error>
+        <!-- Contraseña -->
+        <div class="field">
+          <label class="field-label" for="login-password">Contraseña</label>
+          <div class="input-shell">
+            <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <input
+              id="login-password"
+              class="input-control"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Contraseña"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="toggle-eye"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              @if (showPassword()) {
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19M6.6 6.6A18.4 18.4 0 0 0 2 12s3 8 10 8a9.3 9.3 0 0 0 5.4-1.6" />
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                  <path d="m2 2 20 20" />
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              }
+            </button>
+          </div>
+          @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+            <p class="field-hint">La contraseña es obligatoria.</p>
           }
-        </mat-form-field>
+        </div>
 
         <!-- Auth error -->
         @if (submitError()) {
-          <div class="auth-error" role="alert">
-            <mat-icon aria-hidden="true">error_outline</mat-icon>
+          <div class="login-alert" role="alert">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
             <span>{{ submitError() }}</span>
           </div>
         }
 
         <!-- Submit -->
-        <button
-          mat-flat-button
-          type="submit"
-          class="submit-btn"
-          [disabled]="form.invalid || isLoading()"
-        >
+        <button type="submit" class="submit-btn" [disabled]="form.invalid || isLoading()">
           @if (isLoading()) {
-            <mat-spinner diameter="18" class="btn-spinner" />
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span>Verificando...</span>
+          } @else {
+            <span>Acceder</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
           }
-          <span>{{ isLoading() ? 'Verificando...' : 'Acceder' }}</span>
         </button>
 
-        <p class="form-footer-link">
-          <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+        <p class="forgot-link">
+          <a routerLink="/forgot-password">¿Olvidaste la contraseña?</a>
         </p>
 
       </form>
     </div>
-  </main>
+  </section>
+
+  <!-- ── Right: brand panel ──────────────────────────────────────────────── -->
+  <aside class="login-right">
+    <span class="mesh mesh--glow" aria-hidden="true"></span>
+    <span class="mesh mesh--ring-a" aria-hidden="true"></span>
+    <span class="mesh mesh--ring-b" aria-hidden="true"></span>
+
+    <div class="brand-corner">
+      <div class="brand-copy">
+        <h2 class="brand-headline">Videovigilancia</h2>
+        <p class="brand-emphasis">inteligente</p>
+      </div>
+
+      <svg class="brand-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+    </div>
+
+    <footer class="brand-footer">
+      <button type="button" class="footer-item" (click)="openModal('terms')">Términos</button>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <button type="button" class="footer-item" (click)="openModal('privacy')">Privacidad</button>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <button type="button" class="footer-item" (click)="openModal('support')">Soporte 24/7</button>
+    </footer>
+  </aside>
+
+  <!-- ── Legal / support modal ───────────────────────────────────────────── -->
+  @if (activeModal(); as modal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="modal === 'terms' ? 'Términos de uso' : modal === 'privacy' ? 'Privacidad' : 'Soporte 24/7'"
+        (click)="$event.stopPropagation()"
+      >
+        <button type="button" class="modal-close" (click)="closeModal()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        @switch (modal) {
+          @case ('terms') {
+            <h3 class="modal-title">Términos de uso</h3>
+            <span class="modal-accent" aria-hidden="true"></span>
+            <p class="modal-text">
+              VISORA es una plataforma académica de videovigilancia orientada a la gestión de
+              cámaras, eventos y alertas dentro de entornos controlados. El acceso está reservado
+              a usuarios autorizados según su rol asignado.
+            </p>
+          }
+          @case ('privacy') {
+            <h3 class="modal-title">Privacidad</h3>
+            <span class="modal-accent" aria-hidden="true"></span>
+            <p class="modal-text">
+              VISORA protege el acceso a la información mediante autenticación y control de roles.
+              Los usuarios solo pueden visualizar los datos permitidos según su perfil dentro del
+              sistema.
+            </p>
+          }
+          @case ('support') {
+            <h3 class="modal-title">Soporte 24/7</h3>
+            <span class="modal-accent" aria-hidden="true"></span>
+            <p class="modal-text">
+              Si tienes inconvenientes para acceder a la plataforma, verifica tus credenciales o
+              comunícate con el administrador del sistema para recibir asistencia.
+            </p>
+          }
+        }
+
+        <button type="button" class="modal-ok" (click)="closeModal()">Entendido</button>
+      </div>
+    </div>
+  }
 
 </div>
