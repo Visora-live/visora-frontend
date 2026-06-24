@@ -28,6 +28,10 @@
       <mat-icon>videocam</mat-icon>
       Ver cámara
     </button>
+    <button mat-flat-button class="delete-btn" (click)="requestDelete()" aria-label="Eliminar evento">
+      <mat-icon>delete_outline</mat-icon>
+      Eliminar
+    </button>
   </app-page-header>
 
   <!-- Status bar -->
@@ -41,13 +45,6 @@
       [status]="statusBadge(currentStatus())"
       [label]="statusLabel(currentStatus())"
     />
-    @if (e.detection) {
-      <span class="status-bar-sep" aria-hidden="true">·</span>
-      <span class="status-bar-conf" aria-label="Confianza de detección">
-        <mat-icon aria-hidden="true">verified</mat-icon>
-        {{ confidencePct(e.detection.confidence) }} confianza
-      </span>
-    }
     <span class="status-bar-spacer"></span>
     @if (actionDone() === 'reviewed') {
       <span class="action-feedback action-feedback--ok" role="status">
@@ -71,152 +68,9 @@
     }
   </div>
 
-  <div class="visora-event-detail-layout">
+  <div class="visora-event-detail-layout visora-event-detail-layout--single">
 
-    <!-- Left column: evidence + detection + actions -->
-    <div class="col-main">
-
-      <!-- Evidence panel -->
-      <section class="ev-panel" aria-label="Evidencia del evento">
-        <div class="ev-panel-header">
-          <h2 class="ev-panel-title">
-            <mat-icon aria-hidden="true">photo_library</mat-icon>
-            Evidencia
-          </h2>
-          @if (e.evidence.length > 0) {
-            <span class="ev-count-badge">{{ e.evidence.length }}</span>
-          }
-        </div>
-
-        @if (e.evidence.length > 0) {
-          <div class="ev-grid">
-            @for (ev of e.evidence; track ev.id) {
-              <div
-                class="ev-thumb"
-                [class.ev-thumb--video]="ev.type === 'video'"
-                [attr.aria-label]="ev.label"
-              >
-                <div class="ev-thumb-inner">
-                  @if (ev.type === 'video') {
-                    <div class="ev-video-overlay" aria-hidden="true">
-                      <mat-icon class="ev-play-icon">play_circle</mat-icon>
-                      @if (ev.durationSeconds) {
-                        <span class="ev-duration">{{ ev.durationSeconds }}s</span>
-                      }
-                    </div>
-                  } @else {
-                    <mat-icon class="ev-img-icon" aria-hidden="true">image</mat-icon>
-                  }
-                  <div class="ev-scanlines" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--tl" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--tr" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--bl" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--br" aria-hidden="true"></div>
-                </div>
-                <span class="ev-label">{{ ev.label }}</span>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="ev-empty" aria-label="Sin evidencia registrada">
-            <mat-icon aria-hidden="true">hide_image</mat-icon>
-            <span>Sin evidencia registrada</span>
-          </div>
-        }
-      </section>
-
-      <!-- Detection data -->
-      @if (e.detection) {
-        <section class="detect-card" aria-label="Datos de detección">
-          <div class="detect-header">
-            <h2 class="detect-title">
-              <mat-icon aria-hidden="true">{{ typeIcon(e.type) }}</mat-icon>
-              Datos de detección
-            </h2>
-          </div>
-          <div class="detect-body">
-
-            <div class="detect-row">
-              <span class="detect-label">Tipo de detección</span>
-              <span class="detect-value">{{ typeLabel(e.type) }}</span>
-            </div>
-
-            <div class="detect-row">
-              <span class="detect-label">Confianza</span>
-              <div class="detect-value">
-                <div class="conf-bar-wrap" aria-hidden="true">
-                  <div
-                    class="conf-bar"
-                    [class.conf-bar--high]="e.detection.confidence >= 0.8"
-                    [class.conf-bar--mid]="e.detection.confidence >= 0.5 && e.detection.confidence < 0.8"
-                    [class.conf-bar--low]="e.detection.confidence < 0.5"
-                    [style.width]="confidencePct(e.detection.confidence)"
-                  ></div>
-                </div>
-                <span class="conf-pct">{{ confidencePct(e.detection.confidence) }}</span>
-              </div>
-            </div>
-
-            @if (e.detection.personLabel) {
-              <div class="detect-row">
-                <span class="detect-label">Persona</span>
-                <span class="detect-value">{{ e.detection.personLabel }}</span>
-              </div>
-            }
-
-            @if (e.detection.personId) {
-              <div class="detect-row">
-                <span class="detect-label">ID de persona</span>
-                <span class="detect-value detect-value--mono">{{ e.detection.personId }}</span>
-              </div>
-            }
-
-            @if (e.detection.objectType) {
-              <div class="detect-row">
-                <span class="detect-label">Objeto detectado</span>
-                <span class="detect-value">{{ e.detection.objectType }}</span>
-              </div>
-            }
-
-            @if (e.detection.boundingBox) {
-              <div class="detect-row">
-                <span class="detect-label">Región detectada</span>
-                <span class="detect-value detect-value--mono">
-                  x:{{ e.detection.boundingBox.x }}
-                  y:{{ e.detection.boundingBox.y }}
-                  {{ e.detection.boundingBox.width }}×{{ e.detection.boundingBox.height }}px
-                </span>
-              </div>
-            }
-
-          </div>
-        </section>
-      }
-
-      <!-- Recommended actions -->
-      @if (e.recommendedActions.length > 0) {
-        <section class="actions-card" aria-label="Acciones recomendadas">
-          <div class="actions-header">
-            <h2 class="actions-title">
-              <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
-              Acciones recomendadas
-            </h2>
-          </div>
-          <ul class="actions-list" role="list">
-            @for (action of e.recommendedActions; track action.label) {
-              <li class="reco-action-item" [class]="'reco-action-item--' + action.severity" role="listitem">
-                <mat-icon class="reco-action-icon" aria-hidden="true">{{ action.icon }}</mat-icon>
-                <span>{{ action.label }}</span>
-              </li>
-            }
-          </ul>
-        </section>
-      }
-
-    </div>
-
-    <!-- Right column: event info -->
-    <aside class="col-side" aria-label="Información del evento">
+    <aside aria-label="Información del evento">
 
       <div class="info-panel">
         <div class="info-panel-header">
@@ -315,5 +169,15 @@
 
     </aside>
   </div>
+
+  <app-confirm-dialog
+    [open]="confirmingDelete()"
+    title="¿Eliminar este evento?"
+    message="Esta acción no se puede deshacer."
+    [busy]="isDeleting()"
+    [errorMessage]="deleteError()"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()"
+  />
 
 }

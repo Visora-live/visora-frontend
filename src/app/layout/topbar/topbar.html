@@ -14,6 +14,21 @@
 
   <span class="topbar-spacer"></span>
 
+  @if (isAdmin()) {
+    <a
+      mat-icon-button
+      class="notif-btn"
+      routerLink="/notifications"
+      aria-label="Notificaciones"
+      [matBadge]="unreadNotifs()"
+      [matBadgeHidden]="unreadNotifs() === 0"
+      matBadgeColor="warn"
+      matBadgeSize="small"
+    >
+      <mat-icon>notifications</mat-icon>
+    </a>
+  }
+
   <button
     mat-button
     class="user-btn"
@@ -21,20 +36,10 @@
     [attr.aria-label]="'Menú de usuario — ' + displayName()"
   >
     <div class="user-avatar" aria-hidden="true">{{ avatarInitials() }}</div>
-    <span class="user-name">{{ displayName() }}</span>
     <mat-icon aria-hidden="true">expand_more</mat-icon>
   </button>
 
   <mat-menu #userMenu="matMenu">
-    <button mat-menu-item disabled class="user-menu-header" aria-disabled="true">
-      <mat-icon>person</mat-icon>
-      <span class="user-menu-info">
-        <span class="user-menu-name">{{ displayName() }}</span>
-        @if (roleLabel()) {
-          <span class="user-menu-role">{{ roleLabel() }}</span>
-        }
-      </span>
-    </button>
     <button mat-menu-item (click)="logout()">
       <mat-icon>logout</mat-icon>
       <span>Cerrar sesión</span>

@@ -54,13 +54,6 @@
       [status]="statusBadge(currentStatus())"
       [label]="statusLabel(currentStatus())"
     />
-    @if (a.assignedTo) {
-      <span class="alert-status-sep" aria-hidden="true">·</span>
-      <span class="alert-status-assigned" aria-label="Responsable asignado">
-        <mat-icon aria-hidden="true">person</mat-icon>
-        {{ a.assignedTo }}
-      </span>
-    }
     <span class="alert-status-spacer"></span>
 
     @if (actionDone() === 'acknowledged') {
@@ -89,119 +82,9 @@
     }
   </div>
 
-  <div class="visora-alert-detail-layout">
+  <div class="visora-alert-detail-layout visora-alert-detail-layout--single">
 
-    <!-- Left column: evidence + timeline + recommended actions -->
-    <div class="col-main">
-
-      <!-- Evidence panel -->
-      <section class="alrt-ev-panel" aria-label="Evidencia de la alerta">
-        <div class="alrt-ev-header">
-          <h2 class="alrt-ev-title">
-            <mat-icon aria-hidden="true">photo_library</mat-icon>
-            Evidencia
-          </h2>
-          @if (a.evidence.length > 0) {
-            <span class="alrt-ev-count">{{ a.evidence.length }}</span>
-          }
-        </div>
-
-        @if (a.evidence.length > 0) {
-          <div class="alrt-ev-grid">
-            @for (ev of a.evidence; track ev.id) {
-              <div
-                class="alrt-ev-thumb"
-                [class.alrt-ev-thumb--video]="ev.type === 'video'"
-                [attr.aria-label]="ev.label"
-              >
-                <div class="alrt-ev-thumb-inner">
-                  @if (ev.type === 'video') {
-                    <div class="alrt-ev-video-overlay" aria-hidden="true">
-                      <mat-icon class="alrt-ev-play-icon">play_circle</mat-icon>
-                      @if (ev.durationSeconds) {
-                        <span class="alrt-ev-duration">{{ ev.durationSeconds }}s</span>
-                      }
-                    </div>
-                  } @else {
-                    <mat-icon class="alrt-ev-img-icon" aria-hidden="true">image</mat-icon>
-                  }
-                  <div class="alrt-ev-scanlines" aria-hidden="true"></div>
-                  <div class="alrt-ev-corner alrt-ev-corner--tl" aria-hidden="true"></div>
-                  <div class="alrt-ev-corner alrt-ev-corner--tr" aria-hidden="true"></div>
-                  <div class="alrt-ev-corner alrt-ev-corner--bl" aria-hidden="true"></div>
-                  <div class="alrt-ev-corner alrt-ev-corner--br" aria-hidden="true"></div>
-                </div>
-                <span class="alrt-ev-label">{{ ev.label }}</span>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="alrt-ev-empty">
-            <mat-icon aria-hidden="true">hide_image</mat-icon>
-            <span>Sin evidencia registrada para esta alerta.</span>
-          </div>
-        }
-      </section>
-
-      <!-- Timeline -->
-      <section class="alrt-timeline-card" aria-label="Línea de tiempo de la alerta">
-        <div class="alrt-timeline-header">
-          <h2 class="alrt-timeline-title">
-            <mat-icon aria-hidden="true">timeline</mat-icon>
-            Línea de tiempo
-          </h2>
-        </div>
-        <ol class="alrt-timeline" role="list">
-          @for (entry of a.timeline; track entry.timestamp; let last = $last) {
-            <li class="alrt-timeline-item" [class.alrt-timeline-item--last]="last" role="listitem">
-              <div class="alrt-timeline-dot" aria-hidden="true">
-                <mat-icon>{{ entry.icon }}</mat-icon>
-              </div>
-              <div class="alrt-timeline-content">
-                <span class="alrt-timeline-time">
-                  {{ entry.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}
-                </span>
-                <span class="alrt-timeline-action">{{ entry.action }}</span>
-                <span class="alrt-timeline-actor">
-                  <mat-icon aria-hidden="true">{{ entry.actor === 'Sistema VISORA' ? 'smart_toy' : 'person' }}</mat-icon>
-                  {{ entry.actor }}
-                </span>
-              </div>
-            </li>
-          }
-        </ol>
-      </section>
-
-      <!-- Recommended actions -->
-      @if (a.recommendedActions.length > 0) {
-        <section class="alrt-actions-card" aria-label="Acciones recomendadas">
-          <div class="alrt-actions-header">
-            <h2 class="alrt-actions-title">
-              <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
-              Acciones recomendadas
-            </h2>
-          </div>
-          <ul class="alrt-actions-list" role="list">
-            @for (action of a.recommendedActions; track action.label) {
-              <li
-                class="alrt-action-item"
-                [class.alrt-action-item--critical]="action.severity === 'critical'"
-                [class.alrt-action-item--suspicious]="action.severity === 'suspicious'"
-                [class.alrt-action-item--normal]="action.severity === 'normal'"
-                role="listitem"
-              >
-                <mat-icon class="alrt-action-icon" aria-hidden="true">{{ action.icon }}</mat-icon>
-                <span>{{ action.label }}</span>
-              </li>
-            }
-          </ul>
-        </section>
-      }
-
-    </div>
-
-    <!-- Right column: info panel -->
-    <aside class="col-side" aria-label="Información de la alerta">
+    <aside aria-label="Información de la alerta">
 
       <div class="alrt-info-panel">
         <div class="alrt-info-header">
@@ -289,16 +172,6 @@
               />
             </dd>
           </div>
-
-          @if (a.assignedTo) {
-            <div class="alrt-info-item">
-              <dt class="alrt-info-label">
-                <mat-icon aria-hidden="true">person</mat-icon>
-                Responsable
-              </dt>
-              <dd class="alrt-info-value">{{ a.assignedTo }}</dd>
-            </div>
-          }
 
           <div class="alrt-info-item alrt-info-item--full">
             <dt class="alrt-info-label">

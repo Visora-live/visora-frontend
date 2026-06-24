@@ -58,6 +58,12 @@
   gap: var(--visora-space-md);
   align-items: start;
   @media (max-width: 960px) { grid-template-columns: 1fr; }
+
+  // Single-panel variant (after removing the IA evidence/detection column):
+  // the info panel fills the width; its fields lay out in multiple columns.
+  &--single {
+    grid-template-columns: 1fr;
+  }
 }
 
 .col-main, .col-side {
@@ -267,4 +273,11 @@
   &--mono { font-family: monospace; font-size: 12px; }
   &--desc { line-height: 1.5; word-break: break-word; }
   &--muted { color: var(--visora-text-muted); font-style: italic; }
+}
+
+.delete-btn {
+  gap: 6px;
+  background: var(--visora-status-critical) !important;
+  color: #fff !important;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
 }

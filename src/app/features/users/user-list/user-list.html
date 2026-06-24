@@ -10,14 +10,6 @@
   }
 </app-page-header>
 
-<!-- Stat cards -->
-<div class="stats-grid">
-  <app-stat-card title="Usuarios activos" [value]="activeCount()" icon="person" />
-  <app-stat-card title="Administradores" [value]="adminCount()" icon="admin_panel_settings" />
-  <app-stat-card title="Propietarios" [value]="propietarioCount()" icon="store" />
-  <app-stat-card title="Usuarios inactivos" [value]="inactiveCount()" icon="person_off" />
-</div>
-
 <!-- Filters -->
 <div class="filters-bar">
   <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">

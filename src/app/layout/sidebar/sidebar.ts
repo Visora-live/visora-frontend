@@ -25,7 +25,8 @@ export class SidebarComponent {
   private readonly allNavItems: NavItem[] = [
     { label: 'Inicio', icon: 'dashboard', route: '/dashboard' },
     { label: 'Tiendas', icon: 'store', route: '/stores' },
-    { label: 'Cámaras', icon: 'videocam', route: '/cameras' },
+    // Cámaras only for admin: propietario monitors cameras from Inicio (dashboard).
+    { label: 'Cámaras', icon: 'videocam', route: '/cameras', adminOnly: true },
     { label: 'Eventos', icon: 'event_note', route: '/events' },
     { label: 'Alertas', icon: 'notifications', route: '/alerts' },
     { label: 'Usuarios', icon: 'group', route: '/users', adminOnly: true },

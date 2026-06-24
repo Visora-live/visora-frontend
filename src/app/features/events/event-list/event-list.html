@@ -3,14 +3,6 @@
   subtitle="Consulta los eventos detectados por el sistema de videovigilancia inteligente."
 />
 
-<!-- Stat cards -->
-<div class="stats-grid">
-  <app-stat-card title="Eventos hoy" [value]="todayCount()" icon="today" />
-  <app-stat-card title="Críticos" [value]="criticalCount()" icon="warning" />
-  <app-stat-card title="Sospechosos" [value]="suspiciousCount()" icon="visibility" />
-  <app-stat-card title="Evidencias" [value]="evidenceCount()" icon="photo_library" />
-</div>
-
 <!-- Filters -->
 <div class="filters-row">
   <mat-form-field appearance="outline" class="filter filter--search">
@@ -58,6 +50,16 @@
       <mat-option value="pending">Pendiente</mat-option>
       <mat-option value="reviewed">Revisado</mat-option>
       <mat-option value="dismissed">Descartado</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter filter--md">
+    <mat-label>Cámara</mat-label>
+    <mat-select [ngModel]="cameraFilter()" (ngModelChange)="cameraFilter.set($event)" aria-label="Filtrar por cámara">
+      <mat-option value="all">Todas las cámaras</mat-option>
+      @for (cam of cameraOptions(); track cam.id) {
+        <mat-option [value]="cam.id">{{ cam.name }}</mat-option>
+      }
     </mat-select>
   </mat-form-field>
 
@@ -185,14 +187,25 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let e">
-          <button
-            mat-icon-button
-            [routerLink]="['/events', e.id]"
-            matTooltip="Ver detalle"
-            [attr.aria-label]="'Ver detalle del evento de ' + e.storeName"
-          >
-            <mat-icon>chevron_right</mat-icon>
-          </button>
+          <div class="cell-actions">
+            <button
+              mat-icon-button
+              [routerLink]="['/events', e.id]"
+              matTooltip="Ver detalle"
+              [attr.aria-label]="'Ver detalle del evento de ' + e.storeName"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              class="row-delete"
+              (click)="requestDelete(e)"
+              matTooltip="Eliminar evento"
+              [attr.aria-label]="'Eliminar evento de ' + e.storeName"
+            >
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
         </td>
       </ng-container>
 
@@ -228,3 +241,13 @@
     }
   </div>
 }
+
+<app-confirm-dialog
+  [open]="deleteTarget() !== null"
+  title="¿Eliminar este evento?"
+  message="Esta acción no se puede deshacer."
+  [busy]="isDeleting()"
+  [errorMessage]="deleteError()"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

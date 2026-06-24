@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
 import type { VisoraEvent } from '../../../core/models/event.model';
@@ -10,11 +11,12 @@ import type { CameraConnectionStatus, CameraStatus } from '../../../core/models/
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AuthService } from '../../../core/services/auth.service';
 import { CameraService } from '../../../core/services/camera.service';
+import { CameraConnectionStateService } from '../../../core/services/camera-connection-state.service';
 import { EventService } from '../../../core/services/event.service';
 import { AlertService } from '../../../core/services/alert.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
 interface SubmitResult {
@@ -31,9 +33,9 @@ interface SubmitResult {
     DatePipe,
     MatButtonModule,
     MatIconModule,
+    ConfirmDialogComponent,
     EmptyStateComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './camera-detail.html',
@@ -41,8 +43,10 @@ interface SubmitResult {
 })
 export class CameraDetailComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
+  private readonly connState = inject(CameraConnectionStateService);
   private readonly eventService = inject(EventService);
   private readonly alertService = inject(AlertService);
 
@@ -82,23 +86,22 @@ export class CameraDetailComponent {
 
   // ── IP Webcam connection ──────────────────────────────────────────────────
 
+  // Last connection-test result (transient — drives the status message panel).
   protected readonly connectionStatus = signal<CameraConnectionStatus | null>(null);
   protected readonly isTesting = signal(false);
 
+  // Live state lives in the singleton, so it persists across SPA navigation
+  // and only the currently connected camera is LIVE.
+  protected readonly hasLiveStream = computed(() => this.connState.isCameraConnected(this.cameraId));
+  protected readonly mainStreamUrl = computed(() => this.connState.getStreamUrl(this.cameraId));
+
   protected readonly connectionState = computed((): 'idle' | 'testing' | 'connected' | 'failed' => {
     if (this.isTesting()) return 'testing';
+    if (this.hasLiveStream()) return 'connected';
     const s = this.connectionStatus();
-    if (!s) return 'idle';
-    return s.reachable ? 'connected' : 'failed';
+    if (s && !s.reachable) return 'failed';
+    return 'idle';
   });
-
-  protected readonly hasLiveStream = computed(
-    () => (this.connectionStatus()?.reachable ?? false) && !!this.connectionStatus()?.streamUrl,
-  );
-
-  protected readonly mainStreamUrl = computed(
-    () => (this.hasLiveStream() ? (this.connectionStatus()?.streamUrl ?? '') : ''),
-  );
 
   protected readonly expectedSnapshotUrl = computed(() => {
     const c = this.camera();
@@ -117,6 +120,10 @@ export class CameraDetailComponent {
     this.cameraService.getCameraConnection(this.cameraId).pipe(take(1)).subscribe({
       next: (s) => {
         this.connectionStatus.set(s);
+        // Reachable test → mark this camera as the single live connection.
+        if (s.reachable && s.streamUrl) {
+          this.connState.connectCamera(this.cameraId, s);
+        }
         this.isTesting.set(false);
       },
       error: () => { this.isTesting.set(false); },
@@ -124,11 +131,55 @@ export class CameraDetailComponent {
   }
 
   protected disconnectStream(): void {
+    this.connState.disconnectCamera(this.cameraId);
     this.connectionStatus.set(null);
   }
 
   protected copyToClipboard(url: string): void {
     navigator.clipboard.writeText(url).catch(() => {});
+  }
+
+  // ── Delete camera with confirmation ───────────────────────────────────────
+  protected readonly confirmingDelete = signal(false);
+  protected readonly isDeleting = signal(false);
+  protected readonly deleteError = signal('');
+
+  protected requestDelete(): void {
+    this.deleteError.set('');
+    this.confirmingDelete.set(true);
+  }
+
+  protected cancelDelete(): void {
+    if (this.isDeleting()) return;
+    this.confirmingDelete.set(false);
+  }
+
+  protected confirmDelete(): void {
+    if (this.isDeleting()) return;
+    this.isDeleting.set(true);
+    this.deleteError.set('');
+    this.cameraService
+      .delete(this.cameraId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          // If this camera was the live connection, clear it.
+          this.connState.disconnectCamera(this.cameraId);
+          this.isDeleting.set(false);
+          this.confirmingDelete.set(false);
+          void this.router.navigate([this.isAdmin() ? '/cameras' : '/dashboard']);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isDeleting.set(false);
+          this.deleteError.set(
+            err.status === 403
+              ? 'No tienes permisos para eliminar esta cámara.'
+              : err.status === 404
+                ? 'La cámara ya no existe.'
+                : 'No se pudo eliminar la cámara. Intenta de nuevo.',
+          );
+        },
+      });
   }
 
   // ── Registro manual de evento ─────────────────────────────────────────────

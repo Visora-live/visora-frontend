@@ -620,3 +620,100 @@ $font-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-
     font-size: 40px;
   }
 }
+
+// ── Redirect loader ──────────────────────────────────────────────────────────
+
+.login-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: linear-gradient(135deg, #123f7d 0%, $blue 45%, $accent 130%);
+  color: #fff;
+  font-family: $font-ui;
+  animation: loader-fade 0.3s ease both;
+}
+
+.login-loader-glow {
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120, 180, 255, 0.4), transparent 60%);
+  filter: blur(24px);
+  animation: loader-pulse 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.login-loader-ring {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.18);
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #fff;
+    animation: loader-spin 0.9s linear infinite;
+  }
+
+  svg { animation: loader-beat 1.6s ease-in-out infinite; }
+}
+
+.login-loader-brand {
+  margin: 0;
+  font-family: $font-title;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.login-loader-text {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+@keyframes loader-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loader-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+@keyframes loader-beat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-loader-glow,
+  .login-loader-ring svg { animation: none; }
+  .login-loader-ring::after { animation-duration: 1.6s; }
+}

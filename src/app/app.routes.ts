@@ -59,7 +59,7 @@ export const routes: Routes = [
       },
       {
         path: 'stores/:id/edit',
-        canActivate: [adminGuard],
+        // Propietario may edit their own store; backend enforces ownership.
         loadComponent: () =>
           import('./features/stores/store-edit/store-edit').then(
             (m) => m.StoreEditComponent,
@@ -74,7 +74,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras/new',
-        canActivate: [adminGuard],
+        // Propietario may add cameras to their own stores; backend enforces ownership.
         loadComponent: () =>
           import('./features/cameras/camera-new/camera-new').then(
             (m) => m.CameraNewComponent,
@@ -89,7 +89,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras/:id/edit',
-        canActivate: [adminGuard],
+        // Propietario may edit their own cameras; backend enforces ownership.
         loadComponent: () =>
           import('./features/cameras/camera-edit/camera-edit').then(
             (m) => m.CameraEditComponent,
@@ -121,6 +121,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/alerts/alert-detail/alert-detail').then(
             (m) => m.AlertDetailComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/notifications/notification-list/notification-list').then(
+            (m) => m.NotificationListComponent,
           ),
       },
       {

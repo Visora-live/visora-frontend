@@ -58,6 +58,11 @@
   gap: var(--visora-space-md);
   align-items: start;
   @media (max-width: 960px) { grid-template-columns: 1fr; }
+
+  // Single-panel variant after removing IA evidence/timeline/recommended.
+  &--single {
+    grid-template-columns: 1fr;
+  }
 }
 
 .col-main, .col-side {

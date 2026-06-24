@@ -28,20 +28,15 @@
       <mat-icon>event_note</mat-icon>
       Ver eventos
     </button>
-    @if (isAdmin()) {
-      <button mat-flat-button [routerLink]="['/cameras', cameraId, 'edit']">
-        <mat-icon>edit</mat-icon>
-        Editar
-      </button>
-    }
+    <button mat-flat-button [routerLink]="['/cameras', cameraId, 'edit']">
+      <mat-icon>edit</mat-icon>
+      Editar
+    </button>
+    <button mat-stroked-button class="cam-delete-btn" (click)="requestDelete()" aria-label="Eliminar cámara">
+      <mat-icon>delete_outline</mat-icon>
+      Eliminar
+    </button>
   </app-page-header>
-
-  <!-- Stat cards -->
-  <div class="stats-grid">
-    <app-stat-card title="Estado" [value]="cameraStatusLabel(c.status)" icon="circle" />
-    <app-stat-card title="Resolución" [value]="c.resolution" icon="hd" />
-    <app-stat-card title="Dirección IP" [value]="c.ipUrl" icon="lan" />
-  </div>
 
   <!-- Main content -->
   <div class="content-layout">
@@ -397,14 +392,6 @@
 
           <div class="info-item">
             <dt class="info-label">
-              <mat-icon aria-hidden="true">hd</mat-icon>
-              Resolución
-            </dt>
-            <dd class="info-value">{{ c.resolution }}</dd>
-          </div>
-
-          <div class="info-item">
-            <dt class="info-label">
               <mat-icon aria-hidden="true">circle</mat-icon>
               Estado
             </dt>
@@ -424,39 +411,20 @@
             <dd class="info-value">{{ c.createdAt }}</dd>
           </div>
 
-          @if (c.notes) {
-            <div class="info-item info-item--full">
-              <dt class="info-label">
-                <mat-icon aria-hidden="true">notes</mat-icon>
-                Notas
-              </dt>
-              <dd class="info-value info-value--notes">{{ c.notes }}</dd>
-            </div>
-          }
-
         </dl>
-      </div>
-
-      <!-- Capabilities -->
-      <div class="cap-card">
-        <div class="cap-card-header">
-          <h2 class="cap-card-title">Capacidades</h2>
-        </div>
-        <ul class="cap-list" role="list">
-          <li
-            class="cap-item"
-            [class.cap-item--active]="c.capabilities.recording"
-            [class.cap-item--inactive]="!c.capabilities.recording"
-            role="listitem"
-          >
-            <mat-icon aria-hidden="true">fiber_manual_record</mat-icon>
-            <span>Grabación continua</span>
-            <span class="cap-status">{{ c.capabilities.recording ? 'Activa' : 'Inactiva' }}</span>
-          </li>
-        </ul>
       </div>
 
     </aside>
   </div>
+
+  <app-confirm-dialog
+    [open]="confirmingDelete()"
+    title="¿Eliminar esta cámara?"
+    message="Se quitará la cámara del monitoreo de la tienda. Esta acción no se puede deshacer."
+    [busy]="isDeleting()"
+    [errorMessage]="deleteError()"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()"
+  />
 
 }

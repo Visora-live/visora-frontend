@@ -21,11 +21,18 @@
 
 .shell-main {
   flex: 1;
+  min-width: 0;            // allow flex child to shrink instead of forcing width
   overflow-y: auto;
+  overflow-x: hidden;      // page never scrolls sideways; tables scroll internally
   padding: var(--visora-space-lg);
   background: var(--visora-bg);
 
   &:focus {
     outline: none;
+  }
+
+  // Keep all direct content within bounds; wide tables use their own scroll wrapper.
+  > * {
+    max-width: 100%;
   }
 }

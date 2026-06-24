@@ -3,8 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Store, StoreStatus } from '../models/store.model';
-import { MOCK_ALERTS } from '../../features/alerts/alerts.mock';
-import { MOCK_EVENTS } from '../../features/events/events.mock';
 
 interface BackendStore {
   id: number;
@@ -34,12 +32,6 @@ function mapBackendStore(b: BackendStore): Store {
 export interface StoreListResponse {
   items: Store[];
   total: number;
-}
-
-export interface StoreMetrics {
-  alertsOpen: number;
-  alertsResolved: number;
-  eventsTotal: number;
 }
 
 export interface StorePayload {
@@ -95,14 +87,5 @@ export class StoreService {
     return this.http.delete<BackendStore>(`${this.base}/stores/${id}`).pipe(
       map((b) => mapBackendStore(b)),
     );
-  }
-
-  getMetricsByStore(id: string) {
-    const metrics: StoreMetrics = {
-      alertsOpen: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'open').length,
-      alertsResolved: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'resolved').length,
-      eventsTotal: MOCK_EVENTS.filter((e) => e.storeId === id).length,
-    };
-    return of(metrics);
   }
 }

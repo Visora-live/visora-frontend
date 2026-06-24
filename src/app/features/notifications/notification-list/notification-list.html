@@ -1,0 +1,69 @@
+<app-page-header
+  title="Notificaciones"
+  subtitle="Solicitudes de recuperación de contraseña enviadas desde el formulario público."
+>
+  <button mat-stroked-button (click)="toggleUnreadOnly()">
+    <mat-icon>{{ showUnreadOnly() ? 'filter_list_off' : 'mark_email_unread' }}</mat-icon>
+    {{ showUnreadOnly() ? 'Ver todas' : 'Solo no leídas' }}
+  </button>
+</app-page-header>
+
+@if (loaded() && visible().length === 0) {
+
+  <div class="empty-wrap">
+    <app-empty-state
+      icon="notifications_off"
+      title="Sin solicitudes"
+      [description]="showUnreadOnly()
+        ? 'No hay solicitudes sin leer.'
+        : 'Aún no hay solicitudes de recuperación de contraseña.'"
+    />
+  </div>
+
+} @else {
+
+  <ul class="notif-list" role="list">
+    @for (req of visible(); track req.id) {
+      <li class="notif-card" [class.notif-card--unread]="!req.leida" role="listitem">
+
+        <div class="notif-icon" aria-hidden="true">
+          <mat-icon>{{ req.leida ? 'mark_email_read' : 'lock_reset' }}</mat-icon>
+        </div>
+
+        <div class="notif-body">
+          <div class="notif-top">
+            <h2 class="notif-user">{{ req.identificador }}</h2>
+            @if (!req.leida) { <span class="notif-badge">Nueva</span> }
+            <span class="notif-date">{{ req.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+          <p class="notif-desc">{{ req.descripcion }}</p>
+
+          <div class="notif-meta">
+            <span class="notif-meta-item">
+              <mat-icon aria-hidden="true">mail</mat-icon>
+              {{ req.email }}
+            </span>
+            @if (req.celular) {
+              <span class="notif-meta-item">
+                <mat-icon aria-hidden="true">call</mat-icon>
+                {{ req.celular }}
+              </span>
+            }
+          </div>
+
+          @if (!req.leida) {
+            <div class="notif-actions">
+              <button mat-stroked-button (click)="markRead(req)" class="notif-action">
+                <mat-icon>done</mat-icon>
+                Marcar leída
+              </button>
+            </div>
+          }
+        </div>
+
+      </li>
+    }
+  </ul>
+
+}

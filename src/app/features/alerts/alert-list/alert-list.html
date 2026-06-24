@@ -3,14 +3,6 @@
   subtitle="Gestiona las alertas generadas por eventos relevantes del sistema de videovigilancia."
 />
 
-<!-- Stat cards -->
-<div class="stats-grid">
-  <app-stat-card title="Abiertas" [value]="openCount()" icon="notifications_active" />
-  <app-stat-card title="Críticas" [value]="criticalCount()" icon="error" />
-  <app-stat-card title="En revisión" [value]="acknowledgedCount()" icon="manage_search" />
-  <app-stat-card title="Resueltas" [value]="resolvedCount()" icon="check_circle" />
-</div>
-
 <!-- Filters -->
 <div class="filters-row">
   <mat-form-field appearance="outline" class="filter filter--search">

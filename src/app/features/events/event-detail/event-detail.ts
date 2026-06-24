@@ -1,7 +1,9 @@
 import { Component, effect, inject, signal } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { take } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,6 +14,7 @@ import type {
 } from '../../../core/models/event.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { EventService } from '../../../core/services/event.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
@@ -24,6 +27,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
+    ConfirmDialogComponent,
     EmptyStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
@@ -33,6 +37,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 })
 export class EventDetailComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly eventService = inject(EventService);
 
   protected readonly eventId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -69,6 +74,47 @@ export class EventDetailComponent {
         this.actionDone.set('dismissed');
       },
     });
+  }
+
+  // ── Delete with confirmation ──────────────────────────────────────────────
+  protected readonly confirmingDelete = signal(false);
+  protected readonly isDeleting = signal(false);
+  protected readonly deleteError = signal('');
+
+  protected requestDelete(): void {
+    this.deleteError.set('');
+    this.confirmingDelete.set(true);
+  }
+
+  protected cancelDelete(): void {
+    if (this.isDeleting()) return;
+    this.confirmingDelete.set(false);
+  }
+
+  protected confirmDelete(): void {
+    if (this.isDeleting()) return;
+    this.isDeleting.set(true);
+    this.deleteError.set('');
+    this.eventService
+      .delete(this.eventId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.isDeleting.set(false);
+          this.confirmingDelete.set(false);
+          void this.router.navigate(['/events']);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isDeleting.set(false);
+          this.deleteError.set(
+            err.status === 403
+              ? 'No tienes permisos para eliminar este evento.'
+              : err.status === 404
+                ? 'El evento ya no existe.'
+                : 'No se pudo eliminar el evento. Intenta de nuevo.',
+          );
+        },
+      });
   }
 
   protected severityToBadge(s: EventSeverity): BadgeStatus {

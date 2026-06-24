@@ -166,9 +166,9 @@ export class EventService {
   }
 
   delete(id: string) {
+    // Errors propagate so the caller can show 403/404 messages.
     return this.http.delete<BackendEvent>(`${this.base}/events/${id}`).pipe(
       map((e) => mapEvent(e, '', '', '', '')),
-      catchError(() => of(null)),
     );
   }
 }

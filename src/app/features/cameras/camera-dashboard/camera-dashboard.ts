@@ -1,8 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
+import { take } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,14 +12,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
-import type { CameraStatus } from '../../../core/models/camera.model';
+import type { Camera, CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AuthService } from '../../../core/services/auth.service';
 import { CameraService } from '../../../core/services/camera.service';
+import { CameraConnectionStateService } from '../../../core/services/camera-connection-state.service';
 import { StoreService } from '../../../core/services/store.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
 type StatusFilter = 'all' | CameraStatus;
@@ -36,9 +39,9 @@ const EMPTY_STORE_LIST = { items: [], total: 0 };
     MatInputModule,
     MatSelectModule,
     MatTooltipModule,
+    ConfirmDialogComponent,
     EmptyStateComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './camera-dashboard.html',
@@ -48,7 +51,20 @@ export class CameraDashboardComponent {
   private readonly bp = inject(BreakpointObserver);
   private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
+  private readonly connState = inject(CameraConnectionStateService);
   private readonly storeService = inject(StoreService);
+
+  // LIVE preview only for the single actively-connected camera in this session.
+  protected readonly previewFailed = signal<ReadonlySet<string>>(new Set());
+  protected onPreviewError(id: string): void {
+    this.previewFailed.update((s) => new Set(s).add(id));
+  }
+  protected isCameraLive(cameraId: string): boolean {
+    return this.connState.isCameraConnected(cameraId) && !this.previewFailed().has(cameraId);
+  }
+  protected cameraStreamUrl(cameraId: string): string {
+    return this.connState.getStreamUrl(cameraId);
+  }
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
   protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
@@ -67,12 +83,59 @@ export class CameraDashboardComponent {
     return m;
   });
 
+  private readonly removedIds = signal<ReadonlySet<string>>(new Set());
+
   protected readonly cameras = computed(() =>
-    this.listRes().items.map((c) => ({
-      ...c,
-      storeName: this.storeMap().get(c.storeId) ?? c.storeName,
-    })),
+    this.listRes()
+      .items.filter((c) => !this.removedIds().has(c.id))
+      .map((c) => ({
+        ...c,
+        storeName: this.storeMap().get(c.storeId) ?? c.storeName,
+      })),
   );
+
+  // ── Delete camera with confirmation ───────────────────────────────────────
+  protected readonly deleteTarget = signal<Camera | null>(null);
+  protected readonly isDeleting = signal(false);
+  protected readonly deleteError = signal('');
+
+  protected requestDelete(cam: Camera): void {
+    this.deleteError.set('');
+    this.deleteTarget.set(cam);
+  }
+
+  protected cancelDelete(): void {
+    if (this.isDeleting()) return;
+    this.deleteTarget.set(null);
+  }
+
+  protected confirmDelete(): void {
+    const target = this.deleteTarget();
+    if (!target || this.isDeleting()) return;
+    this.isDeleting.set(true);
+    this.deleteError.set('');
+    this.cameraService
+      .delete(target.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.connState.disconnectCamera(target.id);
+          this.removedIds.update((s) => new Set(s).add(target.id));
+          this.isDeleting.set(false);
+          this.deleteTarget.set(null);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isDeleting.set(false);
+          this.deleteError.set(
+            err.status === 403
+              ? 'No tienes permisos para eliminar esta cámara.'
+              : err.status === 404
+                ? 'La cámara ya no existe.'
+                : 'No se pudo eliminar la cámara. Intenta de nuevo.',
+          );
+        },
+      });
+  }
 
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');

@@ -18,7 +18,6 @@ import type { BadgeStatus } from '../../../shared/components/status-badge/status
 import { AlertService } from '../../../core/services/alert.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
 type SeverityFilter = 'all' | EventSeverity;
@@ -39,7 +38,6 @@ type StatusFilter = 'all' | AlertStatus;
     MatTooltipModule,
     EmptyStateComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './alert-list.html',

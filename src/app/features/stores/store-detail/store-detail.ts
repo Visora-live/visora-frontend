@@ -8,7 +8,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
 @Component({
@@ -20,7 +19,6 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
     MatIconModule,
     EmptyStateComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './store-detail.html',
@@ -39,12 +37,4 @@ export class StoreDetailComponent {
   protected readonly store = toSignal(this.storeService.getById(this.storeId), {
     initialValue: null,
   });
-
-  private readonly metricsRes = toSignal(this.storeService.getMetricsByStore(this.storeId), {
-    requireSync: true,
-  });
-
-  protected readonly openAlerts = computed(() => this.metricsRes().alertsOpen);
-  protected readonly totalEvents = computed(() => this.metricsRes().eventsTotal);
-  protected readonly resolvedAlerts = computed(() => this.metricsRes().alertsResolved);
 }

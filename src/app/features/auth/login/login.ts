@@ -24,6 +24,7 @@ export class LoginComponent {
 
   protected readonly showPassword = signal(false);
   protected readonly isLoading = signal(false);
+  protected readonly isRedirecting = signal(false);
   protected readonly submitError = signal('');
 
   protected togglePassword(): void {
@@ -54,8 +55,9 @@ export class LoginComponent {
     const { identifier, password } = this.form.getRawValue();
     this.auth.login(identifier, password).subscribe({
       next: () => {
-        this.isLoading.set(false);
-        void this.router.navigate(['/dashboard']);
+        // Keep the form locked and show a branded loader through the redirect.
+        this.isRedirecting.set(true);
+        setTimeout(() => void this.router.navigate(['/dashboard']), 900);
       },
       error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);

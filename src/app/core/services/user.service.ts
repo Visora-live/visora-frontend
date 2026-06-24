@@ -56,6 +56,7 @@ export interface UserUpdatePayload {
   email?: string;
   roleId?: number;
   status?: UserStatus;
+  password?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -116,6 +117,7 @@ export class UserService {
     if (payload.email !== undefined) body['email'] = payload.email || null;
     if (payload.status !== undefined) body['estado_acceso'] = payload.status === 'active';
     if (payload.roleId !== undefined) body['rol_id'] = payload.roleId;
+    if (payload.password) body['password'] = payload.password;
     return this.http.patch<BackendUser>(`${this.base}/users/${id}`, body).pipe(
       map((u) => mapBackendUser(u, new Map())),
     );

@@ -18,7 +18,6 @@ import { AlertService, type AlertListResponse } from '../../../core/services/ale
 import { EventService, type EventListResponse } from '../../../core/services/event.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
 type StatusFilter = 'all' | StoreStatus;
@@ -37,7 +36,6 @@ type StatusFilter = 'all' | StoreStatus;
     MatTooltipModule,
     EmptyStateComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './store-list.html',
@@ -77,11 +75,13 @@ export class StoreListComponent {
     const q = this.searchQuery().toLowerCase().trim();
     const filter = this.statusFilter();
     return this.stores().filter((store) => {
-      const matchesSearch =
-        !q ||
-        store.name.toLowerCase().includes(q) ||
-        store.address.toLowerCase().includes(q) ||
-        store.city.toLowerCase().includes(q);
+      // Search across name, RUC and address. "Contacto" no existe en el backend
+      // (modelo Tienda no tiene teléfono/email), por eso no se filtra por ese campo.
+      const haystack = [store.name, store.ruc, store.address]
+        .filter((v): v is string => !!v)
+        .join(' ')
+        .toLowerCase();
+      const matchesSearch = !q || haystack.includes(q);
       const matchesStatus = filter === 'all' || store.status === filter;
       return matchesSearch && matchesStatus;
     });

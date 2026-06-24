@@ -2,9 +2,11 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
+import { take } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,13 +18,17 @@ import type {
   EventSeverity,
   EventType,
   EventStatus,
+  VisoraEvent,
 } from '../../../core/models/event.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { EventService } from '../../../core/services/event.service';
+import { CameraService } from '../../../core/services/camera.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
+
+const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0, errorCount: 0 };
 
 type SeverityFilter = 'all' | EventSeverity;
 type TypeFilter = 'all' | EventType;
@@ -41,9 +47,9 @@ type StatusFilter = 'all' | EventStatus;
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
+    ConfirmDialogComponent,
     EmptyStateComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './event-list.html',
@@ -52,6 +58,7 @@ type StatusFilter = 'all' | EventStatus;
 export class EventListComponent {
   private readonly bp = inject(BreakpointObserver);
   private readonly eventService = inject(EventService);
+  private readonly cameraService = inject(CameraService);
 
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 768px)').pipe(map((r) => r.matches)),
@@ -62,11 +69,25 @@ export class EventListComponent {
     initialValue: { items: [], total: 0, todayCount: 0, criticalCount: 0, suspiciousCount: 0, evidenceCount: 0 },
   });
 
-  protected readonly events = computed(() => this.listRes().items);
+  // Owner-scoped cameras for the "filter by camera" dropdown (real data, no mocks).
+  private readonly camListRes = toSignal(this.cameraService.list(), { initialValue: EMPTY_CAM_LIST });
+  protected readonly cameraOptions = computed(() =>
+    this.camListRes().items
+      .map((c) => ({ id: c.id, name: c.name }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  );
+
+  // IDs deleted in this session — filtered out without a full refetch.
+  private readonly removedIds = signal<ReadonlySet<string>>(new Set());
+
+  protected readonly events = computed(() =>
+    this.listRes().items.filter((e) => !this.removedIds().has(e.id)),
+  );
   protected readonly searchQuery = signal('');
   protected readonly severityFilter = signal<SeverityFilter>('all');
   protected readonly typeFilter = signal<TypeFilter>('all');
   protected readonly statusFilter = signal<StatusFilter>('all');
+  protected readonly cameraFilter = signal<string>('all');
 
   protected readonly todayCount = computed(() => this.listRes().todayCount);
   protected readonly criticalCount = computed(() => this.listRes().criticalCount);
@@ -78,7 +99,9 @@ export class EventListComponent {
     const sev = this.severityFilter();
     const typ = this.typeFilter();
     const st = this.statusFilter();
+    const cam = this.cameraFilter();
     return this.events().filter((e) => {
+      if (cam !== 'all' && e.cameraId !== cam) return false;
       if (sev !== 'all' && e.severity !== sev) return false;
       if (typ !== 'all' && e.type !== typ) return false;
       if (st !== 'all' && e.status !== st) return false;
@@ -95,8 +118,51 @@ export class EventListComponent {
       this.searchQuery().trim() !== '' ||
       this.severityFilter() !== 'all' ||
       this.typeFilter() !== 'all' ||
-      this.statusFilter() !== 'all',
+      this.statusFilter() !== 'all' ||
+      this.cameraFilter() !== 'all',
   );
+
+  // ── Delete with confirmation ──────────────────────────────────────────────
+  protected readonly deleteTarget = signal<VisoraEvent | null>(null);
+  protected readonly isDeleting = signal(false);
+  protected readonly deleteError = signal('');
+
+  protected requestDelete(e: VisoraEvent): void {
+    this.deleteError.set('');
+    this.deleteTarget.set(e);
+  }
+
+  protected cancelDelete(): void {
+    if (this.isDeleting()) return;
+    this.deleteTarget.set(null);
+  }
+
+  protected confirmDelete(): void {
+    const target = this.deleteTarget();
+    if (!target || this.isDeleting()) return;
+    this.isDeleting.set(true);
+    this.deleteError.set('');
+    this.eventService
+      .delete(target.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.removedIds.update((s) => new Set(s).add(target.id));
+          this.isDeleting.set(false);
+          this.deleteTarget.set(null);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isDeleting.set(false);
+          this.deleteError.set(
+            err.status === 403
+              ? 'No tienes permisos para eliminar este evento.'
+              : err.status === 404
+                ? 'El evento ya no existe.'
+                : 'No se pudo eliminar el evento. Intenta de nuevo.',
+          );
+        },
+      });
+  }
 
   protected readonly displayedColumns = computed(() =>
     this.isMobile()
@@ -109,6 +175,7 @@ export class EventListComponent {
     this.severityFilter.set('all');
     this.typeFilter.set('all');
     this.statusFilter.set('all');
+    this.cameraFilter.set('all');
   }
 
   protected severityToBadge(s: EventSeverity): BadgeStatus {

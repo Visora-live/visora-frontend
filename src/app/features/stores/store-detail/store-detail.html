@@ -13,37 +13,11 @@
       <mat-icon>videocam</mat-icon>
       Ver cámaras
     </button>
-    @if (isAdmin()) {
-      <button mat-flat-button [routerLink]="['/stores', s.id, 'edit']">
-        <mat-icon>edit</mat-icon>
-        Editar tienda
-      </button>
-    }
+    <button mat-flat-button [routerLink]="['/stores', s.id, 'edit']">
+      <mat-icon>edit</mat-icon>
+      Editar tienda
+    </button>
   </app-page-header>
-
-  <!-- Stat cards -->
-  <div class="stats-grid">
-    <app-stat-card
-      title="Cámaras registradas"
-      [value]="s.cameraCount"
-      icon="videocam"
-    />
-    <app-stat-card
-      title="Alertas abiertas"
-      [value]="openAlerts()"
-      icon="notifications_active"
-    />
-    <app-stat-card
-      title="Eventos registrados"
-      [value]="totalEvents()"
-      icon="event_note"
-    />
-    <app-stat-card
-      title="Alertas resueltas"
-      [value]="resolvedAlerts()"
-      icon="check_circle"
-    />
-  </div>
 
   <!-- Detail card -->
   <div class="detail-card">

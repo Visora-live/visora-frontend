@@ -1,11 +1,13 @@
-import { Component, computed, inject, output } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { Component, computed, effect, inject, output } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatBadgeModule } from '@angular/material/badge';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
+import { RecoveryService } from '../../core/services/recovery.service';
 
 const PAGE_TITLES: Record<string, string> = {
   dashboard: 'Panel principal',
@@ -18,7 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 @Component({
   selector: 'app-topbar',
-  imports: [MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatMenuModule, MatBadgeModule],
   templateUrl: './topbar.html',
   styleUrl: './topbar.scss',
 })
@@ -27,6 +29,7 @@ export class TopbarComponent {
 
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
+  private readonly recovery = inject(RecoveryService);
 
   protected readonly pageTitle = toSignal(
     this.router.events.pipe(
@@ -38,6 +41,20 @@ export class TopbarComponent {
   );
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
+
+  // Unread recovery-request badge (admin only). Loaded once the role resolves to
+  // admin; never polled per-navigation. Shared signal kept fresh by the
+  // notifications view after marking requests as read.
+  protected readonly unreadNotifs = this.recovery.unread;
+
+  constructor() {
+    effect(() => {
+      if (this.isAdmin()) {
+        this.recovery.refreshUnread();
+      }
+    });
+  }
 
   protected readonly displayName = computed(() => this.currentUser()?.username ?? '—');
   protected readonly displayRole = computed(() => this.currentUser()?.rol_tipo ?? '');

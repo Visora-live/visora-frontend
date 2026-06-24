@@ -105,6 +105,15 @@
 }
 
 
+.preview-stream {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .status-overlay {
   position: absolute;
   inset: 0;
@@ -116,6 +125,16 @@
   letter-spacing: 0.12em;
   color: rgba(255, 255, 255, 0.35);
   z-index: 2;
+
+  &--live {
+    inset: auto auto 28px 8px;
+    width: auto;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.85);
+    color: #fff;
+    letter-spacing: 0.04em;
+  }
 }
 
 .preview-footer {
@@ -130,7 +149,6 @@
   z-index: 3;
 }
 
-.preview-res,
 .preview-ip {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.6);
@@ -170,36 +188,6 @@
 
 .cam-status { margin-top: 4px; }
 
-.cam-last-event {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  color: var(--visora-text-muted);
-  min-width: 0;
-  mat-icon { font-size: 13px; width: 13px; height: 13px; flex-shrink: 0; }
-  span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-}
-
-.capability-chips {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-top: 2px;
-}
-
-.chip {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 10px;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  &--face   { background: rgba(22, 82, 163, 0.1); color: var(--visora-primary); }
-  &--weapon { background: rgba(220, 38, 38, 0.08); color: var(--visora-status-critical); }
-  &--rec    { background: rgba(22, 163, 74, 0.08); color: var(--visora-status-normal); }
-}
-
 .card-actions {
   display: flex;
   gap: var(--visora-space-xs);
@@ -231,3 +219,10 @@
 }
 
 .empty-wrap { display: flex; justify-content: center; padding: var(--visora-space-xl); }
+
+.card-delete {
+  flex-shrink: 0;
+  color: var(--visora-text-muted);
+  transition: color 0.15s ease;
+  &:hover { color: var(--visora-status-critical); }
+}

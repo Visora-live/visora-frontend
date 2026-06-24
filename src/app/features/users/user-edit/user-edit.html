@@ -115,6 +115,24 @@
         </div>
       </div>
 
+      <!-- Seguridad -->
+      <div class="form-section form-section--divided">
+        <h2 class="section-label">Seguridad</h2>
+        <div class="field-grid">
+
+          <mat-form-field appearance="outline" class="field field--full">
+            <mat-label>Nueva contraseña</mat-label>
+            <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+            <input matInput type="password" formControlName="password" autocomplete="new-password" />
+            <mat-hint>Deja este campo vacío para no cambiar la contraseña.</mat-hint>
+            @if (form.controls.password.hasError('minlength')) {
+              <mat-error>La contraseña debe tener al menos 8 caracteres.</mat-error>
+            }
+          </mat-form-field>
+
+        </div>
+      </div>
+
     </div>
   </form>
 

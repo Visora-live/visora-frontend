@@ -38,30 +38,6 @@
     }
   </app-page-header>
 
-  <!-- Stat cards -->
-  <div class="stats-grid">
-    <app-stat-card
-      title="Rol"
-      [value]="roleLabel(u.role)"
-      [icon]="roleIcon(u.role)"
-    />
-    <app-stat-card
-      title="Estado"
-      [value]="u.status === 'active' ? 'Activo' : 'Inactivo'"
-      icon="circle"
-    />
-    <app-stat-card
-      title="Tienda asignada"
-      [value]="u.storeName || 'Sin tienda'"
-      icon="store"
-    />
-    <app-stat-card
-      title="Último acceso"
-      [value]="(u.lastAccess | date:'dd/MM/yyyy') ?? 'Sin registro'"
-      icon="login"
-    />
-  </div>
-
   <!-- Info + Activity layout -->
   <div class="visora-user-detail-layout">
 
