@@ -55,9 +55,11 @@ export class LoginComponent {
     const { identifier, password } = this.form.getRawValue();
     this.auth.login(identifier, password).subscribe({
       next: () => {
-        // Keep the form locked and show a branded loader through the redirect.
         this.isRedirecting.set(true);
-        setTimeout(() => void this.router.navigate(['/dashboard']), 900);
+        this.auth.getCurrentUser().subscribe((user) => {
+          const landing = this.auth.isAdminRole(user?.rol_tipo) ? '/stores' : '/dashboard';
+          setTimeout(() => void this.router.navigate([landing]), 900);
+        });
       },
       error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);

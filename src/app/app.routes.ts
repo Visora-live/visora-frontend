@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { ownerGuard } from './core/guards/owner.guard';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
       },
@@ -67,6 +69,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/cameras/camera-dashboard/camera-dashboard').then(
             (m) => m.CameraDashboardComponent,
@@ -97,6 +100,7 @@ export const routes: Routes = [
       },
       {
         path: 'events',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/events/event-list/event-list').then(
             (m) => m.EventListComponent,
@@ -104,6 +108,7 @@ export const routes: Routes = [
       },
       {
         path: 'events/:id',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/events/event-detail/event-detail').then(
             (m) => m.EventDetailComponent,
@@ -111,6 +116,7 @@ export const routes: Routes = [
       },
       {
         path: 'alerts',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/alerts/alert-list/alert-list').then(
             (m) => m.AlertListComponent,
@@ -118,6 +124,7 @@ export const routes: Routes = [
       },
       {
         path: 'alerts/:id',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/alerts/alert-detail/alert-detail').then(
             (m) => m.AlertDetailComponent,

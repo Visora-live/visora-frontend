@@ -9,6 +9,7 @@ interface NavItem {
   icon: string;
   route: string;
   adminOnly?: boolean;
+  ownerOnly?: boolean;
 }
 
 @Component({
@@ -23,16 +24,19 @@ export class SidebarComponent {
   private readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   private readonly allNavItems: NavItem[] = [
-    { label: 'Inicio', icon: 'dashboard', route: '/dashboard' },
-    { label: 'Tiendas', icon: 'store', route: '/stores' },
-    // Cámaras only for admin: propietario monitors cameras from Inicio (dashboard).
-    { label: 'Cámaras', icon: 'videocam', route: '/cameras', adminOnly: true },
-    { label: 'Eventos', icon: 'event_note', route: '/events' },
-    { label: 'Alertas', icon: 'notifications', route: '/alerts' },
-    { label: 'Usuarios', icon: 'group', route: '/users', adminOnly: true },
+    { label: 'Inicio',   icon: 'dashboard',    route: '/dashboard', ownerOnly: true },
+    { label: 'Tiendas',  icon: 'store',         route: '/stores' },
+    { label: 'Cámaras',  icon: 'videocam',      route: '/cameras',  ownerOnly: true },
+    { label: 'Eventos',  icon: 'event_note',    route: '/events',   ownerOnly: true },
+    { label: 'Alertas',  icon: 'notifications', route: '/alerts',   ownerOnly: true },
+    { label: 'Usuarios', icon: 'group',         route: '/users',    adminOnly: true },
   ];
 
   protected readonly navItems = computed(() =>
-    this.allNavItems.filter((item) => !item.adminOnly || this.isAdmin()),
+    this.allNavItems.filter((item) => {
+      if (item.adminOnly)  return  this.isAdmin();
+      if (item.ownerOnly)  return !this.isAdmin();
+      return true;
+    }),
   );
 }
