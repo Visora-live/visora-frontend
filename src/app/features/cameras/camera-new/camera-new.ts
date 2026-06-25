@@ -41,8 +41,6 @@ export class CameraNewComponent {
     name: ['', Validators.required],
     storeId: ['', Validators.required],
     location: ['', Validators.required],
-    ipUrl: ['', [Validators.required, Validators.pattern(/^\d{1,3}(\.\d{1,3}){3}$/)]],
-    port: [8080, [Validators.required, Validators.min(1), Validators.max(65535)]],
     status: ['online', Validators.required],
   });
 
@@ -63,8 +61,6 @@ export class CameraNewComponent {
         storeId: raw.storeId,
         storeName: selectedStore?.name ?? '',
         location: raw.location,
-        ipUrl: raw.ipUrl,
-        port: raw.port,
         status: raw.status as CameraStatus,
       })
       .subscribe({

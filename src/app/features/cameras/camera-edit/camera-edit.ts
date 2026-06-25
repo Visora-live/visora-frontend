@@ -13,6 +13,7 @@ import { CameraService } from '../../../core/services/camera.service';
 import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-camera-edit',
@@ -38,10 +39,15 @@ export class CameraEditComponent {
   private readonly storeService = inject(StoreService);
 
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
+  protected readonly rtmpPushUrl = `${environment.mediamtxRtmpUrl}/cam${this.cameraId}`;
 
   protected readonly camera = toSignal(this.cameraService.getById(this.cameraId), {
     initialValue: null,
   });
+
+  protected copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text).catch(() => {});
+  }
 
   private readonly storeListRes = toSignal(this.storeService.list(), {
     initialValue: { items: [], total: 0 },
@@ -52,8 +58,6 @@ export class CameraEditComponent {
     name: ['', Validators.required],
     storeId: ['', Validators.required],
     location: ['', Validators.required],
-    ipUrl: ['', [Validators.required, Validators.pattern(/^\d{1,3}(\.\d{1,3}){3}$/)]],
-    port: [8080, [Validators.required, Validators.min(1), Validators.max(65535)]],
     status: ['online', Validators.required],
   });
 
@@ -68,8 +72,6 @@ export class CameraEditComponent {
           name: c.name,
           storeId: c.storeId,
           location: c.location,
-          ipUrl: c.ipUrl,
-          port: c.port ?? 8080,
           status: c.status,
         });
       }
@@ -90,8 +92,6 @@ export class CameraEditComponent {
         storeId: raw.storeId,
         storeName: selectedStore?.name ?? this.camera()?.storeName ?? '',
         location: raw.location,
-        ipUrl: raw.ipUrl,
-        port: raw.port,
         status: raw.status as CameraStatus,
       })
       .subscribe({
