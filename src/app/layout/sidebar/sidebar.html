@@ -1,6 +1,10 @@
 <nav class="sidebar" aria-label="Navegación principal">
   <div class="sidebar-logo" aria-hidden="true">
-    <span>VISORA</span>
+    <svg class="sidebar-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z"/>
+      <path d="m9 12 2 2 4-4"/>
+    </svg>
   </div>
 
   <ul class="nav-list" role="list">
@@ -12,9 +16,10 @@
           [routerLink]="item.route"
           routerLinkActive="active"
           [attr.aria-current]="rla.isActive ? 'page' : null"
+          [matTooltip]="item.label"
+          matTooltipPosition="right"
         >
           <mat-icon class="nav-icon" aria-hidden="true">{{ item.icon }}</mat-icon>
-          <span class="nav-label">{{ item.label }}</span>
         </a>
       </li>
     }

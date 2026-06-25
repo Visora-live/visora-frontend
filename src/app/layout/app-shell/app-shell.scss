@@ -10,7 +10,8 @@
 .shell-sidenav {
   width: var(--visora-sidebar-width);
   border-right: none;
-  background: transparent;
+  background: transparent !important;
+  overflow: visible !important;
 }
 
 .shell-layout {
