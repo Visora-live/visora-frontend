@@ -126,12 +126,6 @@
         </mat-form-field>
       }
 
-      @if (isCamFiltered()) {
-        <button mat-stroked-button (click)="clearCamFilters()" class="owner-clear" aria-label="Limpiar filtros">
-          <mat-icon>filter_list_off</mat-icon>
-          Limpiar
-        </button>
-      }
     </div>
 
     @if (groupedCameras().length > 0) {
@@ -206,12 +200,7 @@
             icon="search_off"
             title="Sin resultados"
             description="No hay cámaras que coincidan con los filtros aplicados."
-          >
-            <button mat-flat-button (click)="clearCamFilters()">
-              <mat-icon>filter_list_off</mat-icon>
-              Limpiar filtros
-            </button>
-          </app-empty-state>
+          />
         } @else {
           <app-empty-state
             icon="videocam_off"

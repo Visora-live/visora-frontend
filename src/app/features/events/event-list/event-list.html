@@ -63,12 +63,6 @@
     </mat-select>
   </mat-form-field>
 
-  @if (isFiltered()) {
-    <button mat-stroked-button (click)="clearFilters()" class="clear-btn" aria-label="Limpiar filtros">
-      <mat-icon>filter_list_off</mat-icon>
-      Limpiar
-    </button>
-  }
 </div>
 
 <!-- Results count -->
@@ -226,12 +220,7 @@
         icon="search_off"
         title="Sin resultados"
         description="No hay eventos que coincidan con los filtros aplicados."
-      >
-        <button mat-flat-button (click)="clearFilters()">
-          <mat-icon>filter_list_off</mat-icon>
-          Limpiar filtros
-        </button>
-      </app-empty-state>
+      />
     } @else {
       <app-empty-state
         icon="event_available"
