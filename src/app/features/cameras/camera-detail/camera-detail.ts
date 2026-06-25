@@ -7,15 +7,16 @@ import { take } from 'rxjs';
 import type { VisoraEvent } from '../../../core/models/event.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import type { CameraConnectionStatus, CameraStatus } from '../../../core/models/camera.model';
+import type { CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AuthService } from '../../../core/services/auth.service';
 import { CameraService } from '../../../core/services/camera.service';
-import { CameraConnectionStateService } from '../../../core/services/camera-connection-state.service';
 import { EventService } from '../../../core/services/event.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { HlsPlayerComponent } from '../../../shared/components/hls-player/hls-player';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
+import { environment } from '../../../../environments/environment';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
@@ -34,6 +35,7 @@ interface SubmitResult {
     MatButtonModule,
     MatIconModule,
     ConfirmDialogComponent,
+    HlsPlayerComponent,
     EmptyStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
@@ -46,7 +48,6 @@ export class CameraDetailComponent {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
-  private readonly connState = inject(CameraConnectionStateService);
   private readonly eventService = inject(EventService);
   private readonly alertService = inject(AlertService);
 
@@ -54,6 +55,10 @@ export class CameraDetailComponent {
   protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
+
+  // HLS stream + RTMP push URL for this camera (MediaMTX path = cam<id>).
+  protected readonly hlsUrl = `${environment.mediamtxHlsBase}/cam${this.cameraId}/index.m3u8`;
+  protected readonly rtmpPushUrl = `${environment.mediamtxRtmpUrl}/cam${this.cameraId}`;
 
   protected readonly camera = toSignal(this.cameraService.getById(this.cameraId), {
     initialValue: null,
@@ -84,57 +89,6 @@ export class CameraDetailComponent {
     return m[status];
   }
 
-  // ── IP Webcam connection ──────────────────────────────────────────────────
-
-  // Last connection-test result (transient — drives the status message panel).
-  protected readonly connectionStatus = signal<CameraConnectionStatus | null>(null);
-  protected readonly isTesting = signal(false);
-
-  // Live state lives in the singleton, so it persists across SPA navigation
-  // and only the currently connected camera is LIVE.
-  protected readonly hasLiveStream = computed(() => this.connState.isCameraConnected(this.cameraId));
-  protected readonly mainStreamUrl = computed(() => this.connState.getStreamUrl(this.cameraId));
-
-  protected readonly connectionState = computed((): 'idle' | 'testing' | 'connected' | 'failed' => {
-    if (this.isTesting()) return 'testing';
-    if (this.hasLiveStream()) return 'connected';
-    const s = this.connectionStatus();
-    if (s && !s.reachable) return 'failed';
-    return 'idle';
-  });
-
-  protected readonly expectedSnapshotUrl = computed(() => {
-    const c = this.camera();
-    return c ? `http://${c.ipUrl}:${c.port}/shot.jpg` : '';
-  });
-
-  protected readonly expectedStreamUrl = computed(() => {
-    const c = this.camera();
-    return c ? `http://${c.ipUrl}:${c.port}/video` : '';
-  });
-
-  protected testConnection(): void {
-    if (this.isTesting()) return;
-    this.isTesting.set(true);
-    this.connectionStatus.set(null);
-    this.cameraService.getCameraConnection(this.cameraId).pipe(take(1)).subscribe({
-      next: (s) => {
-        this.connectionStatus.set(s);
-        // Reachable test → mark this camera as the single live connection.
-        if (s.reachable && s.streamUrl) {
-          this.connState.connectCamera(this.cameraId, s);
-        }
-        this.isTesting.set(false);
-      },
-      error: () => { this.isTesting.set(false); },
-    });
-  }
-
-  protected disconnectStream(): void {
-    this.connState.disconnectCamera(this.cameraId);
-    this.connectionStatus.set(null);
-  }
-
   protected copyToClipboard(url: string): void {
     navigator.clipboard.writeText(url).catch(() => {});
   }
@@ -163,8 +117,6 @@ export class CameraDetailComponent {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          // If this camera was the live connection, clear it.
-          this.connState.disconnectCamera(this.cameraId);
           this.isDeleting.set(false);
           this.confirmingDelete.set(false);
           void this.router.navigate([this.isAdmin() ? '/cameras' : '/dashboard']);

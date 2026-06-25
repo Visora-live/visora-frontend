@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -16,10 +16,11 @@ import type { Camera, CameraStatus } from '../../../core/models/camera.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AuthService } from '../../../core/services/auth.service';
 import { CameraService } from '../../../core/services/camera.service';
-import { CameraConnectionStateService } from '../../../core/services/camera-connection-state.service';
 import { StoreService } from '../../../core/services/store.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { HlsPlayerComponent } from '../../../shared/components/hls-player/hls-player';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
+import { environment } from '../../../../environments/environment';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
@@ -40,6 +41,7 @@ const EMPTY_STORE_LIST = { items: [], total: 0 };
     MatSelectModule,
     MatTooltipModule,
     ConfirmDialogComponent,
+    HlsPlayerComponent,
     EmptyStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
@@ -48,22 +50,15 @@ const EMPTY_STORE_LIST = { items: [], total: 0 };
   styleUrl: './camera-dashboard.scss',
 })
 export class CameraDashboardComponent {
+  private readonly route = inject(ActivatedRoute);
   private readonly bp = inject(BreakpointObserver);
   private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
-  private readonly connState = inject(CameraConnectionStateService);
   private readonly storeService = inject(StoreService);
 
-  // LIVE preview only for the single actively-connected camera in this session.
-  protected readonly previewFailed = signal<ReadonlySet<string>>(new Set());
-  protected onPreviewError(id: string): void {
-    this.previewFailed.update((s) => new Set(s).add(id));
-  }
-  protected isCameraLive(cameraId: string): boolean {
-    return this.connState.isCameraConnected(cameraId) && !this.previewFailed().has(cameraId);
-  }
-  protected cameraStreamUrl(cameraId: string): string {
-    return this.connState.getStreamUrl(cameraId);
+  /** HLS stream URL for a camera (MediaMTX path = cam<id>). */
+  protected hlsUrl(cameraId: string): string {
+    return `${environment.mediamtxHlsBase}/cam${cameraId}/index.m3u8`;
   }
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
@@ -119,7 +114,6 @@ export class CameraDashboardComponent {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.connState.disconnectCamera(target.id);
           this.removedIds.update((s) => new Set(s).add(target.id));
           this.isDeleting.set(false);
           this.deleteTarget.set(null);
@@ -139,7 +133,9 @@ export class CameraDashboardComponent {
 
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
-  protected readonly storeFilter = signal<string>('all');
+  protected readonly storeFilter = signal<string>(
+    this.route.snapshot.queryParamMap.get('store') ?? 'all',
+  );
 
   protected readonly onlineCount = computed(() => this.listRes().onlineCount);
   protected readonly offlineCount = computed(() => this.listRes().offlineCount);

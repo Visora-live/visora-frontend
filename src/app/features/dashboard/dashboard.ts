@@ -13,11 +13,12 @@ import type { Camera, CameraStatus } from '../../core/models/camera.model';
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { CameraService } from '../../core/services/camera.service';
-import { CameraConnectionStateService } from '../../core/services/camera-connection-state.service';
 import { StoreService } from '../../core/services/store.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
+import { HlsPlayerComponent } from '../../shared/components/hls-player/hls-player';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge';
+import { environment } from '../../../environments/environment';
 
 const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0, errorCount: 0 };
 const EMPTY_STORE_LIST = { items: [], total: 0 };
@@ -25,7 +26,6 @@ const NO_LOCATION = 'Sin ubicación';
 
 interface MonitorCamera extends Camera {
   locationLabel: string;
-  previewUrl: string;
 }
 
 interface CameraGroup {
@@ -45,6 +45,7 @@ interface CameraGroup {
     MatInputModule,
     MatSelectModule,
     EmptyStateComponent,
+    HlsPlayerComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
   ],
@@ -55,7 +56,6 @@ export class DashboardComponent {
   private readonly service = inject(DashboardService);
   private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
-  private readonly connState = inject(CameraConnectionStateService);
   private readonly storeService = inject(StoreService);
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
@@ -87,26 +87,8 @@ export class DashboardComponent {
       ...c,
       storeName: this.storeMap().get(c.storeId) ?? c.storeName,
       locationLabel: c.location?.trim() ? c.location.trim() : NO_LOCATION,
-      // LIVE preview ONLY for the camera the user has actively connected.
-      // "activa/inactiva" is config state, not a live transmission.
-      previewUrl: this.connState.getStreamUrl(c.id),
     })),
   );
-
-  /** Cameras whose preview <img> failed to load → show offline placeholder. */
-  protected readonly previewFailed = signal<ReadonlySet<string>>(new Set());
-
-  protected onPreviewError(id: string): void {
-    this.previewFailed.update((s) => {
-      const next = new Set(s);
-      next.add(id);
-      return next;
-    });
-  }
-
-  protected showPreview(cam: MonitorCamera): boolean {
-    return !!cam.previewUrl && !this.previewFailed().has(cam.id);
-  }
 
   protected readonly camOnlineCount = computed(() => this.camListRes().onlineCount);
   protected readonly camOfflineCount = computed(
@@ -177,6 +159,11 @@ export class DashboardComponent {
       normal: 'normal',
     };
     return map[severity] ?? 'normal';
+  }
+
+  /** HLS stream URL for a camera (MediaMTX path = cam<id>). */
+  protected hlsUrl(cameraId: string): string {
+    return `${environment.mediamtxHlsBase}/cam${cameraId}/index.m3u8`;
   }
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {

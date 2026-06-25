@@ -86,23 +86,7 @@
 
         <!-- Video preview area -->
         <div class="cam-preview">
-          @if (isCameraLive(camera.id)) {
-            <img
-              class="preview-stream"
-              [src]="cameraStreamUrl(camera.id)"
-              [alt]="'En vivo: ' + camera.name"
-              (error)="onPreviewError(camera.id)"
-            />
-            <div class="status-overlay status-overlay--live" aria-hidden="true">EN VIVO</div>
-          } @else {
-            <div class="preview-center" aria-hidden="true">
-              <mat-icon class="preview-icon">videocam_off</mat-icon>
-            </div>
-            <div class="status-overlay" aria-hidden="true">SIN SEÑAL</div>
-          }
-          <div class="preview-footer" aria-hidden="true">
-            <span class="preview-ip">{{ camera.ipUrl }}@if (camera.port) {:{{ camera.port }}}</span>
-          </div>
+          <app-hls-player [src]="hlsUrl(camera.id)" [enabled]="camera.status === 'online'" />
         </div>
 
         <!-- Card body -->

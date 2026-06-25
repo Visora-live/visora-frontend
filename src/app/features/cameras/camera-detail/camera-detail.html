@@ -24,7 +24,7 @@
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
-    <button mat-stroked-button routerLink="/events">
+    <button mat-stroked-button routerLink="/events" [queryParams]="{ camera: cameraId }">
       <mat-icon>event_note</mat-icon>
       Ver eventos
     </button>
@@ -44,30 +44,9 @@
     <!-- Left: video + events -->
     <div class="col-main">
 
-      <!-- Visor principal -->
-      <section class="video-panel" aria-label="Panel de video">
-        @if (hasLiveStream()) {
-          <img
-            class="main-live-stream"
-            [src]="mainStreamUrl()"
-            [alt]="'Stream en vivo de ' + c.name"
-          />
-          <button
-            class="stream-disconnect-btn"
-            mat-stroked-button
-            (click)="disconnectStream()"
-            aria-label="Desconectar stream"
-          >
-            <mat-icon>wifi_off</mat-icon>
-            Desconectar
-          </button>
-        } @else {
-          <div class="video-offline" aria-label="Cámara sin señal">
-            <mat-icon class="offline-icon">videocam_off</mat-icon>
-            <div class="offline-status-label">SIN SEÑAL</div>
-            <p class="offline-desc">La cámara no está transmitiendo. Verifica la conexión de red.</p>
-          </div>
-        }
+      <!-- Visor en vivo (HLS) -->
+      <section class="video-panel" aria-label="Visor en vivo">
+        <app-hls-player [src]="hlsUrl" [enabled]="c.status === 'online'" />
       </section>
 
       <!-- Recent events -->
@@ -101,108 +80,33 @@
         }
       </section>
 
-      <!-- Conexión IP Webcam -->
-      <section class="conn-panel" aria-label="Conexión IP Webcam">
+      <!-- Transmisión RTMP -->
+      <section class="conn-panel" aria-label="Transmitir esta cámara">
         <div class="conn-header">
           <h2 class="conn-title">
-            <mat-icon aria-hidden="true">wifi</mat-icon>
-            Conexión IP Webcam
+            <mat-icon aria-hidden="true">cast</mat-icon>
+            Transmitir esta cámara
           </h2>
-          <div class="conn-actions">
-            @if (hasLiveStream()) {
-              <button
-                mat-stroked-button
-                (click)="disconnectStream()"
-                aria-label="Desconectar stream del visor"
-              >
-                <mat-icon>wifi_off</mat-icon>
-                Desconectar
-              </button>
-            }
-            <button
-              mat-stroked-button
-              class="conn-test-btn"
-              (click)="testConnection()"
-              [disabled]="isTesting()"
-              aria-label="Probar conexión con IP Webcam"
-            >
-              <mat-icon>{{ isTesting() ? 'sync' : 'wifi_tethering' }}</mat-icon>
-              {{ isTesting() ? 'Probando...' : 'Probar conexión' }}
-            </button>
-          </div>
         </div>
-
+        <p class="conn-help">
+          En la app <strong>IP Webcam → Transmisión remota → RTMP</strong>, pega esta URL y
+          pulsa iniciar. La cámara aparecerá en vivo arriba.
+        </p>
         <dl class="conn-info">
           <div class="conn-info-item">
-            <dt>Host / IP</dt>
-            <dd class="conn-mono">{{ c.ipUrl }}</dd>
-          </div>
-          <div class="conn-info-item">
-            <dt>Puerto</dt>
-            <dd class="conn-mono">{{ c.port }}</dd>
-          </div>
-          <div class="conn-info-item">
-            <dt>Snapshot URL</dt>
+            <dt>URL RTMP (push)</dt>
             <dd class="conn-url-row">
-              <span class="conn-mono">{{ expectedSnapshotUrl() }}</span>
-              <button mat-icon-button class="conn-copy-btn" (click)="copyToClipboard(expectedSnapshotUrl())" aria-label="Copiar URL de snapshot">
+              <span class="conn-mono">{{ rtmpPushUrl }}</span>
+              <button mat-icon-button class="conn-copy-btn" (click)="copyToClipboard(rtmpPushUrl)" aria-label="Copiar URL RTMP">
                 <mat-icon>content_copy</mat-icon>
               </button>
             </dd>
           </div>
           <div class="conn-info-item">
-            <dt>Stream URL</dt>
-            <dd class="conn-url-row">
-              <span class="conn-mono">{{ expectedStreamUrl() }}</span>
-              <button mat-icon-button class="conn-copy-btn" (click)="copyToClipboard(expectedStreamUrl())" aria-label="Copiar URL de stream">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-            </dd>
+            <dt>Ruta de la transmisión</dt>
+            <dd class="conn-mono">cam{{ cameraId }}</dd>
           </div>
         </dl>
-
-        @switch (connectionState()) {
-          @case ('idle') {
-            <p class="conn-state-idle" role="status">
-              <mat-icon aria-hidden="true">info</mat-icon>
-              Aún no se ha probado la conexión con esta cámara.
-            </p>
-          }
-          @case ('testing') {
-            <p class="conn-state-testing" role="status" aria-live="polite">
-              <mat-icon aria-hidden="true">sync</mat-icon>
-              Probando conexión con IP Webcam...
-            </p>
-          }
-          @case ('connected') {
-            <div class="conn-status conn-status--ok" role="status">
-              <mat-icon aria-hidden="true">check_circle</mat-icon>
-              <div class="conn-status-body">
-                <strong>Conectada — stream activo en visor</strong>
-                <span class="conn-status-msg">{{ connectionStatus()!.message }}</span>
-                @if (connectionStatus()!.statusCode) {
-                  <span class="conn-meta">HTTP {{ connectionStatus()!.statusCode }} · {{ connectionStatus()!.contentType ?? 'sin tipo' }}</span>
-                }
-              </div>
-            </div>
-          }
-          @case ('failed') {
-            <div class="conn-status conn-status--fail" role="status" aria-live="assertive">
-              <mat-icon aria-hidden="true">cancel</mat-icon>
-              <div class="conn-status-body">
-                <strong>No conectada</strong>
-                <span class="conn-status-msg">{{ connectionStatus()!.message }}</span>
-                @if (connectionStatus()!.statusCode) {
-                  <span class="conn-meta">HTTP {{ connectionStatus()!.statusCode }} · {{ connectionStatus()!.contentType ?? 'sin tipo' }}</span>
-                }
-              </div>
-            </div>
-            <button mat-stroked-button class="conn-retry-btn" (click)="testConnection()" aria-label="Reintentar conexión">
-              <mat-icon>replay</mat-icon>
-              Reintentar
-            </button>
-          }
-        }
       </section>
 
       <!-- Registrar evento manual -->
@@ -380,14 +284,6 @@
               Ubicación
             </dt>
             <dd class="info-value">{{ c.location }}</dd>
-          </div>
-
-          <div class="info-item">
-            <dt class="info-label">
-              <mat-icon aria-hidden="true">lan</mat-icon>
-              Dirección IP
-            </dt>
-            <dd class="info-value info-value--mono">{{ c.ipUrl }}</dd>
           </div>
 
           <div class="info-item">

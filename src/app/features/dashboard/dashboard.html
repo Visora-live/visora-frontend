@@ -153,30 +153,10 @@
                 [class]="'cam-card cam-card--' + camera.status"
                 role="listitem"
               >
-                <!-- Live preview -->
-                <a
-                  class="cam-preview"
-                  [routerLink]="['/cameras', camera.id]"
-                  [attr.aria-label]="'Abrir ' + camera.name"
-                >
-                  @if (showPreview(camera)) {
-                    <img
-                      class="cam-preview-img"
-                      [src]="camera.previewUrl"
-                      [alt]="'Vista en vivo de ' + camera.name"
-                      (error)="onPreviewError(camera.id)"
-                    />
-                    <span class="cam-preview-live" aria-hidden="true">
-                      <span class="cam-preview-dot"></span>EN VIVO
-                    </span>
-                    <span class="cam-preview-veil" aria-hidden="true"></span>
-                  } @else {
-                    <div class="cam-preview-off" aria-hidden="true">
-                      <mat-icon>videocam_off</mat-icon>
-                      <span>Sin señal</span>
-                    </div>
-                  }
-                </a>
+                <!-- Live preview (HLS) -->
+                <div class="cam-preview">
+                  <app-hls-player [src]="hlsUrl(camera.id)" [enabled]="camera.status === 'online'" />
+                </div>
 
                 <div class="cam-card-top">
                   <h3 class="cam-card-name">{{ camera.name }}</h3>
