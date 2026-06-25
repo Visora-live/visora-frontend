@@ -52,14 +52,24 @@
             }
           </div>
 
-          @if (!req.leida) {
-            <div class="notif-actions">
+          <div class="notif-actions">
+            @if (userIdFor(req.identificador); as uid) {
+              <a
+                mat-flat-button
+                class="notif-action"
+                [routerLink]="['/users', uid, 'edit']"
+              >
+                <mat-icon>password</mat-icon>
+                Cambiar contraseña
+              </a>
+            }
+            @if (!req.leida) {
               <button mat-stroked-button (click)="markRead(req)" class="notif-action">
                 <mat-icon>done</mat-icon>
                 Marcar leída
               </button>
-            </div>
-          }
+            }
+          </div>
         </div>
 
       </li>

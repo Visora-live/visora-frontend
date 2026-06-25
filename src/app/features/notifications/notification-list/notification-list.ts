@@ -1,10 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import type { RecoveryRequest } from '../../../core/services/recovery.service';
 import { RecoveryService } from '../../../core/services/recovery.service';
+import { UserService } from '../../../core/services/user.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 
@@ -12,6 +14,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
   selector: 'app-notification-list',
   imports: [
     DatePipe,
+    RouterLink,
     MatButtonModule,
     MatIconModule,
     EmptyStateComponent,
@@ -22,9 +25,18 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 })
 export class NotificationListComponent {
   private readonly recovery = inject(RecoveryService);
+  private readonly userService = inject(UserService);
 
   protected readonly requests = signal<RecoveryRequest[]>([]);
   protected readonly loaded = signal(false);
+
+  // username (lowercased) → user id, to jump straight to "edit password".
+  private readonly userByName = signal<Map<string, string>>(new Map());
+
+  /** Resolves the requester to a user id (matching by username), or null. */
+  protected userIdFor(identificador: string): string | null {
+    return this.userByName().get(identificador.trim().toLowerCase()) ?? null;
+  }
 
   protected readonly unreadCount = computed(
     () => this.requests().filter((r) => !r.leida).length,
@@ -44,6 +56,17 @@ export class NotificationListComponent {
           this.loaded.set(true);
         },
         error: () => this.loaded.set(true),
+      });
+
+    this.userService
+      .list()
+      .pipe(take(1))
+      .subscribe({
+        next: (res) =>
+          this.userByName.set(
+            new Map(res.items.map((u) => [u.fullName.trim().toLowerCase(), u.id])),
+          ),
+        error: () => {},
       });
   }
 

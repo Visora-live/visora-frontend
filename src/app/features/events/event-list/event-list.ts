@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -56,6 +56,7 @@ type StatusFilter = 'all' | EventStatus;
   styleUrl: './event-list.scss',
 })
 export class EventListComponent {
+  private readonly route = inject(ActivatedRoute);
   private readonly bp = inject(BreakpointObserver);
   private readonly eventService = inject(EventService);
   private readonly cameraService = inject(CameraService);
@@ -87,7 +88,9 @@ export class EventListComponent {
   protected readonly severityFilter = signal<SeverityFilter>('all');
   protected readonly typeFilter = signal<TypeFilter>('all');
   protected readonly statusFilter = signal<StatusFilter>('all');
-  protected readonly cameraFilter = signal<string>('all');
+  protected readonly cameraFilter = signal<string>(
+    this.route.snapshot.queryParamMap.get('camera') ?? 'all',
+  );
 
   protected readonly todayCount = computed(() => this.listRes().todayCount);
   protected readonly criticalCount = computed(() => this.listRes().criticalCount);
