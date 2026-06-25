@@ -41,6 +41,20 @@ export interface StorePayload {
   status: StoreStatus;
 }
 
+export interface AssignedUser {
+  id: number;
+  username: string;
+  email: string | null;
+  rolTipo: string | null;
+}
+
+interface BackendAssignedUser {
+  id: number;
+  username: string;
+  email: string | null;
+  rol_tipo: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class StoreService {
   private readonly http = inject(HttpClient);
@@ -87,5 +101,29 @@ export class StoreService {
     return this.http.delete<BackendStore>(`${this.base}/stores/${id}`).pipe(
       map((b) => mapBackendStore(b)),
     );
+  }
+
+  // ── Store ↔ user assignment (admin) ──────────────────────────────────────
+  listAssignedUsers(storeId: string) {
+    return this.http
+      .get<BackendAssignedUser[]>(`${this.base}/stores/${storeId}/users`)
+      .pipe(
+        map((arr) =>
+          arr.map((u): AssignedUser => ({
+            id: u.id,
+            username: u.username,
+            email: u.email,
+            rolTipo: u.rol_tipo,
+          })),
+        ),
+      );
+  }
+
+  assignUser(storeId: string, userId: number) {
+    return this.http.post(`${this.base}/stores/${storeId}/users`, { usuario_id: userId });
+  }
+
+  unassignUser(storeId: string, userId: number) {
+    return this.http.delete(`${this.base}/stores/${storeId}/users/${userId}`);
   }
 }

@@ -119,3 +119,40 @@
 .btn-spinner {
   --mdc-circular-progress-active-indicator-color: #ffffff;
 }
+
+// ── Stepper ─────────────────────────────────────────────────────────────────
+.step-form { padding-top: var(--visora-space-md); }
+
+.step-help {
+  margin: 0 0 var(--visora-space-md);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--visora-text-muted);
+}
+
+.stepper-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--visora-space-sm);
+  margin-top: var(--visora-space-md);
+}
+
+.confirm-list {
+  margin: var(--visora-space-md) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.confirm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--visora-space-md);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--visora-border-color);
+  &:last-child { border-bottom: none; }
+  dt { font-size: 13px; color: var(--visora-text-muted); }
+  dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--visora-text); text-align: right; word-break: break-word; }
+}
+
+.submit-btn { gap: 6px; }
+.btn-spinner { display: inline-block; }

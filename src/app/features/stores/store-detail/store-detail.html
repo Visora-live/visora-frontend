@@ -9,7 +9,7 @@
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
-    <button mat-stroked-button routerLink="/cameras">
+    <button mat-stroked-button routerLink="/cameras" [queryParams]="{ store: s.id }">
       <mat-icon>videocam</mat-icon>
       Ver cámaras
     </button>
@@ -51,47 +51,65 @@
 
         <div class="info-item">
           <span class="info-label">
-            <mat-icon aria-hidden="true">email</mat-icon>
-            Correo electrónico
-          </span>
-          @if (s.email) {
-            <a class="info-value info-link" [href]="'mailto:' + s.email">
-              {{ s.email }}
-            </a>
-          } @else {
-            <span class="info-value">—</span>
-          }
-        </div>
-
-        <div class="info-item">
-          <span class="info-label">
-            <mat-icon aria-hidden="true">phone</mat-icon>
-            Teléfono
-          </span>
-          <span class="info-value">{{ s.phone || '—' }}</span>
-        </div>
-
-        <div class="info-item">
-          <span class="info-label">
             <mat-icon aria-hidden="true">calendar_today</mat-icon>
             Fecha de registro
           </span>
           <span class="info-value">{{ s.createdAt | date : 'dd/MM/yyyy' }}</span>
         </div>
 
-        @if (s.notes) {
-          <div class="info-item info-item--full">
-            <span class="info-label">
-              <mat-icon aria-hidden="true">notes</mat-icon>
-              Notas
-            </span>
-            <span class="info-value info-value--notes">{{ s.notes }}</span>
-          </div>
-        }
-
       </div>
     </div>
   </div>
+
+  <!-- Usuarios asignados (admin) -->
+  @if (isAdmin()) {
+    <div class="detail-card assign-card">
+      <div class="detail-card-header">
+        <h2 class="detail-card-title">Usuarios asignados</h2>
+      </div>
+      <div class="detail-card-body">
+        @if (assignedUsers().length === 0) {
+          <p class="assign-empty">Esta tienda no tiene usuarios asignados.</p>
+        } @else {
+          <ul class="assign-list" role="list">
+            @for (u of assignedUsers(); track u.id) {
+              <li class="assign-item">
+                <span class="assign-avatar" aria-hidden="true">{{ u.username.slice(0, 2).toUpperCase() }}</span>
+                <div class="assign-info">
+                  <span class="assign-name">{{ u.username }}</span>
+                  <span class="assign-role">{{ u.rolTipo }}</span>
+                </div>
+                <button
+                  mat-icon-button
+                  class="assign-remove"
+                  (click)="remove(u.id)"
+                  [disabled]="busy()"
+                  [attr.aria-label]="'Quitar ' + u.username"
+                >
+                  <mat-icon>person_remove</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="assign-add">
+          <mat-form-field appearance="outline" class="assign-select">
+            <mat-label>Asignar propietario</mat-label>
+            <mat-select [ngModel]="selectedUserId()" (ngModelChange)="selectedUserId.set($event)">
+              @for (u of candidateUsers(); track u.id) {
+                <mat-option [value]="u.id">{{ u.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-flat-button class="assign-btn" (click)="assign()" [disabled]="!selectedUserId() || busy()">
+            <mat-icon>person_add</mat-icon>
+            Asignar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
 } @else {
 

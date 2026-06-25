@@ -22,64 +22,118 @@
 
   <app-page-header
     title="Registrar tienda"
-    subtitle="Completa los datos para agregar un nuevo establecimiento al sistema."
+    subtitle="Completa los pasos para agregar un nuevo establecimiento al sistema."
   >
     <button mat-stroked-button routerLink="/stores">Cancelar</button>
-    <button mat-flat-button (click)="onSubmit()" [disabled]="isLoading()" class="submit-btn">
-      @if (isLoading()) {
-        <mat-spinner diameter="18" class="btn-spinner" />
-      } @else {
-        <mat-icon>save</mat-icon>
-      }
-      <span>{{ isLoading() ? 'Guardando...' : 'Guardar tienda' }}</span>
-    </button>
   </app-page-header>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-    <div class="form-card">
+  <div class="form-card">
+    <mat-stepper linear>
 
-      <!-- Información del establecimiento -->
-      <div class="form-section">
-        <h2 class="section-label">Información del establecimiento</h2>
-        <div class="field-grid">
+      <!-- Paso 1: datos -->
+      <mat-step [stepControl]="form" label="Datos de la tienda">
+        <form [formGroup]="form" class="step-form">
+          <div class="field-grid">
 
+            <mat-form-field appearance="outline" class="field field--full">
+              <mat-label>Nombre de la tienda</mat-label>
+              <mat-icon matPrefix aria-hidden="true">store</mat-icon>
+              <input matInput formControlName="name" autocomplete="off" />
+              @if (form.controls.name.hasError('required')) {
+                <mat-error>El nombre es obligatorio.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field field--full">
+              <mat-label>Dirección</mat-label>
+              <mat-icon matPrefix aria-hidden="true">location_on</mat-icon>
+              <input matInput formControlName="address" autocomplete="off" />
+              @if (form.controls.address.hasError('required')) {
+                <mat-error>La dirección es obligatoria.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field">
+              <mat-label>RUC</mat-label>
+              <mat-icon matPrefix aria-hidden="true">badge</mat-icon>
+              <input matInput formControlName="ruc" autocomplete="off" placeholder="Ej. 20123456789" />
+              <mat-hint>Opcional</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field">
+              <mat-label>Estado inicial</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="active">Activa</mat-option>
+                <mat-option value="inactive">Inactiva</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+          </div>
+        </form>
+        <div class="stepper-actions">
+          <button mat-flat-button matStepperNext [disabled]="form.invalid">
+            Siguiente
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- Paso 2: asignar usuario -->
+      <mat-step label="Asignar usuario">
+        <div class="step-form">
+          <p class="step-help">
+            Asigna un propietario para habilitar su acceso a esta tienda. Puedes dejarlo
+            sin asignar y hacerlo después desde el detalle de la tienda.
+          </p>
           <mat-form-field appearance="outline" class="field field--full">
-            <mat-label>Nombre de la tienda</mat-label>
-            <mat-icon matPrefix aria-hidden="true">store</mat-icon>
-            <input matInput formControlName="name" autocomplete="off" />
-            @if (form.controls.name.hasError('required')) {
-              <mat-error>El nombre es obligatorio.</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="field field--full">
-            <mat-label>Dirección</mat-label>
-            <mat-icon matPrefix aria-hidden="true">location_on</mat-icon>
-            <input matInput formControlName="address" autocomplete="off" />
-            @if (form.controls.address.hasError('required')) {
-              <mat-error>La dirección es obligatoria.</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="field">
-            <mat-label>RUC</mat-label>
-            <mat-icon matPrefix aria-hidden="true">badge</mat-icon>
-            <input matInput formControlName="ruc" autocomplete="off" placeholder="Ej. 20123456789" />
-            <mat-hint>Opcional</mat-hint>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="field">
-            <mat-label>Estado inicial</mat-label>
-            <mat-select formControlName="status">
-              <mat-option value="active">Activa</mat-option>
-              <mat-option value="inactive">Inactiva</mat-option>
+            <mat-label>Propietario</mat-label>
+            <mat-icon matPrefix aria-hidden="true">person</mat-icon>
+            <mat-select [ngModel]="selectedUserId()" (ngModelChange)="selectedUserId.set($event)">
+              <mat-option [value]="null">Sin asignar</mat-option>
+              @for (u of propietarios(); track u.id) {
+                <mat-option [value]="u.id">{{ u.name }}</mat-option>
+              }
             </mat-select>
           </mat-form-field>
-
         </div>
-      </div>
+        <div class="stepper-actions">
+          <button mat-stroked-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon>
+            Atrás
+          </button>
+          <button mat-flat-button matStepperNext>
+            Siguiente
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </mat-step>
 
-    </div>
-  </form>
+      <!-- Paso 3: confirmar -->
+      <mat-step label="Confirmar">
+        <dl class="confirm-list">
+          <div class="confirm-row"><dt>Nombre</dt><dd>{{ form.controls.name.value }}</dd></div>
+          <div class="confirm-row"><dt>Dirección</dt><dd>{{ form.controls.address.value }}</dd></div>
+          <div class="confirm-row"><dt>RUC</dt><dd>{{ form.controls.ruc.value || '—' }}</dd></div>
+          <div class="confirm-row"><dt>Estado</dt><dd>{{ form.controls.status.value === 'active' ? 'Activa' : 'Inactiva' }}</dd></div>
+          <div class="confirm-row"><dt>Propietario</dt><dd>{{ selectedUserName() }}</dd></div>
+        </dl>
+        <div class="stepper-actions">
+          <button mat-stroked-button matStepperPrevious [disabled]="isLoading()">
+            <mat-icon>arrow_back</mat-icon>
+            Atrás
+          </button>
+          <button mat-flat-button class="submit-btn" (click)="onCreate()" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <mat-spinner diameter="18" class="btn-spinner" />
+            } @else {
+              <mat-icon>check</mat-icon>
+            }
+            <span>{{ isLoading() ? 'Registrando...' : 'Registrar tienda' }}</span>
+          </button>
+        </div>
+      </mat-step>
+
+    </mat-stepper>
+  </div>
 
 }
