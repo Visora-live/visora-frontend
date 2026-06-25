@@ -32,10 +32,12 @@ $font-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-
   align-items: center;
   justify-content: center;
   padding: 48px 40px;
-  background:
+  background-color: $bg-light;
+  background-image:
     radial-gradient(circle at 18% 12%, rgba(47, 136, 245, 0.06), transparent 42%),
     radial-gradient(circle at 86% 88%, rgba(22, 82, 163, 0.05), transparent 46%),
-    $bg-light;
+    radial-gradient($border 1px, transparent 1px);
+  background-size: auto, auto, 24px 24px;
   overflow: hidden;
 }
 
@@ -65,13 +67,7 @@ $font-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-
   }
 
   &--dots {
-    top: 8%;
-    right: 10%;
-    width: 140px;
-    height: 140px;
-    background-image: radial-gradient(rgba(58, 65, 75, 0.12) 1px, transparent 1px);
-    background-size: 16px 16px;
-    opacity: 0.5;
+    display: none;
   }
 }
 
