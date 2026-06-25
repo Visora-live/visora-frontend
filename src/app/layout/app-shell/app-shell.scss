@@ -9,8 +9,8 @@
 
 .shell-sidenav {
   width: var(--visora-sidebar-width);
-  border-right: 1px solid var(--visora-border-color);
-  background: var(--visora-bg-surface);
+  border-right: none;
+  background: transparent;
 }
 
 .shell-layout {
@@ -21,18 +21,19 @@
 
 .shell-main {
   flex: 1;
-  min-width: 0;            // allow flex child to shrink instead of forcing width
+  min-width: 0;
   overflow-y: auto;
-  overflow-x: hidden;      // page never scrolls sideways; tables scroll internally
+  overflow-x: hidden;
   padding: var(--visora-space-lg);
-  background: var(--visora-bg);
+  background-color: var(--visora-bg);
+  // Dot grid (D5DEE7 dots) + blue ambient glow in corners
+  background-image:
+    radial-gradient(ellipse at 92% 4%, rgba(22, 82, 163, 0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 4% 96%, rgba(47, 136, 245, 0.05) 0%, transparent 45%),
+    radial-gradient(#d5dee7 1px, transparent 1px);
+  background-size: auto, auto, 24px 24px;
 
-  &:focus {
-    outline: none;
-  }
+  &:focus { outline: none; }
 
-  // Keep all direct content within bounds; wide tables use their own scroll wrapper.
-  > * {
-    max-width: 100%;
-  }
+  > * { max-width: 100%; }
 }

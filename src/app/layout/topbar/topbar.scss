@@ -41,8 +41,8 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--visora-primary);
-  color: var(--visora-text-inverse);
+  background: linear-gradient(135deg, var(--visora-accent), var(--visora-primary));
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;

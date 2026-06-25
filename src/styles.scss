@@ -9,6 +9,7 @@
 
 html {
   height: 100%;
+  color-scheme: light;
   @include mat.theme(
     (
       color: (
@@ -22,13 +23,22 @@ html {
 }
 
 body {
-  color-scheme: light;
   background-color: var(--visora-bg);
   color: var(--visora-text);
   margin: 0;
   height: 100%;
-  overflow-x: hidden;            // global guard against sideways page scroll
+  overflow-x: hidden;
 }
+
+// Scrollbar (subtle blue tint)
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 82, 163, 0.2) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(22, 82, 163, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(22, 82, 163, 0.4); }
 
 // ── Global layout safety ───────────────────────────────────────────────────
 // Media never overflows its container.
