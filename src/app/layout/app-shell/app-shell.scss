@@ -14,13 +14,8 @@
   overflow: visible !important;
 }
 
-.shell-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 .shell-main {
+  height: 100%;
   flex: 1;
   min-width: 0;
   overflow-y: auto;

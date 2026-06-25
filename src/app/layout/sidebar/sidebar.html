@@ -24,4 +24,42 @@
       </li>
     }
   </ul>
+
+  <div class="sidebar-bottom">
+    @if (isAdmin()) {
+      <a
+        class="nav-item"
+        routerLink="/notifications"
+        matTooltip="Notificaciones"
+        matTooltipPosition="right"
+        [matBadge]="unreadNotifs()"
+        [matBadgeHidden]="unreadNotifs() === 0"
+        matBadgeColor="warn"
+        matBadgeSize="small"
+      >
+        <mat-icon class="nav-icon">notifications</mat-icon>
+      </a>
+    }
+
+    <button
+      class="nav-item sidebar-avatar"
+      [matTooltip]="userTooltip()"
+      matTooltipPosition="right"
+      type="button"
+      aria-label="Usuario actual"
+    >
+      {{ avatarInitials() }}
+    </button>
+
+    <button
+      class="nav-item sidebar-logout"
+      matTooltip="Cerrar sesión"
+      matTooltipPosition="right"
+      type="button"
+      (click)="logout()"
+      aria-label="Cerrar sesión"
+    >
+      <mat-icon class="nav-icon">logout</mat-icon>
+    </button>
+  </div>
 </nav>
