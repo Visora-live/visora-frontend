@@ -44,7 +44,7 @@
     [title]="'Editar: ' + s.name"
     subtitle="Actualiza los datos del establecimiento registrado en el sistema."
   >
-    <button mat-stroked-button [routerLink]="['/stores', storeId]">Cancelar</button>
+    <button mat-stroked-button routerLink="/stores">Cancelar</button>
     <button mat-flat-button (click)="onSubmit()" [disabled]="isLoading()" class="submit-btn">
       @if (isLoading()) {
         <mat-spinner diameter="18" class="btn-spinner" />

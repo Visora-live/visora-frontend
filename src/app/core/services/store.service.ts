@@ -10,6 +10,7 @@ interface BackendStore {
   direccion: string | null;
   ruc: string | null;
   estado_tienda: boolean;
+  camera_count: number;
   licencia_inicio: string | null;
   licencia_fin: string | null;
   created_at: string;
@@ -24,7 +25,7 @@ function mapBackendStore(b: BackendStore): Store {
     city: '',
     ruc: b.ruc ?? undefined,
     status: b.estado_tienda ? 'active' : 'inactive',
-    cameraCount: 0,
+    cameraCount: b.camera_count ?? 0,
     createdAt: b.created_at.slice(0, 10),
   };
 }

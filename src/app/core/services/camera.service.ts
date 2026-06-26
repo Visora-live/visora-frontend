@@ -159,6 +159,29 @@ export class CameraService {
     );
   }
 
+  getDetectionStatus(cameraId: string) {
+    return this.http
+      .get<{ camera_id: number; running: boolean }>(`${this.base}/cameras/${cameraId}/detect`)
+      .pipe(catchError(() => of({ camera_id: Number(cameraId), running: false })));
+  }
+
+  startDetection(cameraId: string) {
+    return this.http.post<{ camera_id: number; running: boolean }>(
+      `${this.base}/cameras/${cameraId}/detect`,
+      {},
+    );
+  }
+
+  stopDetection(cameraId: string) {
+    return this.http.delete<{ camera_id: number; running: boolean }>(
+      `${this.base}/cameras/${cameraId}/detect`,
+    );
+  }
+
+  detectionSnapshotUrl(cameraId: string, ts: number): string {
+    return `${this.base}/cameras/${cameraId}/detect/snapshot?t=${ts}`;
+  }
+
   getRecentEvents(cameraId: string, limit = 5) {
     const params = new HttpParams()
       .set('camara_id', cameraId)

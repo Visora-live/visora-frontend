@@ -16,7 +16,8 @@ interface BackendUser {
 }
 
 function deriveUserRole(roleTipo: string): UserRole {
-  return roleTipo.toLowerCase() === 'admin' ? 'admin' : 'propietario';
+  const t = roleTipo.toLowerCase();
+  return t === 'admin' || t === 'administrador' ? 'admin' : 'propietario';
 }
 
 function mapBackendUser(b: BackendUser, roleMap: Map<number, string>): User {

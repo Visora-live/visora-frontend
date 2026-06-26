@@ -38,6 +38,38 @@
     </button>
   </app-page-header>
 
+  <!-- Detección IA -->
+  <section class="detection-panel" aria-label="Detección de armas IA">
+    <div class="detection-header">
+      <div class="detection-title-row">
+        <mat-icon aria-hidden="true">security</mat-icon>
+        <h2 class="detection-title">Detección de armas IA</h2>
+        <span class="detection-badge" [class.detection-badge--on]="detectionRunning()">
+          {{ detectionRunning() ? 'Activa' : 'Inactiva' }}
+        </span>
+      </div>
+      <button
+        mat-flat-button
+        [class.detection-stop-btn]="detectionRunning()"
+        [disabled]="detectionLoading()"
+        (click)="toggleDetection()"
+      >
+        <mat-icon>{{ detectionLoading() ? 'sync' : detectionRunning() ? 'stop_circle' : 'play_circle' }}</mat-icon>
+        {{ detectionLoading() ? 'Procesando...' : detectionRunning() ? 'Detener detección' : 'Iniciar detección' }}
+      </button>
+    </div>
+    @if (detectionRunning()) {
+      <p class="detection-hint">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        El modelo analiza el stream en tiempo real. Los eventos y alertas aparecen automáticamente.
+      </p>
+    } @else {
+      <p class="detection-hint">
+        Activa la detección para que el modelo de IA analice esta cámara y genere eventos automáticos al detectar armas.
+      </p>
+    }
+  </section>
+
   <!-- Main content -->
   <div class="content-layout">
 
@@ -109,147 +141,6 @@
         </dl>
       </section>
 
-      <!-- Registrar evento manual -->
-      <section class="event-form-panel" aria-label="Registrar evento manual">
-        <div class="event-form-header">
-          <h2 class="event-form-title">
-            <mat-icon aria-hidden="true">report</mat-icon>
-            Registrar evento manual
-          </h2>
-          <button mat-stroked-button (click)="toggleEventForm()" aria-label="Abrir o cerrar formulario de evento">
-            <mat-icon>{{ showEventForm() ? 'expand_less' : 'expand_more' }}</mat-icon>
-            {{ showEventForm() ? 'Ocultar' : 'Registrar' }}
-          </button>
-        </div>
-
-        @if (showEventForm()) {
-          <form class="event-form" novalidate>
-
-            <div class="form-row-group">
-              <div class="form-row">
-                <label class="form-label" for="event-tipo">Tipo de evento</label>
-                <select id="event-tipo" class="form-select" [value]="eventTipo()" (change)="eventTipo.set($any($event.target).value)">
-                  <option value="manual">Manual</option>
-                  <option value="sospechoso">Sospechoso</option>
-                  <option value="incidente">Incidente</option>
-                  <option value="mantenimiento">Mantenimiento</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label class="form-label" for="event-severidad">Severidad</label>
-                <select id="event-severidad" class="form-select" [value]="eventSeveridad()" (change)="eventSeveridad.set($any($event.target).value)">
-                  <option value="baja">Baja</option>
-                  <option value="media">Media</option>
-                  <option value="alta">Alta</option>
-                  <option value="critica">Crítica</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <label class="form-label" for="event-comentario">
-                Descripción del incidente <span class="form-required" aria-hidden="true">*</span>
-              </label>
-              <textarea
-                id="event-comentario"
-                class="form-textarea"
-                rows="3"
-                placeholder="Describe lo que observaste..."
-                [value]="eventComentario()"
-                (input)="eventComentario.set($any($event.target).value)"
-                aria-required="true"
-              ></textarea>
-            </div>
-
-            <div class="form-check-row">
-              <input
-                id="generar-alerta"
-                type="checkbox"
-                class="form-check"
-                [checked]="generarAlerta()"
-                (change)="generarAlerta.set($any($event.target).checked)"
-              />
-              <label for="generar-alerta">Generar alerta asociada a este evento</label>
-            </div>
-
-            @if (generarAlerta()) {
-              <div class="form-alert-fields">
-                <div class="form-row">
-                  <label class="form-label" for="alerta-titulo">
-                    Título de la alerta <span class="form-required" aria-hidden="true">*</span>
-                  </label>
-                  <input
-                    id="alerta-titulo"
-                    type="text"
-                    class="form-input"
-                    placeholder="Ej: Persona sospechosa detectada"
-                    [value]="alertaTitulo()"
-                    (input)="alertaTitulo.set($any($event.target).value)"
-                    aria-required="true"
-                  />
-                </div>
-                <div class="form-row">
-                  <label class="form-label" for="alerta-desc">Descripción de la alerta (opcional)</label>
-                  <textarea
-                    id="alerta-desc"
-                    class="form-textarea"
-                    rows="2"
-                    placeholder="Descripción adicional de la alerta..."
-                    [value]="alertaDesc()"
-                    (input)="alertaDesc.set($any($event.target).value)"
-                  ></textarea>
-                </div>
-              </div>
-            }
-
-            @if (submitResult(); as result) {
-              <div
-                class="event-result"
-                [class.event-result--ok]="result.success"
-                [class.event-result--fail]="!result.success"
-                role="status"
-                aria-live="polite"
-              >
-                <mat-icon aria-hidden="true">{{ result.success ? 'check_circle' : 'error' }}</mat-icon>
-                <div class="event-result-body">
-                  <span>{{ result.message }}</span>
-                  <div class="event-result-links">
-                    @if (result.eventId) {
-                      <a mat-stroked-button [routerLink]="['/events', result.eventId]" class="result-link">
-                        <mat-icon>event_note</mat-icon>
-                        Ver evento
-                      </a>
-                    }
-                    @if (result.alertId) {
-                      <a mat-flat-button [routerLink]="['/alerts', result.alertId]" class="result-link">
-                        <mat-icon>notifications</mat-icon>
-                        Ver alerta
-                      </a>
-                    }
-                  </div>
-                </div>
-              </div>
-            }
-
-            <div class="form-actions">
-              <button
-                mat-flat-button
-                type="button"
-                (click)="submitEvent()"
-                [disabled]="!formValid() || isSubmitting()"
-                aria-label="Guardar evento"
-              >
-                <mat-icon>{{ isSubmitting() ? 'sync' : 'save' }}</mat-icon>
-                {{ isSubmitting() ? 'Guardando...' : 'Guardar evento' }}
-              </button>
-              <button mat-stroked-button type="button" (click)="toggleEventForm()">
-                Cancelar
-              </button>
-            </div>
-
-          </form>
-        }
-      </section>
 
     </div>
 

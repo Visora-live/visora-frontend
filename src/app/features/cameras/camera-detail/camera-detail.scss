@@ -15,6 +15,10 @@
   }
 }
 
+.detection-panel + .content-layout {
+  margin-top: var(--visora-space-md);
+}
+
 .content-layout {
   display: grid;
   grid-template-columns: 1fr 320px;
@@ -41,6 +45,8 @@
   aspect-ratio: 16 / 9;
   border: 1px solid rgba(47, 136, 245, 0.15);
 }
+
+
 
 .main-live-stream {
   position: absolute;
@@ -494,6 +500,72 @@
 .event-result-body { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--visora-text); }
 .event-result-links { display: flex; gap: var(--visora-space-sm); flex-wrap: wrap; margin-top: 2px; }
 .result-link { font-size: 12px !important; height: 28px !important; line-height: 28px !important; padding: 0 8px !important; min-width: 0 !important; }
+
+// ── Detection panel ───────────────────────────────────────────────────────────
+
+.detection-panel {
+  background: var(--visora-bg-surface);
+  border: 1px solid var(--visora-border-color);
+  border-radius: var(--visora-radius-md);
+  padding: var(--visora-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--visora-space-sm);
+}
+
+.detection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--visora-space-sm);
+  flex-wrap: wrap;
+}
+
+.detection-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--visora-accent); }
+}
+
+.detection-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--visora-text);
+  margin: 0;
+}
+
+.detection-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(107, 114, 128, 0.15);
+  color: var(--visora-text-muted);
+
+  &--on {
+    background: rgba(22, 163, 74, 0.15);
+    color: #16a34a;
+  }
+}
+
+.detection-stop-btn {
+  background: rgba(220, 38, 38, 0.1) !important;
+  color: var(--visora-status-critical) !important;
+}
+
+.detection-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--visora-text-muted);
+  margin: 0;
+  line-height: 1.5;
+  mat-icon { font-size: 15px; width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+}
 
 .cam-delete-btn {
   gap: 6px;
