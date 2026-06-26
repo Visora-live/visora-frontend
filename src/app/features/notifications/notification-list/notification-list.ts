@@ -83,7 +83,7 @@ export class NotificationListComponent {
         this.requests.update((list) =>
           list.map((r) => (r.id === req.id ? { ...r, leida: true } : r)),
         );
-        this.recovery.refreshUnread(); // keep the topbar badge in sync
+        this.recovery.refreshUnread(); // keep the sidebar badge in sync
       });
   }
 }

@@ -71,7 +71,7 @@ export class UserListComponent {
         !q ||
         u.fullName.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
-        (u.storeName ?? '').toLowerCase().includes(q);
+        (u.storeNames ?? []).some((s) => s.toLowerCase().includes(q));
       const matchesRole = role === 'all' || u.role === role;
       const matchesStatus = status === 'all' || u.status === status;
       return matchesSearch && matchesRole && matchesStatus;
@@ -108,9 +108,4 @@ export class UserListComponent {
     this.searchQuery.set('');
   }
 
-  protected clearFilters(): void {
-    this.searchQuery.set('');
-    this.roleFilter.set('all');
-    this.statusFilter.set('all');
-  }
 }

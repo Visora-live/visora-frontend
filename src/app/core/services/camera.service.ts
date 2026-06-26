@@ -95,8 +95,11 @@ export class CameraService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
-  list() {
-    return this.http.get<BackendCamera[]>(`${this.base}/cameras`).pipe(
+  list(tiendaId?: string | null) {
+    const url = tiendaId
+      ? `${this.base}/cameras?tienda_id=${tiendaId}`
+      : `${this.base}/cameras`;
+    return this.http.get<BackendCamera[]>(url).pipe(
       map((arr) => {
         const items = arr.map((c) => mapBackendCamera(c));
         return {

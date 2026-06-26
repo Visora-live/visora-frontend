@@ -23,7 +23,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // (adminGuard → /unauthorized). A forbidden background API call (e.g. an
       // admin-only fetch made in the wrong role) must not hijack navigation; the
       // calling component handles it locally.
-      if (!req.url.endsWith('/auth/login') && err.status === 401) {
+      const isAuthMe = req.url.endsWith('/auth/me');
+      const shouldLogout =
+        (!req.url.endsWith('/auth/login') && err.status === 401) ||
+        (isAuthMe && err.status === 403);
+
+      if (shouldLogout) {
         auth.logout();
         if (!redirectingToLogin) {
           redirectingToLogin = true;

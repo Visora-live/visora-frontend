@@ -3,8 +3,9 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { map, switchMap } from 'rxjs/operators';
+import { StoreContextService } from '../../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -46,47 +47,35 @@ type StatusFilter = 'all' | AlertStatus;
 export class AlertListComponent {
   private readonly bp = inject(BreakpointObserver);
   private readonly alertService = inject(AlertService);
+  private readonly storeCtx = inject(StoreContextService);
 
   private readonly isMobile = toSignal(
     this.bp.observe(['(max-width: 768px)']).pipe(map((s) => s.matches)),
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.alertService.list(), {
-    initialValue: { items: [], total: 0, openCount: 0, criticalCount: 0, acknowledgedCount: 0, resolvedCount: 0 },
-  });
+  private readonly listRes = toSignal(
+    toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.alertService.list(id))),
+    { initialValue: { items: [], total: 0, openCount: 0, criticalCount: 0, acknowledgedCount: 0, resolvedCount: 0 } },
+  );
 
   protected readonly alerts = computed(() => this.listRes().items);
   protected readonly searchQuery = signal('');
   protected readonly severityFilter = signal<SeverityFilter>('all');
   protected readonly statusFilter = signal<StatusFilter>('all');
-  protected readonly storeFilter = signal('all');
 
   protected readonly openCount = computed(() => this.listRes().openCount);
   protected readonly criticalCount = computed(() => this.listRes().criticalCount);
   protected readonly acknowledgedCount = computed(() => this.listRes().acknowledgedCount);
   protected readonly resolvedCount = computed(() => this.listRes().resolvedCount);
 
-  protected readonly storeOptions = computed(() => {
-    const seen = new Set<string>();
-    return this.alerts()
-      .filter((a) => {
-        if (seen.has(a.storeId)) return false;
-        seen.add(a.storeId);
-        return true;
-      })
-      .map((a) => ({ id: a.storeId, name: a.storeName }));
-  });
-
   protected readonly filteredAlerts = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const sev = this.severityFilter();
     const sta = this.statusFilter();
-    const sto = this.storeFilter();
     return this.alerts().filter((a) => {
       if (sev !== 'all' && a.severity !== sev) return false;
       if (sta !== 'all' && a.status !== sta) return false;
-      if (sto !== 'all' && a.storeId !== sto) return false;
       if (
         q &&
         !a.storeName.toLowerCase().includes(q) &&
@@ -103,8 +92,7 @@ export class AlertListComponent {
     () =>
       this.searchQuery().trim() !== '' ||
       this.severityFilter() !== 'all' ||
-      this.statusFilter() !== 'all' ||
-      this.storeFilter() !== 'all',
+      this.statusFilter() !== 'all',
   );
 
   protected readonly displayedColumns = computed(() =>
@@ -112,13 +100,6 @@ export class AlertListComponent {
       ? ['createdAt', 'description', 'severity', 'actions']
       : ['createdAt', 'store', 'camera', 'severity', 'status', 'event', 'assignedTo', 'actions'],
   );
-
-  protected clearFilters(): void {
-    this.searchQuery.set('');
-    this.severityFilter.set('all');
-    this.statusFilter.set('all');
-    this.storeFilter.set('all');
-  }
 
   protected severityToBadge(s: EventSeverity): BadgeStatus {
     return s === 'normal' ? 'normal' : s === 'suspicious' ? 'suspicious' : 'critical';

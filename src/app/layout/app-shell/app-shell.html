@@ -13,3 +13,12 @@
     </main>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+@if (storeCtx.isSwitching()) {
+  <div class="store-switch-loading" aria-live="polite" role="status">
+    <div class="store-switch-card">
+      <div class="store-switch-spinner"></div>
+      <p class="store-switch-text">Cambiando de tienda...</p>
+    </div>
+  </div>
+}

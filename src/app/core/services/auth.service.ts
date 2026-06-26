@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { CurrentUser, LoginRequest, TokenResponse } from '../models/auth.model';
@@ -43,8 +43,11 @@ export class AuthService {
     if (!this.getToken()) return of(null);
     if (!this.userCache$) {
       this.userCache$ = this.http.get<CurrentUser>(`${this.base}/auth/me`).pipe(
-        catchError(() => {
+        catchError((err: HttpErrorResponse) => {
           this.userCache$ = null;
+          // 403 on /auth/me means the account was deactivated while logged in.
+          // Clear the stale token so the interceptor + guards work correctly.
+          if (err.status === 403) this.logout();
           return of(null);
         }),
         shareReplay(1),

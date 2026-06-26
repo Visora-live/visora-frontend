@@ -2,7 +2,9 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
+import { StoreContextService } from '../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -58,6 +60,7 @@ export class DashboardComponent {
   private readonly cameraService = inject(CameraService);
   private readonly storeService = inject(StoreService);
 
+  private readonly storeCtx = inject(StoreContextService);
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
   protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
   protected readonly dashSubtitle = computed(() =>
@@ -73,7 +76,10 @@ export class DashboardComponent {
   protected readonly recentEvents = computed(() => this.data()?.recentEvents ?? []);
 
   // ── Propietario camera monitor ──────────────────────────────────────────
-  private readonly camListRes = toSignal(this.cameraService.list(), { initialValue: EMPTY_CAM_LIST });
+  private readonly camListRes = toSignal(
+    toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.cameraService.list(id))),
+    { initialValue: EMPTY_CAM_LIST },
+  );
   private readonly storeListRes = toSignal(this.storeService.list(), { initialValue: EMPTY_STORE_LIST });
 
   private readonly storeMap = computed(() => {
@@ -145,11 +151,6 @@ export class DashboardComponent {
 
   protected readonly visibleCamCount = computed(() => this.filteredCameras().length);
   protected readonly totalCamCount = computed(() => this.cameras().length);
-
-  protected clearCamFilters(): void {
-    this.locationFilter.set('all');
-    this.storeFilter.set('all');
-  }
 
   // ── Shared helpers ──────────────────────────────────────────────────────
   protected severityBadge(severity: string): BadgeStatus {

@@ -53,19 +53,13 @@
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field">
+            <mat-form-field appearance="outline" class="field field--full">
               <mat-label>RUC</mat-label>
               <mat-icon matPrefix aria-hidden="true">badge</mat-icon>
               <input matInput formControlName="ruc" autocomplete="off" placeholder="Ej. 20123456789" />
-              <mat-hint>Opcional</mat-hint>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="field">
-              <mat-label>Estado inicial</mat-label>
-              <mat-select formControlName="status">
-                <mat-option value="active">Activa</mat-option>
-                <mat-option value="inactive">Inactiva</mat-option>
-              </mat-select>
+              @if (form.controls.ruc.hasError('required')) {
+                <mat-error>El RUC es obligatorio.</mat-error>
+              }
             </mat-form-field>
 
           </div>
@@ -78,22 +72,24 @@
         </div>
       </mat-step>
 
-      <!-- Paso 2: asignar usuario -->
+      <!-- Paso 2: asignar usuario (obligatorio) -->
       <mat-step label="Asignar usuario">
         <div class="step-form">
           <p class="step-help">
-            Asigna un propietario para habilitar su acceso a esta tienda. Puedes dejarlo
-            sin asignar y hacerlo después desde el detalle de la tienda.
+            Asigna un propietario para habilitar su acceso a esta tienda. El propietario es obligatorio.
           </p>
           <mat-form-field appearance="outline" class="field field--full">
             <mat-label>Propietario</mat-label>
             <mat-icon matPrefix aria-hidden="true">person</mat-icon>
             <mat-select [ngModel]="selectedUserId()" (ngModelChange)="selectedUserId.set($event)">
-              <mat-option [value]="null">Sin asignar</mat-option>
+              <mat-option [value]="null" disabled>Selecciona un propietario</mat-option>
               @for (u of propietarios(); track u.id) {
                 <mat-option [value]="u.id">{{ u.name }}</mat-option>
               }
             </mat-select>
+            @if (userError()) {
+              <mat-error>Debes asignar un propietario.</mat-error>
+            }
           </mat-form-field>
         </div>
         <div class="stepper-actions">
@@ -101,7 +97,7 @@
             <mat-icon>arrow_back</mat-icon>
             Atrás
           </button>
-          <button mat-flat-button matStepperNext>
+          <button mat-flat-button matStepperNext [disabled]="!selectedUserId()" (click)="userTouched.set(true)">
             Siguiente
             <mat-icon>arrow_forward</mat-icon>
           </button>
@@ -113,8 +109,7 @@
         <dl class="confirm-list">
           <div class="confirm-row"><dt>Nombre</dt><dd>{{ form.controls.name.value }}</dd></div>
           <div class="confirm-row"><dt>Dirección</dt><dd>{{ form.controls.address.value }}</dd></div>
-          <div class="confirm-row"><dt>RUC</dt><dd>{{ form.controls.ruc.value || '—' }}</dd></div>
-          <div class="confirm-row"><dt>Estado</dt><dd>{{ form.controls.status.value === 'active' ? 'Activa' : 'Inactiva' }}</dd></div>
+          <div class="confirm-row"><dt>RUC</dt><dd>{{ form.controls.ruc.value }}</dd></div>
           <div class="confirm-row"><dt>Propietario</dt><dd>{{ selectedUserName() }}</dd></div>
         </dl>
         <div class="stepper-actions">

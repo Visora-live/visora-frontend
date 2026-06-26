@@ -5,7 +5,6 @@ import { environment } from '../../../environments/environment';
 
 export interface RecoveryRequestPayload {
   identificador: string;
-  celular?: string;
   email: string;
   descripcion: string;
 }
@@ -13,7 +12,6 @@ export interface RecoveryRequestPayload {
 export interface RecoveryRequest {
   id: number;
   identificador: string;
-  celular: string | null;
   email: string;
   descripcion: string;
   leida: boolean;
@@ -23,7 +21,6 @@ export interface RecoveryRequest {
 interface BackendRecoveryRequest {
   id: number;
   identificador: string;
-  celular: string | null;
   email: string;
   descripcion: string;
   leida: boolean;
@@ -34,7 +31,6 @@ function mapRequest(b: BackendRecoveryRequest): RecoveryRequest {
   return {
     id: b.id,
     identificador: b.identificador,
-    celular: b.celular,
     email: b.email,
     descripcion: b.descripcion,
     leida: b.leida,
@@ -47,7 +43,7 @@ export class RecoveryService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
-  /** Shared unread count for the admin topbar badge. */
+  /** Shared unread count for the admin sidebar badge. */
   readonly unread = signal(0);
 
   /**
@@ -64,7 +60,6 @@ export class RecoveryService {
   create(payload: RecoveryRequestPayload) {
     return this.http.post<BackendRecoveryRequest>(`${this.base}/recovery-requests`, {
       identificador: payload.identificador,
-      celular: payload.celular || null,
       email: payload.email,
       descripcion: payload.descripcion,
     });
@@ -76,7 +71,7 @@ export class RecoveryService {
     return this.http.get<BackendRecoveryRequest[]>(url).pipe(map((arr) => arr.map(mapRequest)));
   }
 
-  /** Admin — unread count for the topbar badge. */
+  /** Admin — unread count for the sidebar badge. */
   unreadCount() {
     return this.http
       .get<{ count: number }>(`${this.base}/recovery-requests/unread-count`)

@@ -48,19 +48,6 @@
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field appearance="outline" class="filter filter--store">
-    <mat-label>Tienda</mat-label>
-    <mat-select
-      [ngModel]="storeFilter()"
-      (ngModelChange)="storeFilter.set($event)"
-      aria-label="Filtrar por tienda"
-    >
-      <mat-option value="all">Todas las tiendas</mat-option>
-      @for (store of storeOptions(); track store.id) {
-        <mat-option [value]="store.id">{{ store.name }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
 
 </div>
 

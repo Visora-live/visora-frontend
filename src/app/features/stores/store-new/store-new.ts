@@ -10,7 +10,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
-import type { StoreStatus } from '../../../core/models/store.model';
 import { StoreService } from '../../../core/services/store.service';
 import { UserService } from '../../../core/services/user.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
@@ -41,12 +40,14 @@ export class StoreNewComponent {
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     address: ['', Validators.required],
-    ruc: [''],
-    status: ['active', Validators.required],
+    ruc: ['', Validators.required],
   });
 
-  // Step 2 — assign a propietario (optional).
+  // Step 2 — assign a propietario (required).
   protected readonly selectedUserId = signal<number | null>(null);
+  protected readonly userTouched = signal(false);
+  protected readonly userError = computed(() => this.userTouched() && !this.selectedUserId());
+
   private readonly usersRes = toSignal(this.userService.list(), { initialValue: null });
   protected readonly propietarios = computed(() =>
     (this.usersRes()?.items ?? [])
@@ -54,15 +55,21 @@ export class StoreNewComponent {
       .map((u) => ({ id: Number(u.id), name: u.fullName })),
   );
   protected readonly selectedUserName = computed(
-    () => this.propietarios().find((u) => u.id === this.selectedUserId())?.name ?? 'Ninguno',
+    () => this.propietarios().find((u) => u.id === this.selectedUserId())?.name ?? 'Sin asignar',
   );
 
   protected readonly isLoading = signal(false);
   protected readonly isSuccess = signal(false);
 
+  protected validateUserStep(): boolean {
+    this.userTouched.set(true);
+    return this.selectedUserId() !== null;
+  }
+
   protected onCreate(): void {
-    if (this.form.invalid || this.isLoading()) {
+    if (this.form.invalid || !this.selectedUserId() || this.isLoading()) {
       this.form.markAllAsTouched();
+      this.userTouched.set(true);
       return;
     }
     this.isLoading.set(true);
@@ -71,25 +78,12 @@ export class StoreNewComponent {
       .create({
         name: raw.name,
         address: raw.address,
-        ruc: raw.ruc || undefined,
-        status: raw.status as StoreStatus,
+        ruc: raw.ruc,
+        usuarioId: this.selectedUserId()!,
       })
       .pipe(take(1))
       .subscribe({
-        next: (store) => {
-          const uid = this.selectedUserId();
-          if (uid) {
-            this.storeService
-              .assignUser(store.id, uid)
-              .pipe(take(1))
-              .subscribe({
-                next: () => this.finish(),
-                error: () => this.finish(), // store created; assignment can be redone in detail
-              });
-          } else {
-            this.finish();
-          }
-        },
+        next: () => this.finish(),
         error: () => this.isLoading.set(false),
       });
   }

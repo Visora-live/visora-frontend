@@ -114,8 +114,4 @@ export class StoreListComponent {
     this.searchQuery.set('');
   }
 
-  protected clearFilters(): void {
-    this.searchQuery.set('');
-    this.statusFilter.set('all');
-  }
 }

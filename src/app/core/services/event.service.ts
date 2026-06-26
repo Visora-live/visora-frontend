@@ -87,10 +87,12 @@ export class EventService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
-  list() {
+  list(tiendaId?: string | null) {
+    const evtUrl = tiendaId ? `${this.base}/events?tienda_id=${tiendaId}` : `${this.base}/events`;
+    const camUrl = tiendaId ? `${this.base}/cameras?tienda_id=${tiendaId}` : `${this.base}/cameras`;
     return forkJoin([
-      this.http.get<BackendEvent[]>(`${this.base}/events`),
-      this.http.get<BackendCameraMin[]>(`${this.base}/cameras`).pipe(catchError(() => of([] as BackendCameraMin[]))),
+      this.http.get<BackendEvent[]>(evtUrl),
+      this.http.get<BackendCameraMin[]>(camUrl).pipe(catchError(() => of([] as BackendCameraMin[]))),
       this.http.get<BackendStoreMin[]>(`${this.base}/stores`).pipe(catchError(() => of([] as BackendStoreMin[]))),
     ]).pipe(
       map(([events, cameras, stores]) => {

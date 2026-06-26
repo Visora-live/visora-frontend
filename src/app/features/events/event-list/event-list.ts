@@ -4,9 +4,10 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { map, switchMap } from 'rxjs/operators';
 import { take } from 'rxjs';
+import { StoreContextService } from '../../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -60,18 +61,23 @@ export class EventListComponent {
   private readonly bp = inject(BreakpointObserver);
   private readonly eventService = inject(EventService);
   private readonly cameraService = inject(CameraService);
+  private readonly storeCtx = inject(StoreContextService);
 
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 768px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.eventService.list(), {
-    initialValue: { items: [], total: 0, todayCount: 0, criticalCount: 0, suspiciousCount: 0, evidenceCount: 0 },
-  });
+  private readonly listRes = toSignal(
+    toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.eventService.list(id))),
+    { initialValue: { items: [], total: 0, todayCount: 0, criticalCount: 0, suspiciousCount: 0, evidenceCount: 0 } },
+  );
 
-  // Owner-scoped cameras for the "filter by camera" dropdown (real data, no mocks).
-  private readonly camListRes = toSignal(this.cameraService.list(), { initialValue: EMPTY_CAM_LIST });
+  // Owner-scoped cameras for the "filter by camera" dropdown.
+  private readonly camListRes = toSignal(
+    toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.cameraService.list(id))),
+    { initialValue: EMPTY_CAM_LIST },
+  );
   protected readonly cameraOptions = computed(() =>
     this.camListRes().items
       .map((c) => ({ id: c.id, name: c.name }))
@@ -172,14 +178,6 @@ export class EventListComponent {
       ? ['timestamp', 'description', 'severity', 'actions']
       : ['timestamp', 'store', 'camera', 'type', 'severity', 'status', 'evidence', 'actions'],
   );
-
-  protected clearFilters(): void {
-    this.searchQuery.set('');
-    this.severityFilter.set('all');
-    this.typeFilter.set('all');
-    this.statusFilter.set('all');
-    this.cameraFilter.set('all');
-  }
 
   protected severityToBadge(s: EventSeverity): BadgeStatus {
     return s === 'normal' ? 'normal' : s === 'suspicious' ? 'suspicious' : 'critical';

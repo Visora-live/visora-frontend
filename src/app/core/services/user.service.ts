@@ -86,13 +86,17 @@ export class UserService {
   }
 
   getById(id: string) {
+    interface BackendStore { id: number; nombre: string; }
     return forkJoin([
       this.http.get<BackendUser>(`${this.base}/users/${id}`),
       this.roleService.list(),
+      this.http.get<BackendStore[]>(`${this.base}/users/${id}/stores`).pipe(catchError(() => of([] as BackendStore[]))),
     ]).pipe(
-      map(([user, roles]) => {
+      map(([user, roles, stores]) => {
         const roleMap = new Map(roles.map((r) => [r.id, r.name]));
-        return mapBackendUser(user, roleMap);
+        const mapped = mapBackendUser(user, roleMap);
+        mapped.storeNames = stores.map((s) => s.nombre);
+        return mapped;
       }),
       catchError(() => of(null)),
     );

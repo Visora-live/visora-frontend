@@ -1,10 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { map, switchMap } from 'rxjs/operators';
 import { take } from 'rxjs';
+import { StoreContextService } from '../../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -50,7 +51,6 @@ const EMPTY_STORE_LIST = { items: [], total: 0 };
   styleUrl: './camera-dashboard.scss',
 })
 export class CameraDashboardComponent {
-  private readonly route = inject(ActivatedRoute);
   private readonly bp = inject(BreakpointObserver);
   private readonly auth = inject(AuthService);
   private readonly cameraService = inject(CameraService);
@@ -63,13 +63,17 @@ export class CameraDashboardComponent {
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
   protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
+  private readonly storeCtx = inject(StoreContextService);
 
   private readonly isMobile = toSignal(
     this.bp.observe('(max-width: 600px)').pipe(map((r) => r.matches)),
     { initialValue: false },
   );
 
-  private readonly listRes = toSignal(this.cameraService.list(), { initialValue: EMPTY_CAM_LIST });
+  private readonly listRes = toSignal(
+    toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.cameraService.list(id))),
+    { initialValue: EMPTY_CAM_LIST },
+  );
   private readonly storeListRes = toSignal(this.storeService.list(), { initialValue: EMPTY_STORE_LIST });
 
   private readonly storeMap = computed(() => {
@@ -133,27 +137,16 @@ export class CameraDashboardComponent {
 
   protected readonly searchQuery = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
-  protected readonly storeFilter = signal<string>(
-    this.route.snapshot.queryParamMap.get('store') ?? 'all',
-  );
 
   protected readonly onlineCount = computed(() => this.listRes().onlineCount);
   protected readonly offlineCount = computed(() => this.listRes().offlineCount);
   protected readonly errorCount = computed(() => this.listRes().errorCount);
 
-  protected readonly storeOptions = computed(() =>
-    this.storeListRes().items
-      .map((s) => ({ id: s.id, name: s.name }))
-      .sort((a, b) => a.name.localeCompare(b.name)),
-  );
-
   protected readonly filteredCameras = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const st = this.statusFilter();
-    const store = this.storeFilter();
     return this.cameras().filter((c) => {
       if (st !== 'all' && c.status !== st) return false;
-      if (store !== 'all' && c.storeId !== store) return false;
       if (q && !c.name.toLowerCase().includes(q) && !c.location.toLowerCase().includes(q)) {
         return false;
       }
@@ -164,17 +157,10 @@ export class CameraDashboardComponent {
   protected readonly isFiltered = computed(
     () =>
       this.searchQuery().trim() !== '' ||
-      this.statusFilter() !== 'all' ||
-      this.storeFilter() !== 'all',
+      this.statusFilter() !== 'all',
   );
 
   protected readonly compact = computed(() => this.isMobile());
-
-  protected clearFilters(): void {
-    this.searchQuery.set('');
-    this.statusFilter.set('all');
-    this.storeFilter.set('all');
-  }
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {
     const m: Record<CameraStatus, BadgeStatus> = {

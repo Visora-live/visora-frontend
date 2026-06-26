@@ -38,7 +38,8 @@ export interface StorePayload {
   name: string;
   address: string;
   ruc?: string;
-  status: StoreStatus;
+  status?: StoreStatus;
+  usuarioId?: number;
 }
 
 export interface AssignedUser {
@@ -77,8 +78,8 @@ export class StoreService {
     const body = {
       nombre: payload.name,
       direccion: payload.address || null,
-      ruc: payload.ruc || null,
-      estado_tienda: payload.status === 'active',
+      ruc: payload.ruc ?? '',
+      usuario_id: payload.usuarioId,
     };
     return this.http.post<BackendStore>(`${this.base}/stores`, body).pipe(
       map((b) => mapBackendStore(b)),

@@ -1,5 +1,51 @@
 // Shared layout utilities — intentionally global, used across multiple features.
 
+// ── Store-switch loading overlay ───────────────────────────────────────────
+
+.store-switch-loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.store-switch-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 48px;
+  background: var(--visora-bg-surface);
+  border: 1px solid var(--visora-border-color);
+  border-radius: var(--visora-radius-lg);
+  box-shadow: var(--visora-shadow-md);
+}
+
+.store-switch-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--visora-border-color);
+  border-top-color: var(--visora-primary);
+  border-radius: 50%;
+  animation: store-switch-spin 0.7s linear infinite;
+}
+
+@keyframes store-switch-spin {
+  to { transform: rotate(360deg); }
+}
+
+.store-switch-text {
+  color: var(--visora-text);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
 .not-found-wrap {
   display: flex;
   justify-content: center;

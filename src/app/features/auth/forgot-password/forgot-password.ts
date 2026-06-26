@@ -18,7 +18,6 @@ export class ForgotPasswordComponent {
 
   protected readonly form = this.fb.nonNullable.group({
     identifier: ['', Validators.required],
-    phone: [''],
     email: ['', [Validators.required, Validators.email]],
     description: ['', Validators.required],
   });
@@ -55,7 +54,6 @@ export class ForgotPasswordComponent {
     this.recovery
       .create({
         identificador: v.identifier.trim(),
-        celular: v.phone.trim() || undefined,
         email: v.email.trim(),
         descripcion: v.description.trim(),
       })

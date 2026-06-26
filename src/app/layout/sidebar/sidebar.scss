@@ -144,3 +144,104 @@
     transform: none;
   }
 }
+
+.sidebar-store-switcher {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(99, 179, 237, 0.2) !important;
+    color: #90cdf4 !important;
+    transform: none;
+  }
+}
+
+// ── Store picker popup ──────────────────────────────────────────────────────
+
+.store-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.store-picker-card {
+  background: var(--visora-bg-surface);
+  border: 1px solid var(--visora-border-color);
+  border-radius: var(--visora-radius-lg);
+  width: min(400px, 90vw);
+  overflow: hidden;
+  box-shadow: var(--visora-shadow-md);
+}
+
+.store-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--visora-border-color);
+  color: var(--visora-text);
+  font-weight: 600;
+  font-size: 15px;
+
+  mat-icon { color: var(--visora-primary); font-size: 20px; }
+  span { flex: 1; }
+}
+
+.store-picker-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--visora-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: var(--visora-radius-sm);
+
+  &:hover { background: var(--visora-bg); color: var(--visora-text); }
+}
+
+.store-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+}
+
+.store-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-radius: var(--visora-radius-md);
+  color: var(--visora-text);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+
+  mat-icon { font-size: 20px; color: var(--visora-text-muted); }
+
+  &:hover { background: var(--visora-bg); }
+
+  &--active {
+    background: rgba(22, 82, 163, 0.08);
+    color: var(--visora-primary);
+    mat-icon { color: var(--visora-primary); }
+  }
+}
+
+.store-picker-name { flex: 1; font-size: 14px; font-weight: 500; }
+.store-picker-current {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(22, 82, 163, 0.1);
+  color: var(--visora-primary);
+}
