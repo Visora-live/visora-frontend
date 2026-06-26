@@ -1,4 +1,4 @@
-export type CameraStatus = 'online' | 'offline' | 'error' | 'maintenance';
+export type CameraStatus = 'online' | 'offline';
 
 export interface Camera {
   id: string;

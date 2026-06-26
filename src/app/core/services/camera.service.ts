@@ -71,7 +71,6 @@ export interface CameraListResponse {
   total: number;
   onlineCount: number;
   offlineCount: number;
-  errorCount: number;
 }
 
 export interface CameraPayload {
@@ -107,7 +106,6 @@ export class CameraService {
           total: items.length,
           onlineCount: items.filter((c) => c.status === 'online').length,
           offlineCount: items.filter((c) => c.status === 'offline').length,
-          errorCount: items.filter((c) => c.status === 'error' || c.status === 'maintenance').length,
         };
       }),
     );

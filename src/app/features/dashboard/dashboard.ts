@@ -22,7 +22,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge';
 import { environment } from '../../../environments/environment';
 
-const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0, errorCount: 0 };
+const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0 };
 const EMPTY_STORE_LIST = { items: [], total: 0 };
 const NO_LOCATION = 'Sin ubicación';
 
@@ -97,20 +97,9 @@ export class DashboardComponent {
   );
 
   protected readonly camOnlineCount = computed(() => this.camListRes().onlineCount);
-  protected readonly camOfflineCount = computed(
-    () => this.camListRes().offlineCount + this.camListRes().errorCount,
-  );
+  protected readonly camOfflineCount = computed(() => this.camListRes().offlineCount);
 
   protected readonly locationFilter = signal<string>('all');
-  protected readonly storeFilter = signal<string>('all');
-
-  protected readonly hasMultipleStores = computed(() => this.storeOptions().length > 1);
-
-  protected readonly storeOptions = computed(() =>
-    this.storeListRes().items
-      .map((s) => ({ id: s.id, name: s.name }))
-      .sort((a, b) => a.name.localeCompare(b.name)),
-  );
 
   protected readonly locationOptions = computed(() =>
     Array.from(new Set(this.cameras().map((c) => c.locationLabel))).sort((a, b) =>
@@ -120,10 +109,8 @@ export class DashboardComponent {
 
   private readonly filteredCameras = computed(() => {
     const loc = this.locationFilter();
-    const store = this.storeFilter();
     return this.cameras().filter((c) => {
       if (loc !== 'all' && c.locationLabel !== loc) return false;
-      if (store !== 'all' && c.storeId !== store) return false;
       return true;
     });
   });
@@ -145,9 +132,7 @@ export class DashboardComponent {
       .sort((a, b) => a.location.localeCompare(b.location));
   });
 
-  protected readonly isCamFiltered = computed(
-    () => this.locationFilter() !== 'all' || this.storeFilter() !== 'all',
-  );
+  protected readonly isCamFiltered = computed(() => this.locationFilter() !== 'all');
 
   protected readonly visibleCamCount = computed(() => this.filteredCameras().length);
   protected readonly totalCamCount = computed(() => this.cameras().length);
@@ -168,22 +153,10 @@ export class DashboardComponent {
   }
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {
-    const m: Record<CameraStatus, BadgeStatus> = {
-      online: 'normal',
-      offline: 'inactive',
-      error: 'critical',
-      maintenance: 'suspicious',
-    };
-    return m[status];
+    return status === 'online' ? 'normal' : 'inactive';
   }
 
   protected cameraStatusLabel(status: CameraStatus): string {
-    const m: Record<CameraStatus, string> = {
-      online: 'En línea',
-      offline: 'Sin señal',
-      error: 'Error',
-      maintenance: 'Mantenimiento',
-    };
-    return m[status];
+    return status === 'online' ? 'En línea' : 'Sin señal';
   }
 }

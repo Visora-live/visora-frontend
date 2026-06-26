@@ -29,7 +29,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
-const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0, errorCount: 0 };
+const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0 };
 
 type SeverityFilter = 'all' | EventSeverity;
 type TypeFilter = 'all' | EventType;

@@ -27,7 +27,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 
 type StatusFilter = 'all' | CameraStatus;
 
-const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0, errorCount: 0 };
+const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0 };
 const EMPTY_STORE_LIST = { items: [], total: 0 };
 
 @Component({
@@ -140,7 +140,6 @@ export class CameraDashboardComponent {
 
   protected readonly onlineCount = computed(() => this.listRes().onlineCount);
   protected readonly offlineCount = computed(() => this.listRes().offlineCount);
-  protected readonly errorCount = computed(() => this.listRes().errorCount);
 
   protected readonly filteredCameras = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -163,22 +162,10 @@ export class CameraDashboardComponent {
   protected readonly compact = computed(() => this.isMobile());
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {
-    const m: Record<CameraStatus, BadgeStatus> = {
-      online: 'normal',
-      offline: 'inactive',
-      error: 'critical',
-      maintenance: 'suspicious',
-    };
-    return m[status];
+    return status === 'online' ? 'normal' : 'inactive';
   }
 
   protected cameraStatusLabel(status: CameraStatus): string {
-    const m: Record<CameraStatus, string> = {
-      online: 'En línea',
-      offline: 'Sin señal',
-      error: 'Error',
-      maintenance: 'Mantenimiento',
-    };
-    return m[status];
+    return status === 'online' ? 'En línea' : 'Sin señal';
   }
 }
