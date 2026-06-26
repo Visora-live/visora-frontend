@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { adminOnlyGuard } from './core/guards/admin-only.guard';
 import { ownerGuard } from './core/guards/owner.guard';
 
 export const routes: Routes = [
@@ -39,6 +40,7 @@ export const routes: Routes = [
       },
       {
         path: 'stores',
+        canActivate: [adminOnlyGuard],
         loadComponent: () =>
           import('./features/stores/store-list/store-list').then(
             (m) => m.StoreListComponent,
