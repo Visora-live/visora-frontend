@@ -70,23 +70,11 @@ export class CameraDetailComponent {
   );
 
   protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {
-    const m: Record<CameraStatus, BadgeStatus> = {
-      online: 'normal',
-      offline: 'inactive',
-      error: 'critical',
-      maintenance: 'suspicious',
-    };
-    return m[status];
+    return status === 'online' ? 'normal' : 'inactive';
   }
 
   protected cameraStatusLabel(status: CameraStatus): string {
-    const m: Record<CameraStatus, string> = {
-      online: 'En línea',
-      offline: 'Sin señal',
-      error: 'Error',
-      maintenance: 'Mantenimiento',
-    };
-    return m[status];
+    return status === 'online' ? 'En línea' : 'Sin señal';
   }
 
   protected copyToClipboard(url: string): void {
