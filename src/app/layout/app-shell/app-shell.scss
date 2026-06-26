@@ -15,10 +15,8 @@
 }
 
 .shell-main {
-  height: 100%;
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
   overflow-x: hidden;
   padding: var(--visora-space-lg);
   background-color: var(--visora-bg);

@@ -5,10 +5,12 @@
     [title]="s.name"
     [subtitle]="s.address"
   >
-    <button mat-stroked-button routerLink="/stores">
-      <mat-icon>arrow_back</mat-icon>
-      Volver
-    </button>
+    @if (isAdmin()) {
+      <button mat-stroked-button routerLink="/stores">
+        <mat-icon>arrow_back</mat-icon>
+        Volver
+      </button>
+    }
 @if (isAdmin()) {
       <button mat-flat-button [routerLink]="['/stores', s.id, 'edit']">
         <mat-icon>edit</mat-icon>
@@ -117,9 +119,9 @@
       title="Tienda no encontrada"
       description="No existe una tienda con este identificador en el sistema VISORA."
     >
-      <button mat-flat-button routerLink="/stores">
+      <button mat-flat-button [routerLink]="isAdmin() ? '/stores' : '/dashboard'">
         <mat-icon>arrow_back</mat-icon>
-        Volver al listado
+        {{ isAdmin() ? 'Volver al listado' : 'Ir al inicio' }}
       </button>
     </app-empty-state>
   </div>
