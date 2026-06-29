@@ -4,8 +4,8 @@ import { Observable, catchError, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { CurrentUser, LoginRequest, TokenResponse } from '../models/auth.model';
 
-const TOKEN_KEY = 'visora_access_token';
-const TOKEN_TYPE_KEY = 'visora_token_type';
+// Non-sensitive flag only — the actual JWT lives in a httpOnly cookie (JS-inaccessible).
+const LOGGED_IN_KEY = 'visora_logged_in';
 const ADMIN_ROLES = new Set(['admin', 'administrador', 'administrator']);
 
 @Injectable({ providedIn: 'root' })
@@ -16,38 +16,32 @@ export class AuthService {
 
   login(usernameOrEmail: string, password: string) {
     const body: LoginRequest = { username_or_email: usernameOrEmail, password };
-    return this.http.post<TokenResponse>(`${this.base}/auth/login`, body).pipe(
-      tap((res) => {
-        localStorage.setItem(TOKEN_KEY, res.access_token);
-        localStorage.setItem(TOKEN_TYPE_KEY, res.token_type);
+    return this.http.post<TokenResponse>(`${this.base}/auth/login`, body, { withCredentials: true }).pipe(
+      tap(() => {
+        localStorage.setItem(LOGGED_IN_KEY, '1');
         this.userCache$ = null;
       }),
     );
   }
 
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(TOKEN_TYPE_KEY);
+    localStorage.removeItem(LOGGED_IN_KEY);
     this.userCache$ = null;
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    // Clear httpOnly cookie server-side; fire-and-forget
+    this.http.post(`${this.base}/auth/logout`, {}, { withCredentials: true }).subscribe();
   }
 
   isLoggedIn(): boolean {
-    return this.getToken() !== null;
+    return localStorage.getItem(LOGGED_IN_KEY) !== null;
   }
 
   getCurrentUser(): Observable<CurrentUser | null> {
-    if (!this.getToken()) return of(null);
+    if (!this.isLoggedIn()) return of(null);
     if (!this.userCache$) {
-      this.userCache$ = this.http.get<CurrentUser>(`${this.base}/auth/me`).pipe(
+      this.userCache$ = this.http.get<CurrentUser>(`${this.base}/auth/me`, { withCredentials: true }).pipe(
         catchError((err: HttpErrorResponse) => {
           this.userCache$ = null;
-          // 403 on /auth/me means the account was deactivated while logged in.
-          // Clear the stale token so the interceptor + guards work correctly.
-          if (err.status === 403) this.logout();
+          if (err.status === 401 || err.status === 403) this.logout();
           return of(null);
         }),
         shareReplay(1),

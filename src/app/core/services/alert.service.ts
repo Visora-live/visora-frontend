@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Alert, AlertStatus } from '../models/alert.model';
 import type { EventSeverity, EventType } from '../models/event.model';
@@ -101,6 +101,9 @@ export class AlertService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
+  /** Emits when an alert is marked read — lets sidebar refresh badge immediately. */
+  readonly refresh$ = new Subject<void>();
+
   list(tiendaId?: string | null) {
     const alertUrl = tiendaId ? `${this.base}/alerts?tienda_id=${tiendaId}` : `${this.base}/alerts`;
     const camUrl = tiendaId ? `${this.base}/cameras?tienda_id=${tiendaId}` : `${this.base}/cameras`;
@@ -138,20 +141,16 @@ export class AlertService {
   getById(id: string) {
     return this.http.get<BackendAlert>(`${this.base}/alerts/${id}`).pipe(
       switchMap((alert) => {
-        const camId = alert.camara_id;
-        if (!camId) return of(mapAlert(alert, '', '', '', this.base));
-        return this.http.get<BackendCameraMin>(`${this.base}/cameras/${camId}`).pipe(
-          catchError(() => of(null as BackendCameraMin | null)),
-          switchMap((cam) => {
-            const storeId = alert.tienda_id ?? cam?.tienda_id ?? null;
-            if (!storeId) return of(mapAlert(alert, cam?.nombre_cam ?? '', '', cam?.ubicacion_camara ?? '', this.base));
-            return this.http.get<BackendStoreMin>(`${this.base}/stores/${storeId}`).pipe(
-              catchError(() => of(null as BackendStoreMin | null)),
-              map((store) =>
-                mapAlert(alert, cam?.nombre_cam ?? '', store?.nombre ?? '', cam?.ubicacion_camara ?? '', this.base),
-              ),
-            );
-          }),
+        const camId   = alert.camara_id;
+        const storeId = alert.tienda_id;
+        if (!camId && !storeId) return of(mapAlert(alert, '', '', '', this.base));
+        return forkJoin({
+          cam:   camId   ? this.http.get<BackendCameraMin>(`${this.base}/cameras/${camId}`).pipe(catchError(() => of(null as BackendCameraMin | null)))   : of(null as BackendCameraMin | null),
+          store: storeId ? this.http.get<BackendStoreMin>(`${this.base}/stores/${storeId}`).pipe(catchError(() => of(null as BackendStoreMin | null))) : of(null as BackendStoreMin | null),
+        }).pipe(
+          map(({ cam, store }) =>
+            mapAlert(alert, cam?.nombre_cam ?? '', store?.nombre ?? '', cam?.ubicacion_camara ?? '', this.base),
+          ),
         );
       }),
       catchError(() => of(null)),
@@ -173,7 +172,10 @@ export class AlertService {
   markRead(id: string) {
     return this.http
       .patch<BackendAlert>(`${this.base}/alerts/${id}`, { leida: true })
-      .pipe(catchError(() => of(null)));
+      .pipe(
+        tap(() => this.refresh$.next()),
+        catchError(() => of(null)),
+      );
   }
 
   acknowledge(id: string, _assignedTo?: string) {

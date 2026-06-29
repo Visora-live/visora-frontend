@@ -89,12 +89,14 @@
         <mat-icon aria-hidden="true">screenshot_monitor</mat-icon>
         <h3 class="snapshot-card-title">Frame del incidente</h3>
       </div>
-      <img
-        [src]="a.snapshotUrl"
-        alt="Frame capturado en el momento de la detección"
-        class="snapshot-img"
-        loading="lazy"
-      />
+      @if (a.snapshotUrl | authImage | async; as snap) {
+        <img
+          [src]="snap"
+          alt="Frame capturado en el momento de la detección"
+          class="snapshot-img"
+          loading="lazy"
+        />
+      }
     </div>
   }
 

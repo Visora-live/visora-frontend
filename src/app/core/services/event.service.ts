@@ -12,6 +12,7 @@ interface BackendEvent {
   fecha_hora: string;
   comentario: string | null;
   camara_id: number;
+  tienda_id: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -172,24 +173,30 @@ export class EventService {
   getById(id: string) {
     return this.http.get<BackendEvent>(`${this.base}/events/${id}`).pipe(
       switchMap((evt) =>
-        forkJoin([
-          this.http.get<BackendCameraMin>(`${this.base}/cameras/${evt.camara_id}`).pipe(
+        forkJoin({
+          cam: this.http.get<BackendCameraMin>(`${this.base}/cameras/${evt.camara_id}`).pipe(
             catchError(() => of(null as BackendCameraMin | null)),
           ),
-          this.http.get<BackendIdentification[]>(`${this.base}/identifications?evento_id=${evt.id}`).pipe(
+          store: evt.tienda_id
+            ? this.http.get<BackendStoreMin>(`${this.base}/stores/${evt.tienda_id}`).pipe(
+                catchError(() => of(null as BackendStoreMin | null)),
+              )
+            : of(null as BackendStoreMin | null),
+          idents: this.http.get<BackendIdentification[]>(`${this.base}/identifications?evento_id=${evt.id}`).pipe(
             catchError(() => of([] as BackendIdentification[])),
           ),
-        ]).pipe(
-          switchMap(([cam, idents]) => {
-            const identsMapped = idents.map(mapIdentification);
-            if (!cam) return of(mapEvent(evt, `Cámara ${evt.camara_id}`, '', '', '', this.base, identsMapped));
-            return this.http.get<BackendStoreMin>(`${this.base}/stores/${cam.tienda_id}`).pipe(
-              catchError(() => of(null as BackendStoreMin | null)),
-              map((store) =>
-                mapEvent(evt, cam.nombre_cam, String(cam.tienda_id), store?.nombre ?? '', cam.ubicacion_camara ?? '', this.base, identsMapped),
-              ),
-            );
-          }),
+        }).pipe(
+          map(({ cam, store, idents }) =>
+            mapEvent(
+              evt,
+              cam?.nombre_cam ?? `Cámara ${evt.camara_id}`,
+              String(evt.tienda_id ?? cam?.tienda_id ?? ''),
+              store?.nombre ?? '',
+              cam?.ubicacion_camara ?? '',
+              this.base,
+              idents.map(mapIdentification),
+            ),
+          ),
         ),
       ),
       catchError(() => of(null)),

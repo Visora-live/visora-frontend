@@ -45,8 +45,7 @@ export class CameraDetailComponent implements OnInit, OnDestroy {
 
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
 
-  // HLS stream + RTMP push URL for this camera (MediaMTX path = cam<id>).
-  protected readonly hlsUrl = `${environment.mediamtxHlsBase}/cam${this.cameraId}/index.m3u8`;
+  protected readonly hlsUrl      = `${environment.mediamtxHlsBase}/cam${this.cameraId}/index.m3u8`;
   protected readonly rtmpPushUrl = `${environment.mediamtxRtmpUrl}/cam${this.cameraId}`;
 
   protected readonly camera = toSignal(this.cameraService.getById(this.cameraId), {
@@ -154,7 +153,7 @@ export class CameraDetailComponent implements OnInit, OnDestroy {
 
   private _startEventPolling(): void {
     this._stopEventPolling();
-    this._eventPollSub = interval(4000)
+    this._eventPollSub = interval(2000)
       .pipe(
         startWith(0),
         switchMap(() => this.cameraService.getRecentEvents(this.cameraId, 5)),

@@ -5,7 +5,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap, startWith } from 'rxjs/operators';
-import { timer } from 'rxjs';
+import { merge, timer } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
 import { RecoveryService } from '../../core/services/recovery.service';
@@ -50,11 +50,11 @@ export class SidebarComponent {
   );
   protected readonly unreadNotifs = this.recovery.unread;
 
-  // Poll unread-count every 30s — single lightweight request vs the 3-request list()
+  // Poll every 30s + immediate refresh when an alert is marked read
   protected readonly unreadAlerts = toSignal(
     toObservable(this.storeCtx.activeStoreId).pipe(
       switchMap((id) =>
-        timer(0, 30_000).pipe(
+        merge(timer(0, 30_000), this.alertSvc.refresh$).pipe(
           switchMap(() => this.alertSvc.unreadCount(id)),
           startWith(0),
         ),

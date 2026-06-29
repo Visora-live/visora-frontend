@@ -1,6 +1,7 @@
 import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { AuthImagePipe } from '../../../shared/pipes/auth-image.pipe';
 import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
@@ -23,6 +24,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
   selector: 'app-event-detail',
   imports: [
     RouterLink,
+    AsyncPipe,
     DatePipe,
     MatButtonModule,
     MatIconModule,
@@ -31,6 +33,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
     EmptyStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
+    AuthImagePipe,
   ],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.scss',

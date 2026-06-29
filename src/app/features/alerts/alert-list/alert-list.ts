@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { AuthImagePipe } from '../../../shared/pipes/auth-image.pipe';
 import { FormsModule } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -26,7 +27,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 @Component({
   selector: 'app-alert-preview-dialog',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule, MatDialogModule, RouterLink, DatePipe],
+  imports: [MatButtonModule, MatIconModule, MatDialogModule, RouterLink, AsyncPipe, DatePipe, AuthImagePipe],
   template: `
     <!-- Header -->
     <div class="adlg-header">
@@ -46,7 +47,9 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
             <mat-icon>screenshot_monitor</mat-icon>
             <span>Frame del incidente</span>
           </div>
-          <img [src]="d.snapshotUrl" alt="Frame capturado en el incidente" class="adlg-snapshot-img" loading="lazy" />
+          @if (d.snapshotUrl | authImage | async; as snap) {
+          <img [src]="snap" alt="Frame capturado en el incidente" class="adlg-snapshot-img" loading="lazy" />
+        }
         </div>
       }
 

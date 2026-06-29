@@ -14,12 +14,6 @@ import { MatIconModule } from '@angular/material/icon';
 
 type PlayerState = 'loading' | 'playing' | 'offline';
 
-/**
- * Plays an HLS (.m3u8) live stream from MediaMTX. Uses hls.js where the browser
- * lacks native HLS (Chrome/Firefox/Edge) and the native player on Safari.
- * Auto-retries while the source is offline so it "comes alive" when the phone
- * starts pushing.
- */
 @Component({
   selector: 'app-hls-player',
   imports: [MatIconModule],
@@ -50,7 +44,9 @@ type PlayerState = 'loading' | 'playing' | 'offline';
           }
         </div>
       } @else {
-        <span class="hls-live" aria-hidden="true"><span class="hls-dot"></span>EN VIVO</span>
+        <span class="hls-live" aria-hidden="true">
+          <span class="hls-dot"></span>EN VIVO
+        </span>
       }
     </div>
   `,
@@ -107,30 +103,27 @@ type PlayerState = 'loading' | 'playing' | 'offline';
   ],
 })
 export class HlsPlayerComponent implements OnDestroy {
-  /** Full .m3u8 URL, e.g. http://host:8888/cam1/index.m3u8 */
   readonly src = input.required<string>();
-
-  /** When false (camera inactive) the player won't connect — shows "inactiva". */
   readonly enabled = input(true);
 
   protected readonly state = signal<PlayerState>('loading');
 
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly videoRef = viewChild<ElementRef<HTMLVideoElement>>('video');
-  // Only play when the player is on screen — avoids N simultaneous streams.
   private readonly isVisible = signal(false);
   private hls?: Hls;
   private retryTimer?: ReturnType<typeof setTimeout>;
   private attachedUrl = '';
+  private onPlayingFn?: () => void;
   private observer?: IntersectionObserver;
 
   constructor() {
     effect(() => {
-      const url = this.src();
+      const hlsUrl = this.src();
       const video = this.videoRef()?.nativeElement;
       if (!video) return;
-      if (this.enabled() && this.isVisible() && url) {
-        if (url !== this.attachedUrl) this.attach(video, url);
+      if (this.enabled() && this.isVisible() && hlsUrl) {
+        if (hlsUrl !== this.attachedUrl) this.attach(video, hlsUrl);
       } else {
         this.teardown();
       }
@@ -145,26 +138,28 @@ export class HlsPlayerComponent implements OnDestroy {
     });
   }
 
-  private attach(video: HTMLVideoElement, url: string): void {
+  private attach(video: HTMLVideoElement, hlsUrl: string): void {
     this.teardown();
-    this.attachedUrl = url;
+    this.attachedUrl = hlsUrl;
     this.state.set('loading');
 
-    // Hard-mute: never play audio (the attribute alone is unreliable across browsers).
     video.muted = true;
     video.volume = 0;
     video.defaultMuted = true;
 
-    const onPlaying = () => this.state.set('playing');
-    video.addEventListener('playing', onPlaying);
+    this.attachHls(video, hlsUrl);
+  }
+
+  private attachHls(video: HTMLVideoElement, url: string): void {
+    this.onPlayingFn = () => this.state.set('playing');
+    video.addEventListener('playing', this.onPlayingFn);
 
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
-        liveSyncDurationCount: 3,
-        liveMaxLatencyDurationCount: 6,
+        liveSyncDurationCount: 2,
+        liveMaxLatencyDurationCount: 4,
         maxLiveSyncPlaybackRate: 1.5,
-        // MediaMTX cookie-check redirect requires credentials
         xhrSetup: (xhr) => { xhr.withCredentials = true; },
       });
       this.hls = hls;
@@ -175,7 +170,6 @@ export class HlsPlayerComponent implements OnDestroy {
         if (data.fatal) this.fail();
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari / iOS native HLS
       video.src = url;
       video.addEventListener('loadedmetadata', () => void video.play().catch(() => {}));
       video.addEventListener('error', () => this.fail());
@@ -184,7 +178,6 @@ export class HlsPlayerComponent implements OnDestroy {
     }
   }
 
-  /** Mark offline and retry shortly (e.g. while the camera hasn't started pushing). */
   private fail(): void {
     this.state.set('offline');
     this.hls?.destroy();
@@ -200,9 +193,14 @@ export class HlsPlayerComponent implements OnDestroy {
 
   private teardown(): void {
     clearTimeout(this.retryTimer);
+    const video = this.videoRef()?.nativeElement;
+    if (video && this.onPlayingFn) {
+      video.removeEventListener('playing', this.onPlayingFn);
+      this.onPlayingFn = undefined;
+    }
     this.hls?.destroy();
     this.hls = undefined;
-    this.attachedUrl = ''; // so it re-attaches when it becomes visible again
+    this.attachedUrl = '';
   }
 
   ngOnDestroy(): void {
