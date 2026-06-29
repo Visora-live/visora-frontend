@@ -59,7 +59,10 @@ function mapAlert(
   cameraName: string,
   storeName: string,
   location: string,
+  apiBase: string,
 ): Alert {
+  const tipo = b.tipo?.toLowerCase() ?? '';
+  const isWeapon = tipo === 'weapon_detection' || tipo.includes('weapon') || tipo.includes('arma');
   return {
     id: String(b.id),
     eventId: b.evento_id ? String(b.evento_id) : '',
@@ -80,6 +83,7 @@ function mapAlert(
     evidence: [],
     timeline: [],
     recommendedActions: [],
+    snapshotUrl: isWeapon && b.camara_id ? `${apiBase}/cameras/${b.camara_id}/detect/snapshot` : undefined,
   };
 }
 
@@ -116,6 +120,7 @@ export class AlertService {
             cam?.nombre_cam ?? (a.camara_id ? `Cámara ${a.camara_id}` : ''),
             storeId ? (storeMap.get(storeId) ?? '') : '',
             cam?.ubicacion_camara ?? '',
+            this.base,
           );
         });
         return {
@@ -134,16 +139,16 @@ export class AlertService {
     return this.http.get<BackendAlert>(`${this.base}/alerts/${id}`).pipe(
       switchMap((alert) => {
         const camId = alert.camara_id;
-        if (!camId) return of(mapAlert(alert, '', '', ''));
+        if (!camId) return of(mapAlert(alert, '', '', '', this.base));
         return this.http.get<BackendCameraMin>(`${this.base}/cameras/${camId}`).pipe(
           catchError(() => of(null as BackendCameraMin | null)),
           switchMap((cam) => {
             const storeId = alert.tienda_id ?? cam?.tienda_id ?? null;
-            if (!storeId) return of(mapAlert(alert, cam?.nombre_cam ?? '', '', cam?.ubicacion_camara ?? ''));
+            if (!storeId) return of(mapAlert(alert, cam?.nombre_cam ?? '', '', cam?.ubicacion_camara ?? '', this.base));
             return this.http.get<BackendStoreMin>(`${this.base}/stores/${storeId}`).pipe(
               catchError(() => of(null as BackendStoreMin | null)),
               map((store) =>
-                mapAlert(alert, cam?.nombre_cam ?? '', store?.nombre ?? '', cam?.ubicacion_camara ?? ''),
+                mapAlert(alert, cam?.nombre_cam ?? '', store?.nombre ?? '', cam?.ubicacion_camara ?? '', this.base),
               ),
             );
           }),
@@ -153,12 +158,30 @@ export class AlertService {
     );
   }
 
+  unreadCount(tiendaId?: string | null) {
+    const url = tiendaId
+      ? `${this.base}/alerts/unread-count?tienda_id=${tiendaId}`
+      : `${this.base}/alerts/unread-count`;
+    return this.http
+      .get<{ count: number }>(url)
+      .pipe(
+        map((r) => r.count),
+        catchError(() => of(0)),
+      );
+  }
+
+  markRead(id: string) {
+    return this.http
+      .patch<BackendAlert>(`${this.base}/alerts/${id}`, { leida: true })
+      .pipe(catchError(() => of(null)));
+  }
+
   acknowledge(id: string, _assignedTo?: string) {
     // assignedTo not supported by backend — passed for API compatibility only
     return this.http
       .patch<BackendAlert>(`${this.base}/alerts/${id}`, { estado: 'reconocida' })
       .pipe(
-        map((a) => mapAlert(a, '', '', '')),
+        map((a) => mapAlert(a, '', '', '', this.base)),
         catchError(() => of(null)),
       );
   }
@@ -167,7 +190,7 @@ export class AlertService {
     return this.http
       .patch<BackendAlert>(`${this.base}/alerts/${id}`, { estado: 'resuelta' })
       .pipe(
-        map((a) => mapAlert(a, '', '', '')),
+        map((a) => mapAlert(a, '', '', '', this.base)),
         catchError(() => of(null)),
       );
   }
@@ -191,13 +214,13 @@ export class AlertService {
       descripcion: payload.descripcion ?? null,
     };
     return this.http.post<BackendAlert>(`${this.base}/alerts`, body).pipe(
-      map((a) => mapAlert(a, '', '', '')),
+      map((a) => mapAlert(a, '', '', '', this.base)),
     );
   }
 
   delete(id: string) {
     return this.http.delete<BackendAlert>(`${this.base}/alerts/${id}`).pipe(
-      map((a) => mapAlert(a, '', '', '')),
+      map((a) => mapAlert(a, '', '', '', this.base)),
       catchError(() => of(null)),
     );
   }

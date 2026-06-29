@@ -2,6 +2,41 @@
   display: block;
 }
 
+// ── Snapshot (weapon_detection frame) ────────────────────────────────────────
+
+.snapshot-card {
+  background: var(--visora-surface-2, #1e1e2e);
+  border: 1px solid var(--visora-border, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: var(--visora-space-md, 1.5rem);
+
+  .snapshot-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--visora-border, rgba(255,255,255,0.08));
+
+    mat-icon { color: var(--visora-accent, #6366f1); }
+  }
+
+  .snapshot-card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--visora-text-primary, #f1f5f9);
+    margin: 0;
+  }
+}
+
+.snapshot-img {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  background: #0a0a0f;
+}
+
 // ── Status bar ────────────────────────────────────────────────────────────────
 
 .alert-status-bar {

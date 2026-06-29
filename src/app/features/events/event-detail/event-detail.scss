@@ -2,6 +2,47 @@
   display: block;
 }
 
+// ── Snapshot (weapon_detection frame) ────────────────────────────────────────
+
+.snapshot-card {
+  background: #0d0d14;
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .snapshot-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+
+    mat-icon { color: var(--visora-accent, #2f88f5); font-size: 16px; width: 16px; height: 16px; }
+  }
+
+  .snapshot-card-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin: 0;
+  }
+}
+
+.snapshot-img {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 220px;
+  object-fit: cover;
+  background: #1e2030;
+}
+
 // ── Status bar ────────────────────────────────────────────────────────────────
 
 .status-bar {
@@ -16,19 +57,6 @@
   margin-bottom: var(--visora-space-lg);
   box-shadow: var(--visora-shadow-sm);
 
-  &--critical { border-left: 4px solid var(--visora-status-critical); background: rgba(220, 38, 38, 0.02); }
-  &--suspicious { border-left: 4px solid var(--visora-status-suspicious); background: rgba(217, 119, 6, 0.02); }
-}
-
-.status-bar-sep { color: var(--visora-border-color); font-size: 16px; }
-
-.status-bar-conf {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--visora-text-muted);
-  mat-icon { font-size: 14px; width: 14px; height: 14px; }
 }
 
 .status-bar-spacer { flex: 1; }
@@ -40,36 +68,54 @@
 }
 
 .action-feedback {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 13px;
-  font-weight: 600;
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
-  &--ok { color: var(--visora-status-normal); }
-  &--muted { color: var(--visora-text-muted); }
-}
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  mat-icon { font-size: 17px; width: 17px; height: 17px; }
 
-// ── Detail layout ─────────────────────────────────────────────────────────────
-
-.visora-event-detail-layout {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: var(--visora-space-md);
-  align-items: start;
-  @media (max-width: 960px) { grid-template-columns: 1fr; }
-
-  // Single-panel variant (after removing the IA evidence/detection column):
-  // the info panel fills the width; its fields lay out in multiple columns.
-  &--single {
-    grid-template-columns: 1fr;
+  &--ok {
+    color: #166534;
+    background: #dcfce7;
+    border: 1.5px solid #86efac;
+  }
+  &--muted {
+    color: var(--visora-text-muted);
+    background: var(--visora-bg-secondary, #f4f6f9);
+    border: 1.5px solid var(--visora-border-color);
   }
 }
 
-.col-main, .col-side {
+// ── Two-column layout ─────────────────────────────────────────────────────────
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: var(--visora-space-lg);
+  align-items: stretch;
+
+  &--no-snapshot { grid-template-columns: minmax(0, 560px); }
+
+  @media (max-width: 960px) { grid-template-columns: 1fr; }
+}
+
+.snapshot-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.info-col {
   display: flex;
   flex-direction: column;
   gap: var(--visora-space-md);
+  height: 100%;
+
+  // first panel (Detalles del evento) absorbs extra height
+  .info-panel:first-child { flex: 1; }
 }
 
 // ── Not found ─────────────────────────────────────────────────────────────────
@@ -112,11 +158,35 @@
   mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--visora-accent); }
 }
 
+.info-panel-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--visora-accent);
+  flex-shrink: 0;
+}
+
 .info-panel-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--visora-text);
   margin: 0;
+}
+
+.person-panel {
+  border-left: 3px solid var(--visora-primary, #1652a3);
+}
+
+.person-highlight {
+  font-weight: 700;
+  font-size: 14px !important;
+  color: var(--visora-primary, #1652a3) !important;
+  letter-spacing: 0.06em;
+}
+
+.person-empty {
+  color: var(--visora-text-muted);
+  font-style: italic;
 }
 
 .ev-count-badge {

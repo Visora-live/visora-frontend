@@ -49,6 +49,7 @@ function mapRecentEvent(b: BackendRecentEvent): VisoraEvent {
     timestamp: b.fecha_hora,
     evidence: [],
     recommendedActions: [],
+    identifications: [],
   };
 }
 

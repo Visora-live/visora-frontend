@@ -78,6 +78,7 @@
   color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+  overflow: visible;
 
   &:hover {
     background: rgba(255, 255, 255, 0.12);

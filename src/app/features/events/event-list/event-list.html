@@ -22,37 +22,6 @@
     }
   </mat-form-field>
 
-  <mat-form-field appearance="outline" class="filter filter--sm">
-    <mat-label>Severidad</mat-label>
-    <mat-select [ngModel]="severityFilter()" (ngModelChange)="severityFilter.set($event)" aria-label="Filtrar por severidad">
-      <mat-option value="all">Todas</mat-option>
-      <mat-option value="normal">Normal</mat-option>
-      <mat-option value="suspicious">Sospechoso</mat-option>
-      <mat-option value="critical">Crítico</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="filter filter--md">
-    <mat-label>Tipo</mat-label>
-    <mat-select [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)" aria-label="Filtrar por tipo">
-      <mat-option value="all">Todos los tipos</mat-option>
-      <mat-option value="facial_recognition">Reconocimiento facial</mat-option>
-      <mat-option value="weapon_detection">Objeto crítico</mat-option>
-      <mat-option value="suspicious_activity">Actividad sospechosa</mat-option>
-      <mat-option value="system">Sistema</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="filter filter--sm">
-    <mat-label>Estado</mat-label>
-    <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)" aria-label="Filtrar por estado">
-      <mat-option value="all">Todos</mat-option>
-      <mat-option value="pending">Pendiente</mat-option>
-      <mat-option value="reviewed">Revisado</mat-option>
-      <mat-option value="dismissed">Descartado</mat-option>
-    </mat-select>
-  </mat-form-field>
-
   <mat-form-field appearance="outline" class="filter filter--md">
     <mat-label>Cámara</mat-label>
     <mat-select [ngModel]="cameraFilter()" (ngModelChange)="cameraFilter.set($event)" aria-label="Filtrar por cámara">
@@ -71,7 +40,7 @@
   @if (isFiltered()) { <span class="evt-results-tag">filtrado</span> }
 </p>
 
-<!-- Table — desktop -->
+<!-- Table -->
 @if (filteredEvents().length > 0) {
   <div class="table-wrap" role="region" aria-label="Tabla de eventos">
     <table
@@ -108,42 +77,6 @@
         </td>
       </ng-container>
 
-      <!-- Tipo -->
-      <ng-container matColumnDef="type">
-        <th mat-header-cell *matHeaderCellDef>Tipo</th>
-        <td mat-cell *matCellDef="let e">
-          <div class="cell-type">
-            <mat-icon class="type-icon" aria-hidden="true">{{ typeIcon(e.type) }}</mat-icon>
-            <span>{{ typeLabel(e.type) }}</span>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Descripción (mobile) -->
-      <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef>Evento</th>
-        <td mat-cell *matCellDef="let e">
-          <div class="cell-desc-mobile">
-            <div class="cell-type">
-              <mat-icon class="type-icon" aria-hidden="true">{{ typeIcon(e.type) }}</mat-icon>
-              <span>{{ typeLabel(e.type) }}</span>
-            </div>
-            <span class="desc-mobile-sub">{{ e.storeName }} · {{ e.cameraName }}</span>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Severidad -->
-      <ng-container matColumnDef="severity">
-        <th mat-header-cell *matHeaderCellDef>Severidad</th>
-        <td mat-cell *matCellDef="let e">
-          <app-status-badge
-            [status]="severityToBadge(e.severity)"
-            [label]="severityLabel(e.severity)"
-          />
-        </td>
-      </ng-container>
-
       <!-- Estado -->
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef>Estado</th>
@@ -155,25 +88,14 @@
         </td>
       </ng-container>
 
-      <!-- Evidencia -->
-      <ng-container matColumnDef="evidence">
-        <th mat-header-cell *matHeaderCellDef>Evidencia</th>
+      <!-- Descripción (mobile) -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef>Evento</th>
         <td mat-cell *matCellDef="let e">
-          @if (e.evidence.length > 0) {
-            <div class="cell-evidence">
-              @for (ev of e.evidence; track ev.id) {
-                <span
-                  class="ev-chip"
-                  [class.ev-chip--video]="ev.type === 'video'"
-                  [matTooltip]="ev.label"
-                >
-                  <mat-icon>{{ ev.type === 'video' ? 'videocam' : 'image' }}</mat-icon>
-                </span>
-              }
-            </div>
-          } @else {
-            <span class="cell-text--muted">—</span>
-          }
+          <div class="cell-desc-mobile">
+            <span class="cell-text">{{ e.storeName }}</span>
+            <span class="desc-mobile-sub">{{ e.cameraName }}</span>
+          </div>
         </td>
       </ng-container>
 
@@ -189,15 +111,6 @@
               [attr.aria-label]="'Ver detalle del evento de ' + e.storeName"
             >
               <mat-icon>chevron_right</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              class="row-delete"
-              (click)="requestDelete(e)"
-              matTooltip="Eliminar evento"
-              [attr.aria-label]="'Eliminar evento de ' + e.storeName"
-            >
-              <mat-icon>delete_outline</mat-icon>
             </button>
           </div>
         </td>
@@ -230,13 +143,3 @@
     }
   </div>
 }
-
-<app-confirm-dialog
-  [open]="deleteTarget() !== null"
-  title="¿Eliminar este evento?"
-  message="Esta acción no se puede deshacer."
-  [busy]="isDeleting()"
-  [errorMessage]="deleteError()"
-  (confirm)="confirmDelete()"
-  (cancel)="cancelDelete()"
-/>

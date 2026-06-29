@@ -159,7 +159,14 @@ export class HlsPlayerComponent implements OnDestroy {
     video.addEventListener('playing', onPlaying);
 
     if (Hls.isSupported()) {
-      const hls = new Hls({ lowLatencyMode: true, liveSyncDurationCount: 3 });
+      const hls = new Hls({
+        enableWorker: true,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 6,
+        maxLiveSyncPlaybackRate: 1.5,
+        // MediaMTX cookie-check redirect requires credentials
+        xhrSetup: (xhr) => { xhr.withCredentials = true; },
+      });
       this.hls = hls;
       hls.loadSource(url);
       hls.attachMedia(video);
@@ -188,7 +195,7 @@ export class HlsPlayerComponent implements OnDestroy {
     this.retryTimer = setTimeout(() => {
       const video = this.videoRef()?.nativeElement;
       if (video && url && this.enabled() && this.isVisible()) this.attach(video, url);
-    }, 5000);
+    }, 3000);
   }
 
   private teardown(): void {

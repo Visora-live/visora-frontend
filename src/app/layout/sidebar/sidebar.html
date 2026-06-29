@@ -16,8 +16,12 @@
           [routerLink]="item.route === '/stores' ? storeRoute() : item.route"
           routerLinkActive="active"
           [attr.aria-current]="rla.isActive ? 'page' : null"
-          [matTooltip]="item.label"
+          [matTooltip]="item.route === '/alerts' && unreadAlerts() > 0 ? item.label + ' (' + unreadAlerts() + ' sin leer)' : item.label"
           matTooltipPosition="right"
+          [matBadge]="item.route === '/alerts' && unreadAlerts() > 0 ? unreadAlerts() : null"
+          [matBadgeHidden]="item.route !== '/alerts' || unreadAlerts() === 0"
+          matBadgeColor="warn"
+          matBadgeSize="small"
         >
           <mat-icon class="nav-icon" aria-hidden="true">{{ item.icon }}</mat-icon>
         </a>

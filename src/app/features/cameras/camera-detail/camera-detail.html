@@ -38,7 +38,7 @@
     </button>
   </app-page-header>
 
-  <!-- Detección IA -->
+  <!-- Detección de armas IA -->
   <section class="detection-panel" aria-label="Detección de armas IA">
     <div class="detection-header">
       <div class="detection-title-row">
@@ -61,11 +61,11 @@
     @if (detectionRunning()) {
       <p class="detection-hint">
         <mat-icon aria-hidden="true">info</mat-icon>
-        El modelo analiza el stream en tiempo real. Los eventos y alertas aparecen automáticamente.
+        El modelo analiza el stream en tiempo real. Las alertas se generan automáticamente al detectar armas e incluyen identificación facial del portador.
       </p>
     } @else {
       <p class="detection-hint">
-        Activa la detección para que el modelo de IA analice esta cámara y genere eventos automáticos al detectar armas.
+        Activa la detección para que el modelo IA analice esta cámara. Al detectar un arma, se lanza alerta inmediata y se intenta identificar al portador.
       </p>
     }
   </section>

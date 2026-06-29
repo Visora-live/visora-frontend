@@ -141,6 +141,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'algorithm',
+        canActivate: [adminOnlyGuard],
+        loadComponent: () =>
+          import('./features/algorithm/algorithm-score').then(
+            (m) => m.AlgorithmScoreComponent,
+          ),
+      },
+      {
         path: 'users',
         canActivate: [adminGuard],
         loadComponent: () =>

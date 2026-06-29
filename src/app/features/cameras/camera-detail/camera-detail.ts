@@ -108,7 +108,7 @@ export class CameraDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ── Detección IA ──────────────────────────────────────────────────────────
+  // ── Detección armas ───────────────────────────────────────────────────────
   protected readonly detectionRunning = signal(false);
   protected readonly detectionLoading = signal(false);
   private _detectionSub: Subscription | null = null;

@@ -49,8 +49,6 @@
       <mat-option value="resolved">Resuelta</mat-option>
     </mat-select>
   </mat-form-field>
-
-
 </div>
 
 <!-- Results count -->
@@ -75,9 +73,12 @@
           <div class="cell-datetime">
             <div class="dt-row">
               @if (!a.leida) {
-                <span class="unread-dot" aria-label="No leída" title="No leída"></span>
+                <span class="unread-dot" aria-label="No leída"></span>
               }
               <span class="dt-date">{{ a.createdAt | date:'dd/MM/yyyy' }}</span>
+              @if (!a.leida) {
+                <span class="unread-tag">Nueva</span>
+              }
             </div>
             <span class="dt-time">{{ a.createdAt | date:'HH:mm:ss' }}</span>
           </div>
@@ -100,54 +101,6 @@
         </td>
       </ng-container>
 
-      <!-- Severidad -->
-      <ng-container matColumnDef="severity">
-        <th mat-header-cell *matHeaderCellDef>Severidad</th>
-        <td mat-cell *matCellDef="let a">
-          <app-status-badge
-            [status]="severityToBadge(a.severity)"
-            [label]="severityLabel(a.severity)"
-          />
-        </td>
-      </ng-container>
-
-      <!-- Estado -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Estado</th>
-        <td mat-cell *matCellDef="let a">
-          <app-status-badge
-            [status]="statusBadge(a.status)"
-            [label]="statusLabel(a.status)"
-          />
-        </td>
-      </ng-container>
-
-      <!-- Evento relacionado -->
-      <ng-container matColumnDef="event">
-        <th mat-header-cell *matHeaderCellDef>Evento</th>
-        <td mat-cell *matCellDef="let a">
-          <div class="cell-type">
-            <mat-icon class="type-icon" aria-hidden="true">{{ eventTypeIcon(a.eventType) }}</mat-icon>
-            <span>{{ eventTypeLabel(a.eventType) }}</span>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Responsable -->
-      <ng-container matColumnDef="assignedTo">
-        <th mat-header-cell *matHeaderCellDef>Responsable</th>
-        <td mat-cell *matCellDef="let a">
-          @if (a.assignedTo) {
-            <div class="cell-assigned">
-              <mat-icon aria-hidden="true">person</mat-icon>
-              <span>{{ a.assignedTo }}</span>
-            </div>
-          } @else {
-            <span class="cell-text cell-text--muted">—</span>
-          }
-        </td>
-      </ng-container>
-
       <!-- Descripción (mobile) -->
       <ng-container matColumnDef="description">
         <th mat-header-cell *matHeaderCellDef>Alerta</th>
@@ -165,11 +118,11 @@
         <td mat-cell *matCellDef="let a">
           <button
             mat-icon-button
-            [routerLink]="['/alerts', a.id]"
+            (click)="openAlert(a)"
             matTooltip="Ver detalle"
             [attr.aria-label]="'Ver detalle de alerta de ' + a.storeName"
           >
-            <mat-icon>chevron_right</mat-icon>
+            <mat-icon>visibility</mat-icon>
           </button>
         </td>
       </ng-container>

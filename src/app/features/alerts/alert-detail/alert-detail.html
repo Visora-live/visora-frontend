@@ -82,6 +82,22 @@
     }
   </div>
 
+  <!-- Frame de detección (alertas weapon_detection) -->
+  @if (a.snapshotUrl) {
+    <div class="snapshot-card">
+      <div class="snapshot-card-header">
+        <mat-icon aria-hidden="true">screenshot_monitor</mat-icon>
+        <h3 class="snapshot-card-title">Frame del incidente</h3>
+      </div>
+      <img
+        [src]="a.snapshotUrl"
+        alt="Frame capturado en el momento de la detección"
+        class="snapshot-img"
+        loading="lazy"
+      />
+    </div>
+  }
+
   <div class="visora-alert-detail-layout visora-alert-detail-layout--single">
 
     <aside aria-label="Información de la alerta">

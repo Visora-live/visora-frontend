@@ -27,6 +27,15 @@ export interface RecommendedAction {
   severity: EventSeverity;
 }
 
+export interface PersonIdentification {
+  id: string;
+  dni?: string;
+  nombres?: string;
+  apellidoPaterno?: string;
+  apellidoMaterno?: string;
+  edad?: number;
+}
+
 export interface VisoraEvent {
   id: string;
   cameraId: string;
@@ -42,6 +51,8 @@ export interface VisoraEvent {
   evidence: Evidence[];
   detection?: DetectionData;
   recommendedActions: RecommendedAction[];
+  identifications: PersonIdentification[];
   alertId?: string;
   notes?: string;
+  snapshotUrl?: string;
 }

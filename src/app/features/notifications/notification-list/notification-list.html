@@ -32,6 +32,9 @@
 
         <div class="notif-body">
           <div class="notif-top">
+            @if (!req.leida) {
+              <span class="notif-unread-dot" aria-label="No leída"></span>
+            }
             <h2 class="notif-user">{{ req.identificador }}</h2>
             @if (!req.leida) { <span class="notif-badge">Nueva</span> }
             <span class="notif-date">{{ req.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>

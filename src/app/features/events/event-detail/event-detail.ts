@@ -47,71 +47,56 @@ export class EventDetailComponent {
   });
 
   protected readonly currentStatus = signal<EventStatus>('pending');
-  protected readonly actionDone = signal<'reviewed' | 'dismissed' | null>(null);
 
   constructor() {
     effect(() => {
       const e = this.event();
-      if (e && this.actionDone() === null) {
-        this.currentStatus.set(e.status);
-      }
+      if (e) this.currentStatus.set(e.status);
     });
   }
 
   protected markReviewed(): void {
     this.eventService.updateStatus(this.eventId, 'reviewed').subscribe({
-      next: () => {
-        this.currentStatus.set('reviewed');
-        this.actionDone.set('reviewed');
-      },
+      next: () => this.currentStatus.set('reviewed'),
     });
   }
 
-  protected dismissEvent(): void {
-    this.eventService.updateStatus(this.eventId, 'dismissed').subscribe({
-      next: () => {
-        this.currentStatus.set('dismissed');
-        this.actionDone.set('dismissed');
-      },
-    });
+  // ── Descartar = soft-delete with confirmation ─────────────────────────────
+  protected readonly confirmingDiscard = signal(false);
+  protected readonly isDiscarding = signal(false);
+  protected readonly discardError = signal('');
+
+  protected requestDiscard(): void {
+    this.discardError.set('');
+    this.confirmingDiscard.set(true);
   }
 
-  // ── Delete with confirmation ──────────────────────────────────────────────
-  protected readonly confirmingDelete = signal(false);
-  protected readonly isDeleting = signal(false);
-  protected readonly deleteError = signal('');
-
-  protected requestDelete(): void {
-    this.deleteError.set('');
-    this.confirmingDelete.set(true);
+  protected cancelDiscard(): void {
+    if (this.isDiscarding()) return;
+    this.confirmingDiscard.set(false);
   }
 
-  protected cancelDelete(): void {
-    if (this.isDeleting()) return;
-    this.confirmingDelete.set(false);
-  }
-
-  protected confirmDelete(): void {
-    if (this.isDeleting()) return;
-    this.isDeleting.set(true);
-    this.deleteError.set('');
+  protected confirmDiscard(): void {
+    if (this.isDiscarding()) return;
+    this.isDiscarding.set(true);
+    this.discardError.set('');
     this.eventService
       .delete(this.eventId)
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.isDeleting.set(false);
-          this.confirmingDelete.set(false);
+          this.isDiscarding.set(false);
+          this.confirmingDiscard.set(false);
           void this.router.navigate(['/events']);
         },
         error: (err: HttpErrorResponse) => {
-          this.isDeleting.set(false);
-          this.deleteError.set(
+          this.isDiscarding.set(false);
+          this.discardError.set(
             err.status === 403
-              ? 'No tienes permisos para eliminar este evento.'
+              ? 'No tienes permisos para descartar este evento.'
               : err.status === 404
                 ? 'El evento ya no existe.'
-                : 'No se pudo eliminar el evento. Intenta de nuevo.',
+                : 'No se pudo descartar el evento. Intenta de nuevo.',
           );
         },
       });
@@ -119,15 +104,6 @@ export class EventDetailComponent {
 
   protected severityToBadge(s: EventSeverity): BadgeStatus {
     return s === 'normal' ? 'normal' : s === 'suspicious' ? 'suspicious' : 'critical';
-  }
-
-  protected severityLabel(s: EventSeverity): string {
-    const m: Record<EventSeverity, string> = {
-      normal: 'Normal',
-      suspicious: 'Sospechoso',
-      critical: 'Crítico',
-    };
-    return m[s];
   }
 
   protected typeLabel(t: EventType): string {
@@ -161,9 +137,5 @@ export class EventDetailComponent {
 
   protected statusBadge(s: EventStatus): BadgeStatus {
     return s === 'pending' ? 'suspicious' : s === 'reviewed' ? 'normal' : 'inactive';
-  }
-
-  protected confidencePct(c: number): string {
-    return `${Math.round(c * 100)}%`;
   }
 }
