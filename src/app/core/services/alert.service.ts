@@ -115,17 +115,19 @@ export class AlertService {
       map(([alerts, cameras, stores]) => {
         const camMap = new Map(cameras.map((c) => [c.id, c]));
         const storeMap = new Map(stores.map((s) => [s.id, s.nombre]));
-        const items = alerts.map((a) => {
-          const cam = a.camara_id ? camMap.get(a.camara_id) : undefined;
-          const storeId = a.tienda_id ?? cam?.tienda_id ?? null;
-          return mapAlert(
-            a,
-            cam?.nombre_cam ?? (a.camara_id ? `Cámara ${a.camara_id}` : ''),
-            storeId ? (storeMap.get(storeId) ?? '') : '',
-            cam?.ubicacion_camara ?? '',
-            this.base,
-          );
-        });
+        const items = alerts
+          .map((a) => {
+            const cam = a.camara_id ? camMap.get(a.camara_id) : undefined;
+            const storeId = a.tienda_id ?? cam?.tienda_id ?? null;
+            return mapAlert(
+              a,
+              cam?.nombre_cam ?? (a.camara_id ? `Cámara ${a.camara_id}` : ''),
+              storeId ? (storeMap.get(storeId) ?? '') : '',
+              cam?.ubicacion_camara ?? '',
+              this.base,
+            );
+          })
+          .filter((a) => a.status !== 'resolved');
         return {
           items,
           total: items.length,

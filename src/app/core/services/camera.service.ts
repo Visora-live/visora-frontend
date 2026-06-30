@@ -186,11 +186,16 @@ export class CameraService {
   getRecentEvents(cameraId: string, limit = 5) {
     const params = new HttpParams()
       .set('camara_id', cameraId)
-      .set('limit', String(limit));
+      .set('limit', '50');
     return this.http
       .get<BackendRecentEvent[]>(`${this.base}/events`, { params })
       .pipe(
-        map((events) => events.map(mapRecentEvent)),
+        map((events) =>
+          events
+            .filter((e) => e.estado !== 'descartado' && e.estado !== 'revisado')
+            .slice(0, limit)
+            .map(mapRecentEvent),
+        ),
         catchError(() => of([] as VisoraEvent[])),
       );
   }

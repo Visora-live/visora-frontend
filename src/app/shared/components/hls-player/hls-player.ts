@@ -157,17 +157,38 @@ export class HlsPlayerComponent implements OnDestroy {
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
+        lowLatencyMode: false,
         liveSyncDurationCount: 2,
-        liveMaxLatencyDurationCount: 4,
+        liveMaxLatencyDurationCount: 5,
         maxLiveSyncPlaybackRate: 1.5,
+        maxBufferLength: 20,
+        backBufferLength: 10,
+        manifestLoadingTimeOut: 10000,
+        manifestLoadingMaxRetry: 6,
+        manifestLoadingRetryDelay: 1000,
+        levelLoadingTimeOut: 10000,
+        levelLoadingMaxRetry: 6,
+        fragLoadingTimeOut: 20000,
+        fragLoadingMaxRetry: 6,
+        fragLoadingRetryDelay: 1000,
         xhrSetup: (xhr) => { xhr.withCredentials = true; },
       });
       this.hls = hls;
+      let mediaRecoveries = 0;
       hls.loadSource(url);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => void video.play().catch(() => {}));
+      hls.on(Hls.Events.FRAG_LOADED, () => { mediaRecoveries = 0; });
       hls.on(Hls.Events.ERROR, (_e, data) => {
-        if (data.fatal) this.fail();
+        if (!data.fatal) return;
+        if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 3) {
+          mediaRecoveries++;
+          hls.recoverMediaError();
+        } else if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          hls.startLoad();
+        } else {
+          this.fail();
+        }
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
@@ -188,7 +209,7 @@ export class HlsPlayerComponent implements OnDestroy {
     this.retryTimer = setTimeout(() => {
       const video = this.videoRef()?.nativeElement;
       if (video && url && this.enabled() && this.isVisible()) this.attach(video, url);
-    }, 3000);
+    }, 5000);
   }
 
   private teardown(): void {

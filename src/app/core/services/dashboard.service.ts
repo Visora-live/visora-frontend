@@ -113,6 +113,16 @@ function tipoLabel(tipo: string): string {
   return 'Actividad sospechosa';
 }
 
+function formatEventDescription(comentario: string | null, tipo: string): string {
+  const isWeapon = tipo.toLowerCase().includes('weapon') || tipo.toLowerCase().includes('arma');
+  if (!isWeapon) return comentario?.trim() || tipoLabel(tipo);
+  if (!comentario) return 'Arma detectada | Analizando incidente...';
+  if (comentario.includes('analizando')) return 'Arma detectada | Analizando incidente...';
+  const m = comentario.match(/Portador identificado:\s*([^|]+?)\s*(?:\||$)/i);
+  if (m) return `Arma detectada | Portador identificado: ${m[1].trim()}`;
+  return 'Arma detectada | Lo sentimos, no se pudo identificar al infractor.';
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private readonly http = inject(HttpClient);
@@ -160,7 +170,7 @@ export class DashboardService {
           .slice(0, recentLimit)
           .map((e) => ({
             id: String(e.id),
-            description: e.comentario?.trim() || tipoLabel(e.tipo),
+            description: formatEventDescription(e.comentario, e.tipo),
             severity: severityLabel(e.severidad),
             cameraName: camMap.get(e.camara_id)?.nombre_cam ?? `Cámara ${e.camara_id}`,
             timestamp: e.fecha_hora,

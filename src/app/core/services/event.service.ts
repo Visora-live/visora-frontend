@@ -26,6 +26,13 @@ interface BackendIdentification {
   edad: number | null;
 }
 
+interface BackendEventImage {
+  id: number;
+  evento_id: number;
+  es_frame_representativo: boolean;
+  storage_ref: string;
+}
+
 interface BackendCameraMin {
   id: number;
   nombre_cam: string;
@@ -56,7 +63,7 @@ function mapSeveridad(s: string): EventSeverity {
 function mapEstadoEvento(s: string): EventStatus {
   if (s === 'revisado' || s === 'reviewed') return 'reviewed';
   if (s === 'descartado' || s === 'dismissed' || s === 'cerrado') return 'dismissed';
-  return 'pending'; // 'abierto'/'pendiente' → pending
+  return 'pending';
 }
 
 function mapEvent(
@@ -67,15 +74,20 @@ function mapEvent(
   location: string,
   apiBase: string,
   identifications: PersonIdentification[] = [],
+  eventImageId?: number,
 ): VisoraEvent {
   const tipo = b.tipo?.toLowerCase() ?? '';
   const isWeapon = tipo === 'weapon_detection' || tipo.includes('weapon') || tipo.includes('arma');
-  // Weapon events: if no DB identifications, parse person from comentario text
   let finalIdents = identifications;
   if (isWeapon && finalIdents.length === 0 && b.comentario) {
     const parsed = parseWeaponPerson(b.comentario);
     if (parsed) finalIdents = [parsed];
   }
+  const snapshotUrl = isWeapon
+    ? eventImageId != null
+      ? `${apiBase}/event-images/${eventImageId}/file`
+      : `${apiBase}/cameras/${b.camara_id}/detect/snapshot`
+    : undefined;
   return {
     id: String(b.id),
     cameraId: String(b.camara_id),
@@ -91,7 +103,7 @@ function mapEvent(
     evidence: [],
     recommendedActions: [],
     identifications: finalIdents,
-    snapshotUrl: isWeapon ? `${apiBase}/cameras/${b.camara_id}/detect/snapshot` : undefined,
+    snapshotUrl,
   };
 }
 
@@ -146,18 +158,20 @@ export class EventService {
         const camMap = new Map(cameras.map((c) => [c.id, c]));
         const storeMap = new Map(stores.map((s) => [s.id, s.nombre]));
         const today = new Date().toISOString().slice(0, 10);
-        const items = events.map((e) => {
-          const cam = camMap.get(e.camara_id);
-          return mapEvent(
-            e,
-            cam?.nombre_cam ?? `Cámara ${e.camara_id}`,
-            cam ? String(cam.tienda_id) : '',
-            cam ? (storeMap.get(cam.tienda_id) ?? '') : '',
-            cam?.ubicacion_camara ?? '',
-            this.base,
-            [],
-          );
-        });
+        const items = events
+          .map((e) => {
+            const cam = camMap.get(e.camara_id);
+            return mapEvent(
+              e,
+              cam?.nombre_cam ?? `Cámara ${e.camara_id}`,
+              cam ? String(cam.tienda_id) : '',
+              cam ? (storeMap.get(cam.tienda_id) ?? '') : '',
+              cam?.ubicacion_camara ?? '',
+              this.base,
+              [],
+            );
+          })
+          .filter((e) => e.status !== 'dismissed');
         return {
           items,
           total: items.length,
@@ -185,9 +199,13 @@ export class EventService {
           idents: this.http.get<BackendIdentification[]>(`${this.base}/identifications?evento_id=${evt.id}`).pipe(
             catchError(() => of([] as BackendIdentification[])),
           ),
+          images: this.http.get<BackendEventImage[]>(`${this.base}/event-images?evento_id=${evt.id}`).pipe(
+            catchError(() => of([] as BackendEventImage[])),
+          ),
         }).pipe(
-          map(({ cam, store, idents }) =>
-            mapEvent(
+          map(({ cam, store, idents, images }) => {
+            const repImage = images.find((i) => i.es_frame_representativo) ?? images[0];
+            return mapEvent(
               evt,
               cam?.nombre_cam ?? `Cámara ${evt.camara_id}`,
               String(evt.tienda_id ?? cam?.tienda_id ?? ''),
@@ -195,8 +213,9 @@ export class EventService {
               cam?.ubicacion_camara ?? '',
               this.base,
               idents.map(mapIdentification),
-            ),
-          ),
+              repImage?.id,
+            );
+          }),
         ),
       ),
       catchError(() => of(null)),
