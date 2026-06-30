@@ -3,8 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Store, StoreStatus } from '../models/store.model';
-import { MOCK_ALERTS } from '../../features/alerts/alerts.mock';
-import { MOCK_EVENTS } from '../../features/events/events.mock';
 
 interface BackendStore {
   id: number;
@@ -12,6 +10,7 @@ interface BackendStore {
   direccion: string | null;
   ruc: string | null;
   estado_tienda: boolean;
+  camera_count: number;
   licencia_inicio: string | null;
   licencia_fin: string | null;
   created_at: string;
@@ -26,7 +25,7 @@ function mapBackendStore(b: BackendStore): Store {
     city: '',
     ruc: b.ruc ?? undefined,
     status: b.estado_tienda ? 'active' : 'inactive',
-    cameraCount: 0,
+    cameraCount: b.camera_count ?? 0,
     createdAt: b.created_at.slice(0, 10),
   };
 }
@@ -36,17 +35,26 @@ export interface StoreListResponse {
   total: number;
 }
 
-export interface StoreMetrics {
-  alertsOpen: number;
-  alertsResolved: number;
-  eventsTotal: number;
-}
-
 export interface StorePayload {
   name: string;
   address: string;
   ruc?: string;
-  status: StoreStatus;
+  status?: StoreStatus;
+  usuarioId?: number;
+}
+
+export interface AssignedUser {
+  id: number;
+  username: string;
+  email: string | null;
+  rolTipo: string | null;
+}
+
+interface BackendAssignedUser {
+  id: number;
+  username: string;
+  email: string | null;
+  rol_tipo: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -71,8 +79,8 @@ export class StoreService {
     const body = {
       nombre: payload.name,
       direccion: payload.address || null,
-      ruc: payload.ruc || null,
-      estado_tienda: payload.status === 'active',
+      ruc: payload.ruc ?? '',
+      usuario_id: payload.usuarioId,
     };
     return this.http.post<BackendStore>(`${this.base}/stores`, body).pipe(
       map((b) => mapBackendStore(b)),
@@ -97,12 +105,27 @@ export class StoreService {
     );
   }
 
-  getMetricsByStore(id: string) {
-    const metrics: StoreMetrics = {
-      alertsOpen: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'open').length,
-      alertsResolved: MOCK_ALERTS.filter((a) => a.storeId === id && a.status === 'resolved').length,
-      eventsTotal: MOCK_EVENTS.filter((e) => e.storeId === id).length,
-    };
-    return of(metrics);
+  // ── Store ↔ user assignment (admin) ──────────────────────────────────────
+  listAssignedUsers(storeId: string) {
+    return this.http
+      .get<BackendAssignedUser[]>(`${this.base}/stores/${storeId}/users`)
+      .pipe(
+        map((arr) =>
+          arr.map((u): AssignedUser => ({
+            id: u.id,
+            username: u.username,
+            email: u.email,
+            rolTipo: u.rol_tipo,
+          })),
+        ),
+      );
+  }
+
+  assignUser(storeId: string, userId: number) {
+    return this.http.post(`${this.base}/stores/${storeId}/users`, { usuario_id: userId });
+  }
+
+  unassignUser(storeId: string, userId: number) {
+    return this.http.delete(`${this.base}/stores/${storeId}/users/${userId}`);
   }
 }

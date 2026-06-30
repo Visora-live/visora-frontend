@@ -9,26 +9,26 @@ let redirectingToLogin = false;
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  const token = auth.getToken();
 
-  const outgoing = token
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
+  // withCredentials ensures the httpOnly cookie is sent on every request
+  const outgoing = req.clone({ withCredentials: true });
 
   return next(outgoing).pipe(
     catchError((err) => {
-      // Skip global error handling for the login endpoint — LoginComponent handles its own errors.
-      if (!req.url.endsWith('/auth/login')) {
-        if (err.status === 401) {
-          auth.logout();
-          if (!redirectingToLogin) {
-            redirectingToLogin = true;
-            void router.navigate(['/login']).then(() => {
-              redirectingToLogin = false;
-            });
-          }
-        } else if (err.status === 403) {
-          void router.navigate(['/unauthorized']);
+      const isAuthMe = req.url.endsWith('/auth/me');
+      const shouldLogout =
+        (!req.url.endsWith('/auth/login') &&
+         !req.url.endsWith('/auth/logout') &&
+         err.status === 401) ||
+        (isAuthMe && err.status === 403);
+
+      if (shouldLogout) {
+        auth.logout();
+        if (!redirectingToLogin) {
+          redirectingToLogin = true;
+          void router.navigate(['/login']).then(() => {
+            redirectingToLogin = false;
+          });
         }
       }
       return throwError(() => err);

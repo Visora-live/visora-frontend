@@ -51,6 +51,8 @@ export class UserEditComponent {
     email: ['', [Validators.required, Validators.email]],
     roleId: [0, [Validators.required, Validators.min(1)]],
     status: ['active', Validators.required],
+    // Optional: only changes the password when filled in.
+    password: ['', Validators.minLength(8)],
   });
 
   protected readonly isLoading = signal(false);
@@ -82,6 +84,7 @@ export class UserEditComponent {
       email: raw.email,
       roleId: raw.roleId,
       status: raw.status as UserStatus,
+      password: raw.password.trim() || undefined,
     }).subscribe({
       next: () => {
         this.isLoading.set(false);

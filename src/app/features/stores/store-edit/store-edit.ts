@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import type { StoreStatus } from '../../../core/models/store.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { StoreService } from '../../../core/services/store.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
@@ -34,6 +35,10 @@ export class StoreEditComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly storeService = inject(StoreService);
+  private readonly auth = inject(AuthService);
+
+  private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
+  protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
 
   protected readonly storeId = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -72,13 +77,16 @@ export class StoreEditComponent {
     }
     this.isLoading.set(true);
     const raw = this.form.getRawValue();
+    const payload: Parameters<typeof this.storeService.update>[1] = {
+      name: raw.name,
+      address: raw.address,
+      ruc: raw.ruc || undefined,
+    };
+    if (this.isAdmin()) {
+      payload.status = raw.status as StoreStatus;
+    }
     this.storeService
-      .update(this.storeId, {
-        name: raw.name,
-        address: raw.address,
-        ruc: raw.ruc || undefined,
-        status: raw.status as StoreStatus,
-      })
+      .update(this.storeId, payload)
       .subscribe({
         next: () => {
           this.isLoading.set(false);

@@ -16,7 +16,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
 
 type RoleFilter = 'all' | UserRole;
@@ -36,7 +35,6 @@ type StatusFilterType = 'all' | UserStatus;
     MatTooltipModule,
     EmptyStateComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './user-list.html',
@@ -73,7 +71,7 @@ export class UserListComponent {
         !q ||
         u.fullName.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
-        (u.storeName ?? '').toLowerCase().includes(q);
+        (u.storeNames ?? []).some((s) => s.toLowerCase().includes(q));
       const matchesRole = role === 'all' || u.role === role;
       const matchesStatus = status === 'all' || u.status === status;
       return matchesSearch && matchesRole && matchesStatus;
@@ -110,9 +108,4 @@ export class UserListComponent {
     this.searchQuery.set('');
   }
 
-  protected clearFilters(): void {
-    this.searchQuery.set('');
-    this.roleFilter.set('all');
-    this.statusFilter.set('all');
-  }
 }

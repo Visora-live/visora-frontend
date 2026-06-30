@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { VisoraEvent, EventType, EventSeverity, EventStatus } from '../models/event.model';
+import type { VisoraEvent, EventType, EventSeverity, EventStatus, PersonIdentification } from '../models/event.model';
 
 interface BackendEvent {
   id: number;
@@ -12,8 +12,25 @@ interface BackendEvent {
   fecha_hora: string;
   comentario: string | null;
   camara_id: number;
+  tienda_id: number | null;
   created_at: string;
   updated_at: string;
+}
+
+interface BackendIdentification {
+  id: number;
+  nombre: string | null;
+  apellido: string | null;
+  apellido_materno: string | null;
+  dni: string | null;
+  edad: number | null;
+}
+
+interface BackendEventImage {
+  id: number;
+  evento_id: number;
+  es_frame_representativo: boolean;
+  storage_ref: string;
 }
 
 interface BackendCameraMin {
@@ -46,7 +63,7 @@ function mapSeveridad(s: string): EventSeverity {
 function mapEstadoEvento(s: string): EventStatus {
   if (s === 'revisado' || s === 'reviewed') return 'reviewed';
   if (s === 'descartado' || s === 'dismissed' || s === 'cerrado') return 'dismissed';
-  return 'pending'; // 'abierto'/'pendiente' → pending
+  return 'pending';
 }
 
 function mapEvent(
@@ -55,7 +72,22 @@ function mapEvent(
   storeId: string,
   storeName: string,
   location: string,
+  apiBase: string,
+  identifications: PersonIdentification[] = [],
+  eventImageId?: number,
 ): VisoraEvent {
+  const tipo = b.tipo?.toLowerCase() ?? '';
+  const isWeapon = tipo === 'weapon_detection' || tipo.includes('weapon') || tipo.includes('arma');
+  let finalIdents = identifications;
+  if (isWeapon && finalIdents.length === 0 && b.comentario) {
+    const parsed = parseWeaponPerson(b.comentario);
+    if (parsed) finalIdents = [parsed];
+  }
+  const snapshotUrl = isWeapon
+    ? eventImageId != null
+      ? `${apiBase}/event-images/${eventImageId}/file`
+      : `${apiBase}/cameras/${b.camara_id}/detect/snapshot`
+    : undefined;
   return {
     id: String(b.id),
     cameraId: String(b.camara_id),
@@ -68,9 +100,36 @@ function mapEvent(
     status: mapEstadoEvento(b.estado),
     description: b.comentario ?? '',
     timestamp: b.fecha_hora,
-    evidence: [],         // backend events have no evidence — evidenceCount stat will be 0
-    recommendedActions: [], // backend events have no recommended actions
+    evidence: [],
+    recommendedActions: [],
+    identifications: finalIdents,
+    snapshotUrl,
   };
+}
+
+function mapIdentification(b: BackendIdentification): PersonIdentification {
+  return {
+    id: String(b.id),
+    dni: b.dni ?? undefined,
+    nombres: b.nombre ?? undefined,
+    apellidoPaterno: b.apellido ?? undefined,
+    apellidoMaterno: b.apellido_materno ?? undefined,
+    edad: b.edad ?? undefined,
+  };
+}
+
+function parseWeaponPerson(comentario: string): PersonIdentification | null {
+  // Matches "Portador identificado: Nombre Apellido (DNI: 00000008)"
+  // or      "Portador: Nombre Apellido (DNI: 00000008)"
+  const m = comentario.match(/Portador(?:\s+identificado)?:\s+([^(]+?)\s*\(DNI:\s*([^)]+)\)/i);
+  if (!m) return null;
+  const fullName = m[1].trim();
+  const dni = m[2].trim();
+  // Heuristic split: last token(s) → apellido paterno, rest → nombres
+  const parts = fullName.split(/\s+/);
+  const apellidoPaterno = parts.length > 1 ? parts[parts.length - 1] : undefined;
+  const nombres = parts.length > 1 ? parts.slice(0, -1).join(' ') : fullName;
+  return { id: 'parsed', dni, nombres, apellidoPaterno };
 }
 
 export interface EventListResponse {
@@ -87,26 +146,32 @@ export class EventService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
-  list() {
+  list(tiendaId?: string | null) {
+    const evtUrl = tiendaId ? `${this.base}/events?tienda_id=${tiendaId}` : `${this.base}/events`;
+    const camUrl = tiendaId ? `${this.base}/cameras?tienda_id=${tiendaId}` : `${this.base}/cameras`;
     return forkJoin([
-      this.http.get<BackendEvent[]>(`${this.base}/events`),
-      this.http.get<BackendCameraMin[]>(`${this.base}/cameras`).pipe(catchError(() => of([] as BackendCameraMin[]))),
+      this.http.get<BackendEvent[]>(evtUrl),
+      this.http.get<BackendCameraMin[]>(camUrl).pipe(catchError(() => of([] as BackendCameraMin[]))),
       this.http.get<BackendStoreMin[]>(`${this.base}/stores`).pipe(catchError(() => of([] as BackendStoreMin[]))),
     ]).pipe(
       map(([events, cameras, stores]) => {
         const camMap = new Map(cameras.map((c) => [c.id, c]));
         const storeMap = new Map(stores.map((s) => [s.id, s.nombre]));
         const today = new Date().toISOString().slice(0, 10);
-        const items = events.map((e) => {
-          const cam = camMap.get(e.camara_id);
-          return mapEvent(
-            e,
-            cam?.nombre_cam ?? `Cámara ${e.camara_id}`,
-            cam ? String(cam.tienda_id) : '',
-            cam ? (storeMap.get(cam.tienda_id) ?? '') : '',
-            cam?.ubicacion_camara ?? '',
-          );
-        });
+        const items = events
+          .map((e) => {
+            const cam = camMap.get(e.camara_id);
+            return mapEvent(
+              e,
+              cam?.nombre_cam ?? `Cámara ${e.camara_id}`,
+              cam ? String(cam.tienda_id) : '',
+              cam ? (storeMap.get(cam.tienda_id) ?? '') : '',
+              cam?.ubicacion_camara ?? '',
+              this.base,
+              [],
+            );
+          })
+          .filter((e) => e.status !== 'dismissed');
         return {
           items,
           total: items.length,
@@ -122,15 +187,33 @@ export class EventService {
   getById(id: string) {
     return this.http.get<BackendEvent>(`${this.base}/events/${id}`).pipe(
       switchMap((evt) =>
-        this.http.get<BackendCameraMin>(`${this.base}/cameras/${evt.camara_id}`).pipe(
-          catchError(() => of(null as BackendCameraMin | null)),
-          switchMap((cam) => {
-            if (!cam) return of(mapEvent(evt, `Cámara ${evt.camara_id}`, '', '', ''));
-            return this.http.get<BackendStoreMin>(`${this.base}/stores/${cam.tienda_id}`).pipe(
-              catchError(() => of(null as BackendStoreMin | null)),
-              map((store) =>
-                mapEvent(evt, cam.nombre_cam, String(cam.tienda_id), store?.nombre ?? '', cam.ubicacion_camara ?? ''),
-              ),
+        forkJoin({
+          cam: this.http.get<BackendCameraMin>(`${this.base}/cameras/${evt.camara_id}`).pipe(
+            catchError(() => of(null as BackendCameraMin | null)),
+          ),
+          store: evt.tienda_id
+            ? this.http.get<BackendStoreMin>(`${this.base}/stores/${evt.tienda_id}`).pipe(
+                catchError(() => of(null as BackendStoreMin | null)),
+              )
+            : of(null as BackendStoreMin | null),
+          idents: this.http.get<BackendIdentification[]>(`${this.base}/identifications?evento_id=${evt.id}`).pipe(
+            catchError(() => of([] as BackendIdentification[])),
+          ),
+          images: this.http.get<BackendEventImage[]>(`${this.base}/event-images?evento_id=${evt.id}`).pipe(
+            catchError(() => of([] as BackendEventImage[])),
+          ),
+        }).pipe(
+          map(({ cam, store, idents, images }) => {
+            const repImage = images.find((i) => i.es_frame_representativo) ?? images[0];
+            return mapEvent(
+              evt,
+              cam?.nombre_cam ?? `Cámara ${evt.camara_id}`,
+              String(evt.tienda_id ?? cam?.tienda_id ?? ''),
+              store?.nombre ?? '',
+              cam?.ubicacion_camara ?? '',
+              this.base,
+              idents.map(mapIdentification),
+              repImage?.id,
             );
           }),
         ),
@@ -148,7 +231,7 @@ export class EventService {
     return this.http
       .patch<BackendEvent>(`${this.base}/events/${id}`, { estado: estadoMap[status] })
       .pipe(
-        map((e) => mapEvent(e, '', '', '', '')),
+        map((e) => mapEvent(e, '', '', '', '', this.base)),
         catchError(() => of(null)),
       );
   }
@@ -161,14 +244,14 @@ export class EventService {
       comentario: payload.comentario ?? null,
     };
     return this.http.post<BackendEvent>(`${this.base}/events`, body).pipe(
-      map((e) => mapEvent(e, '', '', '', '')),
+      map((e) => mapEvent(e, '', '', '', '', this.base)),
     );
   }
 
   delete(id: string) {
+    // Errors propagate so the caller can show 403/404 messages.
     return this.http.delete<BackendEvent>(`${this.base}/events/${id}`).pipe(
-      map((e) => mapEvent(e, '', '', '', '')),
-      catchError(() => of(null)),
+      map((e) => mapEvent(e, '', '', '', '', this.base)),
     );
   }
 }

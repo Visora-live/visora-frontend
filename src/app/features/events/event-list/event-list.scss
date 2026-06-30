@@ -203,3 +203,17 @@
     color: var(--visora-status-normal);
   }
 }
+
+// ── Row actions ───────────────────────────────────────────────────────────────
+.cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.row-delete {
+  color: var(--visora-text-muted);
+  transition: color 0.15s ease;
+  &:hover { color: var(--visora-status-critical); }
+}

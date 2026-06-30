@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Alert, AlertStatus } from '../models/alert.model';
 import type { EventSeverity, EventType } from '../models/event.model';
@@ -59,7 +59,10 @@ function mapAlert(
   cameraName: string,
   storeName: string,
   location: string,
+  apiBase: string,
 ): Alert {
+  const tipo = b.tipo?.toLowerCase() ?? '';
+  const isWeapon = tipo === 'weapon_detection' || tipo.includes('weapon') || tipo.includes('arma');
   return {
     id: String(b.id),
     eventId: b.evento_id ? String(b.evento_id) : '',
@@ -80,6 +83,7 @@ function mapAlert(
     evidence: [],
     timeline: [],
     recommendedActions: [],
+    snapshotUrl: isWeapon && b.camara_id ? `${apiBase}/cameras/${b.camara_id}/detect/snapshot` : undefined,
   };
 }
 
@@ -97,25 +101,33 @@ export class AlertService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
 
-  list() {
+  /** Emits when an alert is marked read — lets sidebar refresh badge immediately. */
+  readonly refresh$ = new Subject<void>();
+
+  list(tiendaId?: string | null) {
+    const alertUrl = tiendaId ? `${this.base}/alerts?tienda_id=${tiendaId}` : `${this.base}/alerts`;
+    const camUrl = tiendaId ? `${this.base}/cameras?tienda_id=${tiendaId}` : `${this.base}/cameras`;
     return forkJoin([
-      this.http.get<BackendAlert[]>(`${this.base}/alerts`),
-      this.http.get<BackendCameraMin[]>(`${this.base}/cameras`).pipe(catchError(() => of([] as BackendCameraMin[]))),
+      this.http.get<BackendAlert[]>(alertUrl),
+      this.http.get<BackendCameraMin[]>(camUrl).pipe(catchError(() => of([] as BackendCameraMin[]))),
       this.http.get<BackendStoreMin[]>(`${this.base}/stores`).pipe(catchError(() => of([] as BackendStoreMin[]))),
     ]).pipe(
       map(([alerts, cameras, stores]) => {
         const camMap = new Map(cameras.map((c) => [c.id, c]));
         const storeMap = new Map(stores.map((s) => [s.id, s.nombre]));
-        const items = alerts.map((a) => {
-          const cam = a.camara_id ? camMap.get(a.camara_id) : undefined;
-          const storeId = a.tienda_id ?? cam?.tienda_id ?? null;
-          return mapAlert(
-            a,
-            cam?.nombre_cam ?? (a.camara_id ? `Cámara ${a.camara_id}` : ''),
-            storeId ? (storeMap.get(storeId) ?? '') : '',
-            cam?.ubicacion_camara ?? '',
-          );
-        });
+        const items = alerts
+          .map((a) => {
+            const cam = a.camara_id ? camMap.get(a.camara_id) : undefined;
+            const storeId = a.tienda_id ?? cam?.tienda_id ?? null;
+            return mapAlert(
+              a,
+              cam?.nombre_cam ?? (a.camara_id ? `Cámara ${a.camara_id}` : ''),
+              storeId ? (storeMap.get(storeId) ?? '') : '',
+              cam?.ubicacion_camara ?? '',
+              this.base,
+            );
+          })
+          .filter((a) => a.status !== 'resolved');
         return {
           items,
           total: items.length,
@@ -131,24 +143,41 @@ export class AlertService {
   getById(id: string) {
     return this.http.get<BackendAlert>(`${this.base}/alerts/${id}`).pipe(
       switchMap((alert) => {
-        const camId = alert.camara_id;
-        if (!camId) return of(mapAlert(alert, '', '', ''));
-        return this.http.get<BackendCameraMin>(`${this.base}/cameras/${camId}`).pipe(
-          catchError(() => of(null as BackendCameraMin | null)),
-          switchMap((cam) => {
-            const storeId = alert.tienda_id ?? cam?.tienda_id ?? null;
-            if (!storeId) return of(mapAlert(alert, cam?.nombre_cam ?? '', '', cam?.ubicacion_camara ?? ''));
-            return this.http.get<BackendStoreMin>(`${this.base}/stores/${storeId}`).pipe(
-              catchError(() => of(null as BackendStoreMin | null)),
-              map((store) =>
-                mapAlert(alert, cam?.nombre_cam ?? '', store?.nombre ?? '', cam?.ubicacion_camara ?? ''),
-              ),
-            );
-          }),
+        const camId   = alert.camara_id;
+        const storeId = alert.tienda_id;
+        if (!camId && !storeId) return of(mapAlert(alert, '', '', '', this.base));
+        return forkJoin({
+          cam:   camId   ? this.http.get<BackendCameraMin>(`${this.base}/cameras/${camId}`).pipe(catchError(() => of(null as BackendCameraMin | null)))   : of(null as BackendCameraMin | null),
+          store: storeId ? this.http.get<BackendStoreMin>(`${this.base}/stores/${storeId}`).pipe(catchError(() => of(null as BackendStoreMin | null))) : of(null as BackendStoreMin | null),
+        }).pipe(
+          map(({ cam, store }) =>
+            mapAlert(alert, cam?.nombre_cam ?? '', store?.nombre ?? '', cam?.ubicacion_camara ?? '', this.base),
+          ),
         );
       }),
       catchError(() => of(null)),
     );
+  }
+
+  unreadCount(tiendaId?: string | null) {
+    const url = tiendaId
+      ? `${this.base}/alerts/unread-count?tienda_id=${tiendaId}`
+      : `${this.base}/alerts/unread-count`;
+    return this.http
+      .get<{ count: number }>(url)
+      .pipe(
+        map((r) => r.count),
+        catchError(() => of(0)),
+      );
+  }
+
+  markRead(id: string) {
+    return this.http
+      .patch<BackendAlert>(`${this.base}/alerts/${id}`, { leida: true })
+      .pipe(
+        tap(() => this.refresh$.next()),
+        catchError(() => of(null)),
+      );
   }
 
   acknowledge(id: string, _assignedTo?: string) {
@@ -156,7 +185,7 @@ export class AlertService {
     return this.http
       .patch<BackendAlert>(`${this.base}/alerts/${id}`, { estado: 'reconocida' })
       .pipe(
-        map((a) => mapAlert(a, '', '', '')),
+        map((a) => mapAlert(a, '', '', '', this.base)),
         catchError(() => of(null)),
       );
   }
@@ -165,7 +194,7 @@ export class AlertService {
     return this.http
       .patch<BackendAlert>(`${this.base}/alerts/${id}`, { estado: 'resuelta' })
       .pipe(
-        map((a) => mapAlert(a, '', '', '')),
+        map((a) => mapAlert(a, '', '', '', this.base)),
         catchError(() => of(null)),
       );
   }
@@ -189,13 +218,13 @@ export class AlertService {
       descripcion: payload.descripcion ?? null,
     };
     return this.http.post<BackendAlert>(`${this.base}/alerts`, body).pipe(
-      map((a) => mapAlert(a, '', '', '')),
+      map((a) => mapAlert(a, '', '', '', this.base)),
     );
   }
 
   delete(id: string) {
     return this.http.delete<BackendAlert>(`${this.base}/alerts/${id}`).pipe(
-      map((a) => mapAlert(a, '', '', '')),
+      map((a) => mapAlert(a, '', '', '', this.base)),
       catchError(() => of(null)),
     );
   }

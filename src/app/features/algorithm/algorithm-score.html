@@ -1,0 +1,155 @@
+<app-page-header
+  title="Reporte de Severidad"
+  subtitle="Eventos de arma revisados · S = α · C_arma + β · C_rostro · I_rostro · α={{ report()?.alpha }}, β={{ report()?.beta }}"
+/>
+
+@if (report() === null) {
+  <div class="state-row">
+    <mat-icon>hourglass_empty</mat-icon>
+    <span>Cargando reporte…</span>
+  </div>
+} @else if (report()!.cameras.length === 0) {
+  <div class="state-row">
+    <mat-icon>event_busy</mat-icon>
+    <span>Sin eventos de arma revisados aún</span>
+  </div>
+} @else {
+
+  <!-- Global summary -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-num">{{ totalEvents() }}</span>
+      <span class="stat-lbl">Eventos revisados</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ totalIdentified() }}</span>
+      <span class="stat-lbl">Con infractor identificado</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" [style.color]="scoreColor(globalAvg())">
+        {{ globalAvg() | number:'1.2-2' }}
+      </span>
+      <span class="stat-lbl">Score S promedio</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ report()!.cameras.length }}</span>
+      <span class="stat-lbl">Cámaras con incidentes</span>
+    </div>
+  </div>
+
+  <!-- Per-camera sections -->
+  @for (cam of report()!.cameras; track cam.camera_id) {
+    <div class="cam-block">
+
+      <!-- Camera header -->
+      <div class="cam-header">
+        <div class="cam-header-left">
+          <div class="cam-icon"><mat-icon>videocam</mat-icon></div>
+          <div class="cam-meta">
+            <span class="cam-name">{{ cam.camera_name }}</span>
+            <span class="cam-sub">
+              <mat-icon>store</mat-icon>{{ cam.tienda_nombre }}
+              @if (cam.location) { · {{ cam.location }} }
+            </span>
+          </div>
+        </div>
+        <div class="cam-kpis">
+          <div class="kpi">
+            <span class="kpi-num">{{ cam.total_events }}</span>
+            <span class="kpi-lbl">Eventos</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-num">{{ cam.identified_events }}</span>
+            <span class="kpi-lbl">Identificados</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-num" [style.color]="scoreColor(cam.avg_score)">
+              {{ cam.avg_score | number:'1.2-2' }}
+            </span>
+            <span class="kpi-lbl">S promedio</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-num" [style.color]="scoreColor(cam.max_score)">
+              {{ cam.max_score | number:'1.2-2' }}
+            </span>
+            <span class="kpi-lbl">S máximo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Fecha / Hora</th>
+              <th class="col-num">C<sub>arma</sub></th>
+              <th class="col-num">C<sub>rostro</sub></th>
+              <th class="col-num">I<sub>rostro</sub></th>
+              <th class="col-score">Score S</th>
+              <th>Infractor</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ev of cam.events; track ev.event_id) {
+              <tr class="report-row">
+                <td>
+                  <span class="cell-text cell-text--muted">#{{ ev.event_id }}</span>
+                </td>
+                <td>
+                  <div class="cell-datetime">
+                    <span class="dt-date">{{ ev.fecha_hora | date:'dd/MM/yyyy' }}</span>
+                    <span class="dt-time">{{ ev.fecha_hora | date:'HH:mm' }}</span>
+                  </div>
+                </td>
+                <td class="col-num">
+                  <span class="cell-text">{{ ev.c_arma * 100 | number:'1.0-0' }}%</span>
+                </td>
+                <td class="col-num">
+                  @if (ev.i_rostro) {
+                    <span class="cell-text">{{ ev.c_rostro * 100 | number:'1.0-0' }}%</span>
+                  } @else {
+                    <span class="cell-text cell-text--muted">—</span>
+                  }
+                </td>
+                <td class="col-num">
+                  @if (ev.i_rostro) {
+                    <mat-icon class="icon-yes">check_circle</mat-icon>
+                  } @else {
+                    <mat-icon class="icon-no">radio_button_unchecked</mat-icon>
+                  }
+                </td>
+                <td class="col-score">
+                  <span class="score-chip"
+                    [style.background]="scoreBg(ev.s_score)"
+                    [style.color]="scoreColor(ev.s_score)"
+                    [style.border-color]="scoreColor(ev.s_score)">
+                    {{ ev.s_score | number:'1.2-2' }}
+                    <span class="score-label">{{ scoreLabel(ev.s_score) }}</span>
+                  </span>
+                </td>
+                <td>
+                  @if (ev.infractor_nombre) {
+                    <div class="cell-datetime">
+                      <span class="dt-date">
+                        {{ ev.infractor_nombre }}{{ ev.infractor_apellido ? ' ' + ev.infractor_apellido : '' }}
+                      </span>
+                      @if (ev.infractor_dni) {
+                        <span class="dt-time">DNI {{ ev.infractor_dni }}</span>
+                      }
+                    </div>
+                  } @else {
+                    <span class="cell-text cell-text--muted">No identificado</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  }
+
+}

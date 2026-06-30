@@ -2,37 +2,11 @@
   title="Cámaras"
   subtitle="Panel de monitoreo y gestión de cámaras registradas en el sistema VISORA."
 >
-  @if (isAdmin()) {
-    <button mat-flat-button routerLink="/cameras/new">
-      <mat-icon>add</mat-icon>
-      Registrar cámara
-    </button>
-  }
+  <button mat-flat-button routerLink="/cameras/new">
+    <mat-icon>add</mat-icon>
+    Registrar cámara
+  </button>
 </app-page-header>
-
-<!-- Stat cards -->
-<div class="stats-grid">
-  <app-stat-card
-    title="Total cámaras"
-    [value]="cameras().length"
-    icon="videocam"
-  />
-  <app-stat-card
-    title="En línea"
-    [value]="onlineCount()"
-    icon="videocam"
-  />
-  <app-stat-card
-    title="Sin señal / Error"
-    [value]="offlineCount() + errorCount()"
-    icon="videocam_off"
-  />
-  <app-stat-card
-    title="Tiendas cubiertas"
-    [value]="storeOptions().length"
-    icon="store"
-  />
-</div>
 
 <!-- Filters -->
 <div class="filters-row">
@@ -69,31 +43,10 @@
       <mat-option value="all">Todos los estados</mat-option>
       <mat-option value="online">En línea</mat-option>
       <mat-option value="offline">Sin señal</mat-option>
-      <mat-option value="error">Error</mat-option>
-      <mat-option value="maintenance">Mantenimiento</mat-option>
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field appearance="outline" class="filter filter--store">
-    <mat-label>Tienda</mat-label>
-    <mat-select
-      [ngModel]="storeFilter()"
-      (ngModelChange)="storeFilter.set($event)"
-      aria-label="Filtrar por tienda"
-    >
-      <mat-option value="all">Todas las tiendas</mat-option>
-      @for (store of storeOptions(); track store.id) {
-        <mat-option [value]="store.id">{{ store.name }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
 
-  @if (isFiltered()) {
-    <button mat-stroked-button (click)="clearFilters()" class="clear-btn" aria-label="Limpiar todos los filtros">
-      <mat-icon>filter_list_off</mat-icon>
-      Limpiar
-    </button>
-  }
 </div>
 
 <!-- Results summary -->
@@ -111,15 +64,8 @@
       <article class="camera-card" [class]="'camera-card camera-card--' + camera.status" role="listitem">
 
         <!-- Video preview area -->
-        <div class="cam-preview" aria-hidden="true">
-          <div class="preview-center">
-            <mat-icon class="preview-icon">videocam_off</mat-icon>
-          </div>
-          <div class="status-overlay">SIN SEÑAL</div>
-          <div class="preview-footer">
-            <span class="preview-res">{{ camera.resolution }}</span>
-            <span class="preview-ip">{{ camera.ipUrl }}</span>
-          </div>
+        <div class="cam-preview">
+          <app-hls-player [src]="hlsUrl(camera.id)" [enabled]="camera.status === 'online'" />
         </div>
 
         <!-- Card body -->
@@ -142,25 +88,6 @@
             />
           </div>
 
-          @if (camera.lastEvent) {
-            <div class="cam-last-event">
-              <mat-icon aria-hidden="true">schedule</mat-icon>
-              <span>{{ camera.lastEvent }} · {{ camera.lastEventTime }}</span>
-            </div>
-          }
-
-          <div class="capability-chips" aria-label="Capacidades">
-            @if (camera.capabilities.facialRecognition) {
-              <span class="chip chip--face" title="Reconocimiento facial">Facial</span>
-            }
-            @if (camera.capabilities.weaponDetection) {
-              <span class="chip chip--weapon" title="Detección de armas">Armas</span>
-            }
-            @if (camera.capabilities.recording) {
-              <span class="chip chip--rec" title="Grabación">REC</span>
-            }
-          </div>
-
           <div class="card-actions">
             <button
               mat-stroked-button
@@ -171,17 +98,24 @@
               <mat-icon>visibility</mat-icon>
               @if (!compact()) { Ver }
             </button>
-            @if (isAdmin()) {
-              <button
-                mat-stroked-button
-                [routerLink]="['/cameras', camera.id, 'edit']"
-                class="card-btn"
-                [attr.aria-label]="'Editar ' + camera.name"
-              >
-                <mat-icon>edit</mat-icon>
-                @if (!compact()) { Editar }
-              </button>
-            }
+            <button
+              mat-stroked-button
+              [routerLink]="['/cameras', camera.id, 'edit']"
+              class="card-btn"
+              [attr.aria-label]="'Editar ' + camera.name"
+            >
+              <mat-icon>edit</mat-icon>
+              @if (!compact()) { Editar }
+            </button>
+            <button
+              mat-icon-button
+              class="card-delete"
+              (click)="requestDelete(camera)"
+              matTooltip="Eliminar cámara"
+              [attr.aria-label]="'Eliminar ' + camera.name"
+            >
+              <mat-icon>delete_outline</mat-icon>
+            </button>
           </div>
         </div>
 
@@ -195,25 +129,28 @@
         icon="search_off"
         title="Sin resultados"
         description="No hay cámaras que coincidan con los filtros aplicados."
-      >
-        <button mat-flat-button (click)="clearFilters()">
-          <mat-icon>filter_list_off</mat-icon>
-          Limpiar filtros
-        </button>
-      </app-empty-state>
+      />
     } @else {
       <app-empty-state
         icon="videocam_off"
         title="Sin cámaras registradas"
         description="Registra la primera cámara de vigilancia para comenzar el monitoreo VISORA."
       >
-        @if (isAdmin()) {
-          <button mat-flat-button routerLink="/cameras/new">
-            <mat-icon>add</mat-icon>
-            Registrar cámara
-          </button>
-        }
+        <button mat-flat-button routerLink="/cameras/new">
+          <mat-icon>add</mat-icon>
+          Registrar cámara
+        </button>
       </app-empty-state>
     }
   </div>
 }
+
+<app-confirm-dialog
+  [open]="deleteTarget() !== null"
+  title="¿Eliminar esta cámara?"
+  [message]="'Se quitará ' + (deleteTarget()?.name ?? 'la cámara') + ' del monitoreo. Esta acción no se puede deshacer.'"
+  [busy]="isDeleting()"
+  [errorMessage]="deleteError()"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()"
+/>

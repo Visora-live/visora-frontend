@@ -1,6 +1,7 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { AuthImagePipe } from '../../../shared/pipes/auth-image.pipe';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,6 +18,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
   selector: 'app-alert-detail',
   imports: [
     RouterLink,
+    AsyncPipe,
     DatePipe,
     MatButtonModule,
     MatIconModule,
@@ -24,11 +26,12 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
     EmptyStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
+    AuthImagePipe,
   ],
   templateUrl: './alert-detail.html',
   styleUrl: './alert-detail.scss',
 })
-export class AlertDetailComponent {
+export class AlertDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly alertService = inject(AlertService);
 
@@ -48,6 +51,10 @@ export class AlertDetailComponent {
         this.currentStatus.set(a.status);
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.alertService.markRead(this.alertId).subscribe();
   }
 
   protected markAcknowledged(): void {

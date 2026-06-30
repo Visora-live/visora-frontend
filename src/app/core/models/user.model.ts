@@ -15,11 +15,9 @@ export interface User {
   roleId?: number;    // backend rol_id
   roleName?: string;  // backend rol.tipo value
   status: UserStatus;
-  storeId?: string;
+  storeNames?: string[];
   storeName?: string;
-  phone?: string;
   notes?: string;
   createdAt: string;
-  lastAccess?: string;
   recentActivity: UserActivity[];
 }

@@ -152,3 +152,18 @@
 .btn-spinner {
   --mdc-circular-progress-active-indicator-color: #ffffff;
 }
+
+.rtmp-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: var(--visora-space-md) 0 0;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--visora-text-muted);
+  background: rgba(47, 136, 245, 0.06);
+  border: 1px solid rgba(47, 136, 245, 0.25);
+  border-radius: var(--visora-radius-md);
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--visora-accent); flex-shrink: 0; }
+}

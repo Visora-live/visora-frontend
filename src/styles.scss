@@ -4,8 +4,12 @@
 @use './styles/reset';
 @use './styles/utilities';
 
+// Lora — used for VISORA login title type (graceful fallback to Georgia/serif)
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,600&display=swap');
+
 html {
   height: 100%;
+  color-scheme: light;
   @include mat.theme(
     (
       color: (
@@ -19,9 +23,122 @@ html {
 }
 
 body {
-  color-scheme: light;
   background-color: var(--visora-bg);
   color: var(--visora-text);
   margin: 0;
   height: 100%;
+  overflow-x: hidden;
+}
+
+// Scrollbar (subtle blue tint)
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 82, 163, 0.2) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(22, 82, 163, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(22, 82, 163, 0.4); }
+
+// ── Global layout safety ───────────────────────────────────────────────────
+// Media never overflows its container.
+img,
+video,
+canvas,
+svg:not(.mat-icon) {
+  max-width: 100%;
+}
+
+// Material form fields inside flex/grid rows must be allowed to shrink,
+// otherwise their intrinsic min-width pushes the layout out of frame.
+.mat-mdc-form-field {
+  max-width: 100%;
+}
+
+// Tables that opt into horizontal scrolling do so within their own wrapper.
+.table-scroll,
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// ── Global entrance animations ─────────────────────────────────────────────
+// Consistent fade-rise for the main structural blocks across every endpoint.
+@keyframes viz-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.table-card,
+.table-wrap,
+.form-card,
+.dash-panel,
+.info-card,
+.events-card,
+.detect-card,
+.actions-card,
+.info-panel,
+.ev-panel,
+.alrt-ev-panel,
+.alrt-timeline-card,
+.alrt-actions-card,
+.alrt-info-panel,
+.usr-info-card,
+.usr-activity-card,
+.success-card {
+  animation: viz-rise 0.45s ease both;
+}
+
+// Subtle lift on interactive list/grid cards.
+.camera-card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--visora-shadow-md);
+  }
+}
+
+// Table rows: gentle hover + staggered entrance.
+@keyframes viz-row-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.store-row,
+.events-row,
+.alerts-row,
+.users-row {
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  animation: viz-row-rise 0.4s ease both;
+
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) { animation-delay: #{$i * 0.035}s; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-card,
+  .table-wrap,
+  .form-card,
+  .dash-panel,
+  .info-card,
+  .cap-card,
+  .events-card,
+  .detect-card,
+  .actions-card,
+  .info-panel,
+  .ev-panel,
+  .alrt-ev-panel,
+  .alrt-timeline-card,
+  .alrt-actions-card,
+  .alrt-info-panel,
+  .usr-info-card,
+  .usr-activity-card,
+  .success-card,
+  .store-row,
+  .events-row,
+  .alerts-row,
+  .users-row { animation: none; }
+  .camera-card:hover { transform: none; }
 }

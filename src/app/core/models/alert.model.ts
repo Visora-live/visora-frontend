@@ -30,4 +30,5 @@ export interface Alert {
   evidence: Evidence[];
   timeline: AlertTimelineEntry[];
   recommendedActions: RecommendedAction[];
+  snapshotUrl?: string;
 }

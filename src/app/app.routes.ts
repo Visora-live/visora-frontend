@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { adminOnlyGuard } from './core/guards/admin-only.guard';
+import { ownerGuard } from './core/guards/owner.guard';
 
 export const routes: Routes = [
   {
@@ -32,11 +34,13 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/dashboard/dashboard').then((m) => m.DashboardComponent),
       },
       {
         path: 'stores',
+        canActivate: [adminOnlyGuard],
         loadComponent: () =>
           import('./features/stores/store-list/store-list').then(
             (m) => m.StoreListComponent,
@@ -59,7 +63,7 @@ export const routes: Routes = [
       },
       {
         path: 'stores/:id/edit',
-        canActivate: [adminGuard],
+        // Propietario may edit their own store; backend enforces ownership.
         loadComponent: () =>
           import('./features/stores/store-edit/store-edit').then(
             (m) => m.StoreEditComponent,
@@ -67,6 +71,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/cameras/camera-dashboard/camera-dashboard').then(
             (m) => m.CameraDashboardComponent,
@@ -74,7 +79,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras/new',
-        canActivate: [adminGuard],
+        // Propietario may add cameras to their own stores; backend enforces ownership.
         loadComponent: () =>
           import('./features/cameras/camera-new/camera-new').then(
             (m) => m.CameraNewComponent,
@@ -89,7 +94,7 @@ export const routes: Routes = [
       },
       {
         path: 'cameras/:id/edit',
-        canActivate: [adminGuard],
+        // Propietario may edit their own cameras; backend enforces ownership.
         loadComponent: () =>
           import('./features/cameras/camera-edit/camera-edit').then(
             (m) => m.CameraEditComponent,
@@ -97,6 +102,7 @@ export const routes: Routes = [
       },
       {
         path: 'events',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/events/event-list/event-list').then(
             (m) => m.EventListComponent,
@@ -104,6 +110,7 @@ export const routes: Routes = [
       },
       {
         path: 'events/:id',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/events/event-detail/event-detail').then(
             (m) => m.EventDetailComponent,
@@ -111,6 +118,7 @@ export const routes: Routes = [
       },
       {
         path: 'alerts',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/alerts/alert-list/alert-list').then(
             (m) => m.AlertListComponent,
@@ -118,9 +126,26 @@ export const routes: Routes = [
       },
       {
         path: 'alerts/:id',
+        canActivate: [ownerGuard],
         loadComponent: () =>
           import('./features/alerts/alert-detail/alert-detail').then(
             (m) => m.AlertDetailComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/notifications/notification-list/notification-list').then(
+            (m) => m.NotificationListComponent,
+          ),
+      },
+      {
+        path: 'algorithm',
+        canActivate: [adminOnlyGuard],
+        loadComponent: () =>
+          import('./features/algorithm/algorithm-score').then(
+            (m) => m.AlgorithmScoreComponent,
           ),
       },
       {

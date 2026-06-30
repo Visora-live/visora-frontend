@@ -74,8 +74,9 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     .error-title {
-      font-size: 22px;
-      font-weight: 700;
+      font-family: 'Lora', Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
       color: var(--visora-text);
       margin: 0 0 12px;
     }

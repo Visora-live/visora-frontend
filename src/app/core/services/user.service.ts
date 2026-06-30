@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { User, UserRole, UserStatus } from '../models/user.model';
 import { RoleService } from './role.service';
@@ -16,7 +16,8 @@ interface BackendUser {
 }
 
 function deriveUserRole(roleTipo: string): UserRole {
-  return roleTipo.toLowerCase() === 'admin' ? 'admin' : 'propietario';
+  const t = roleTipo.toLowerCase();
+  return t === 'admin' || t === 'administrador' ? 'admin' : 'propietario';
 }
 
 function mapBackendUser(b: BackendUser, roleMap: Map<number, string>): User {
@@ -56,6 +57,7 @@ export interface UserUpdatePayload {
   email?: string;
   roleId?: number;
   status?: UserStatus;
+  password?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -65,33 +67,60 @@ export class UserService {
   private readonly base = environment.apiBaseUrl;
 
   list() {
+    interface BackendStore { id: number; nombre: string; }
     return forkJoin([
       this.http.get<BackendUser[]>(`${this.base}/users`),
       this.roleService.list(),
     ]).pipe(
-      map(([users, roles]) => {
+      switchMap(([users, roles]) => {
         const roleMap = new Map(roles.map((r) => [r.id, r.name]));
-        const items = users.map((u) => mapBackendUser(u, roleMap));
-        return {
-          items,
-          total: items.length,
-          activeCount: items.filter((u) => u.status === 'active').length,
-          adminCount: items.filter((u) => u.role === 'admin').length,
-          propietarioCount: items.filter((u) => u.role === 'propietario').length,
-          inactiveCount: items.filter((u) => u.status === 'inactive').length,
-        };
+        const mapped = users.map((u) => mapBackendUser(u, roleMap));
+
+        if (mapped.length === 0) {
+          return of({ items: [], total: 0, activeCount: 0, adminCount: 0, propietarioCount: 0, inactiveCount: 0 });
+        }
+
+        const storeReqs = mapped.map((u) =>
+          this.http
+            .get<BackendStore[]>(`${this.base}/users/${u.id}/stores`)
+            .pipe(catchError(() => of([] as BackendStore[])))
+        );
+
+        return forkJoin(storeReqs).pipe(
+          map((storesList) => {
+            storesList.forEach((stores, i) => {
+              const names = stores.map((s) => s.nombre);
+              mapped[i].storeNames = names;
+              mapped[i].storeName = names.length ? names.join(', ') : undefined;
+            });
+            return {
+              items: mapped,
+              total: mapped.length,
+              activeCount: mapped.filter((u) => u.status === 'active').length,
+              adminCount: mapped.filter((u) => u.role === 'admin').length,
+              propietarioCount: mapped.filter((u) => u.role === 'propietario').length,
+              inactiveCount: mapped.filter((u) => u.status === 'inactive').length,
+            };
+          }),
+        );
       }),
     );
   }
 
   getById(id: string) {
+    interface BackendStore { id: number; nombre: string; }
     return forkJoin([
       this.http.get<BackendUser>(`${this.base}/users/${id}`),
       this.roleService.list(),
+      this.http.get<BackendStore[]>(`${this.base}/users/${id}/stores`).pipe(catchError(() => of([] as BackendStore[]))),
     ]).pipe(
-      map(([user, roles]) => {
+      map(([user, roles, stores]) => {
         const roleMap = new Map(roles.map((r) => [r.id, r.name]));
-        return mapBackendUser(user, roleMap);
+        const mapped = mapBackendUser(user, roleMap);
+        const names = stores.map((s) => s.nombre);
+        mapped.storeNames = names;
+        mapped.storeName = names.length ? names.join(', ') : undefined;
+        return mapped;
       }),
       catchError(() => of(null)),
     );
@@ -116,6 +145,7 @@ export class UserService {
     if (payload.email !== undefined) body['email'] = payload.email || null;
     if (payload.status !== undefined) body['estado_acceso'] = payload.status === 'active';
     if (payload.roleId !== undefined) body['rol_id'] = payload.roleId;
+    if (payload.password) body['password'] = payload.password;
     return this.http.patch<BackendUser>(`${this.base}/users/${id}`, body).pipe(
       map((u) => mapBackendUser(u, new Map())),
     );

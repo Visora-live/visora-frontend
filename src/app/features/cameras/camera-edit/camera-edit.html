@@ -97,42 +97,32 @@
         </div>
       </div>
 
-      <!-- Configuración técnica -->
+      <!-- Estado + transmisión -->
       <div class="form-section form-section--divided">
-        <h2 class="section-label">Configuración técnica</h2>
+        <h2 class="section-label">Estado</h2>
         <div class="field-grid">
-
-          <mat-form-field appearance="outline" class="field">
-            <mat-label>Dirección IP</mat-label>
-            <mat-icon matPrefix aria-hidden="true">lan</mat-icon>
-            <input matInput formControlName="ipUrl" autocomplete="off" />
-            @if (form.controls.ipUrl.hasError('required')) {
-              <mat-error>La IP es obligatoria.</mat-error>
-            } @else if (form.controls.ipUrl.hasError('pattern')) {
-              <mat-error>Ingresa una IP válida (ej. 192.168.1.100).</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="field">
-            <mat-label>Puerto</mat-label>
-            <mat-icon matPrefix aria-hidden="true">settings_input_antenna</mat-icon>
-            <input matInput type="number" formControlName="port" />
-            @if (form.controls.port.hasError('min') || form.controls.port.hasError('max')) {
-              <mat-error>Puerto inválido (1–65535).</mat-error>
-            }
-            <mat-hint>Por defecto: 8080</mat-hint>
-          </mat-form-field>
 
           <mat-form-field appearance="outline" class="field">
             <mat-label>Estado</mat-label>
             <mat-select formControlName="status">
-              <mat-option value="online">En línea</mat-option>
-              <mat-option value="offline">Sin señal</mat-option>
-              <mat-option value="maintenance">Mantenimiento</mat-option>
-              <mat-option value="error">Error</mat-option>
+              <mat-option value="online">Activa</mat-option>
+              <mat-option value="offline">Inactiva</mat-option>
             </mat-select>
           </mat-form-field>
 
+        </div>
+
+        <div class="rtmp-box">
+          <span class="rtmp-box-label">
+            <mat-icon aria-hidden="true">cast</mat-icon>
+            URL RTMP (transmitir en IP Webcam)
+          </span>
+          <div class="rtmp-box-row">
+            <code class="rtmp-box-url">{{ rtmpPushUrl }}</code>
+            <button mat-icon-button type="button" (click)="copyToClipboard(rtmpPushUrl)" aria-label="Copiar URL RTMP">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
 

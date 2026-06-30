@@ -10,14 +10,6 @@
   }
 </app-page-header>
 
-<!-- Stat cards -->
-<div class="stats-grid">
-  <app-stat-card title="Usuarios activos" [value]="activeCount()" icon="person" />
-  <app-stat-card title="Administradores" [value]="adminCount()" icon="admin_panel_settings" />
-  <app-stat-card title="Propietarios" [value]="propietarioCount()" icon="store" />
-  <app-stat-card title="Usuarios inactivos" [value]="inactiveCount()" icon="person_off" />
-</div>
-
 <!-- Filters -->
 <div class="filters-bar">
   <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
@@ -175,13 +167,8 @@
     <app-empty-state
       icon="search_off"
       title="Sin resultados"
-      description="No hay usuarios que coincidan con tu búsqueda. Intenta otros términos o limpia los filtros."
-    >
-      <button mat-stroked-button (click)="clearFilters()">
-        <mat-icon>filter_alt_off</mat-icon>
-        Limpiar filtros
-      </button>
-    </app-empty-state>
+      description="No hay usuarios que coincidan con tu búsqueda."
+    />
   </div>
 
 } @else {

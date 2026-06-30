@@ -24,24 +24,51 @@
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
-    <button mat-stroked-button routerLink="/events">
+    <button mat-stroked-button routerLink="/events" [queryParams]="{ camera: cameraId }">
       <mat-icon>event_note</mat-icon>
       Ver eventos
     </button>
-    @if (isAdmin()) {
-      <button mat-flat-button [routerLink]="['/cameras', cameraId, 'edit']">
-        <mat-icon>edit</mat-icon>
-        Editar
-      </button>
-    }
+    <button mat-flat-button [routerLink]="['/cameras', cameraId, 'edit']">
+      <mat-icon>edit</mat-icon>
+      Editar
+    </button>
+    <button mat-stroked-button class="cam-delete-btn" (click)="requestDelete()" aria-label="Eliminar cámara">
+      <mat-icon>delete_outline</mat-icon>
+      Eliminar
+    </button>
   </app-page-header>
 
-  <!-- Stat cards -->
-  <div class="stats-grid">
-    <app-stat-card title="Estado" [value]="cameraStatusLabel(c.status)" icon="circle" />
-    <app-stat-card title="Resolución" [value]="c.resolution" icon="hd" />
-    <app-stat-card title="Dirección IP" [value]="c.ipUrl" icon="lan" />
-  </div>
+  <!-- Detección de armas IA -->
+  <section class="detection-panel" aria-label="Detección de armas IA">
+    <div class="detection-header">
+      <div class="detection-title-row">
+        <mat-icon aria-hidden="true">security</mat-icon>
+        <h2 class="detection-title">Detección de armas IA</h2>
+        <span class="detection-badge" [class.detection-badge--on]="detectionRunning()">
+          {{ detectionRunning() ? 'Activa' : 'Inactiva' }}
+        </span>
+      </div>
+      <button
+        mat-flat-button
+        [class.detection-stop-btn]="detectionRunning()"
+        [disabled]="detectionLoading()"
+        (click)="toggleDetection()"
+      >
+        <mat-icon>{{ detectionLoading() ? 'sync' : detectionRunning() ? 'stop_circle' : 'play_circle' }}</mat-icon>
+        {{ detectionLoading() ? 'Procesando...' : detectionRunning() ? 'Detener detección' : 'Iniciar detección' }}
+      </button>
+    </div>
+    @if (detectionRunning()) {
+      <p class="detection-hint">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        El modelo analiza el stream en tiempo real. Las alertas se generan automáticamente al detectar armas e incluyen identificación facial del portador.
+      </p>
+    } @else {
+      <p class="detection-hint">
+        Activa la detección para que el modelo IA analice esta cámara. Al detectar un arma, se lanza alerta inmediata y se intenta identificar al portador.
+      </p>
+    }
+  </section>
 
   <!-- Main content -->
   <div class="content-layout">
@@ -49,30 +76,9 @@
     <!-- Left: video + events -->
     <div class="col-main">
 
-      <!-- Visor principal -->
-      <section class="video-panel" aria-label="Panel de video">
-        @if (hasLiveStream()) {
-          <img
-            class="main-live-stream"
-            [src]="mainStreamUrl()"
-            [alt]="'Stream en vivo de ' + c.name"
-          />
-          <button
-            class="stream-disconnect-btn"
-            mat-stroked-button
-            (click)="disconnectStream()"
-            aria-label="Desconectar stream"
-          >
-            <mat-icon>wifi_off</mat-icon>
-            Desconectar
-          </button>
-        } @else {
-          <div class="video-offline" aria-label="Cámara sin señal">
-            <mat-icon class="offline-icon">videocam_off</mat-icon>
-            <div class="offline-status-label">SIN SEÑAL</div>
-            <p class="offline-desc">La cámara no está transmitiendo. Verifica la conexión de red.</p>
-          </div>
-        }
+      <!-- Visor en vivo (HLS) -->
+      <section class="video-panel" aria-label="Visor en vivo">
+        <app-hls-player [src]="hlsUrl" [enabled]="c.status === 'online'" />
       </section>
 
       <!-- Recent events -->
@@ -106,251 +112,32 @@
         }
       </section>
 
-      <!-- Conexión IP Webcam -->
-      <section class="conn-panel" aria-label="Conexión IP Webcam">
+      <!-- Transmisión RTMP -->
+      <section class="conn-panel" aria-label="Transmitir esta cámara">
         <div class="conn-header">
           <h2 class="conn-title">
-            <mat-icon aria-hidden="true">wifi</mat-icon>
-            Conexión IP Webcam
+            <mat-icon aria-hidden="true">cast</mat-icon>
+            Transmitir esta cámara
           </h2>
-          <div class="conn-actions">
-            @if (hasLiveStream()) {
-              <button
-                mat-stroked-button
-                (click)="disconnectStream()"
-                aria-label="Desconectar stream del visor"
-              >
-                <mat-icon>wifi_off</mat-icon>
-                Desconectar
-              </button>
-            }
-            <button
-              mat-stroked-button
-              class="conn-test-btn"
-              (click)="testConnection()"
-              [disabled]="isTesting()"
-              aria-label="Probar conexión con IP Webcam"
-            >
-              <mat-icon>{{ isTesting() ? 'sync' : 'wifi_tethering' }}</mat-icon>
-              {{ isTesting() ? 'Probando...' : 'Probar conexión' }}
-            </button>
-          </div>
         </div>
-
+        <p class="conn-help">
+          En la app <strong>IP Webcam → Transmisión remota → RTMP</strong>, pega esta URL y
+          pulsa iniciar. La cámara aparecerá en vivo arriba.
+        </p>
         <dl class="conn-info">
           <div class="conn-info-item">
-            <dt>Host / IP</dt>
-            <dd class="conn-mono">{{ c.ipUrl }}</dd>
-          </div>
-          <div class="conn-info-item">
-            <dt>Puerto</dt>
-            <dd class="conn-mono">{{ c.port }}</dd>
-          </div>
-          <div class="conn-info-item">
-            <dt>Snapshot URL</dt>
+            <dt>URL RTMP (push)</dt>
             <dd class="conn-url-row">
-              <span class="conn-mono">{{ expectedSnapshotUrl() }}</span>
-              <button mat-icon-button class="conn-copy-btn" (click)="copyToClipboard(expectedSnapshotUrl())" aria-label="Copiar URL de snapshot">
-                <mat-icon>content_copy</mat-icon>
-              </button>
+              <span class="conn-mono">{{ rtmpPushUrl }}</span>
             </dd>
           </div>
           <div class="conn-info-item">
-            <dt>Stream URL</dt>
-            <dd class="conn-url-row">
-              <span class="conn-mono">{{ expectedStreamUrl() }}</span>
-              <button mat-icon-button class="conn-copy-btn" (click)="copyToClipboard(expectedStreamUrl())" aria-label="Copiar URL de stream">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-            </dd>
+            <dt>Ruta de la transmisión</dt>
+            <dd class="conn-mono">cam{{ cameraId }}</dd>
           </div>
         </dl>
-
-        @switch (connectionState()) {
-          @case ('idle') {
-            <p class="conn-state-idle" role="status">
-              <mat-icon aria-hidden="true">info</mat-icon>
-              Aún no se ha probado la conexión con esta cámara.
-            </p>
-          }
-          @case ('testing') {
-            <p class="conn-state-testing" role="status" aria-live="polite">
-              <mat-icon aria-hidden="true">sync</mat-icon>
-              Probando conexión con IP Webcam...
-            </p>
-          }
-          @case ('connected') {
-            <div class="conn-status conn-status--ok" role="status">
-              <mat-icon aria-hidden="true">check_circle</mat-icon>
-              <div class="conn-status-body">
-                <strong>Conectada — stream activo en visor</strong>
-                <span class="conn-status-msg">{{ connectionStatus()!.message }}</span>
-                @if (connectionStatus()!.statusCode) {
-                  <span class="conn-meta">HTTP {{ connectionStatus()!.statusCode }} · {{ connectionStatus()!.contentType ?? 'sin tipo' }}</span>
-                }
-              </div>
-            </div>
-          }
-          @case ('failed') {
-            <div class="conn-status conn-status--fail" role="status" aria-live="assertive">
-              <mat-icon aria-hidden="true">cancel</mat-icon>
-              <div class="conn-status-body">
-                <strong>No conectada</strong>
-                <span class="conn-status-msg">{{ connectionStatus()!.message }}</span>
-                @if (connectionStatus()!.statusCode) {
-                  <span class="conn-meta">HTTP {{ connectionStatus()!.statusCode }} · {{ connectionStatus()!.contentType ?? 'sin tipo' }}</span>
-                }
-              </div>
-            </div>
-            <button mat-stroked-button class="conn-retry-btn" (click)="testConnection()" aria-label="Reintentar conexión">
-              <mat-icon>replay</mat-icon>
-              Reintentar
-            </button>
-          }
-        }
       </section>
 
-      <!-- Registrar evento manual -->
-      <section class="event-form-panel" aria-label="Registrar evento manual">
-        <div class="event-form-header">
-          <h2 class="event-form-title">
-            <mat-icon aria-hidden="true">report</mat-icon>
-            Registrar evento manual
-          </h2>
-          <button mat-stroked-button (click)="toggleEventForm()" aria-label="Abrir o cerrar formulario de evento">
-            <mat-icon>{{ showEventForm() ? 'expand_less' : 'expand_more' }}</mat-icon>
-            {{ showEventForm() ? 'Ocultar' : 'Registrar' }}
-          </button>
-        </div>
-
-        @if (showEventForm()) {
-          <form class="event-form" novalidate>
-
-            <div class="form-row-group">
-              <div class="form-row">
-                <label class="form-label" for="event-tipo">Tipo de evento</label>
-                <select id="event-tipo" class="form-select" [value]="eventTipo()" (change)="eventTipo.set($any($event.target).value)">
-                  <option value="manual">Manual</option>
-                  <option value="sospechoso">Sospechoso</option>
-                  <option value="incidente">Incidente</option>
-                  <option value="mantenimiento">Mantenimiento</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label class="form-label" for="event-severidad">Severidad</label>
-                <select id="event-severidad" class="form-select" [value]="eventSeveridad()" (change)="eventSeveridad.set($any($event.target).value)">
-                  <option value="baja">Baja</option>
-                  <option value="media">Media</option>
-                  <option value="alta">Alta</option>
-                  <option value="critica">Crítica</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <label class="form-label" for="event-comentario">
-                Descripción del incidente <span class="form-required" aria-hidden="true">*</span>
-              </label>
-              <textarea
-                id="event-comentario"
-                class="form-textarea"
-                rows="3"
-                placeholder="Describe lo que observaste..."
-                [value]="eventComentario()"
-                (input)="eventComentario.set($any($event.target).value)"
-                aria-required="true"
-              ></textarea>
-            </div>
-
-            <div class="form-check-row">
-              <input
-                id="generar-alerta"
-                type="checkbox"
-                class="form-check"
-                [checked]="generarAlerta()"
-                (change)="generarAlerta.set($any($event.target).checked)"
-              />
-              <label for="generar-alerta">Generar alerta asociada a este evento</label>
-            </div>
-
-            @if (generarAlerta()) {
-              <div class="form-alert-fields">
-                <div class="form-row">
-                  <label class="form-label" for="alerta-titulo">
-                    Título de la alerta <span class="form-required" aria-hidden="true">*</span>
-                  </label>
-                  <input
-                    id="alerta-titulo"
-                    type="text"
-                    class="form-input"
-                    placeholder="Ej: Persona sospechosa detectada"
-                    [value]="alertaTitulo()"
-                    (input)="alertaTitulo.set($any($event.target).value)"
-                    aria-required="true"
-                  />
-                </div>
-                <div class="form-row">
-                  <label class="form-label" for="alerta-desc">Descripción de la alerta (opcional)</label>
-                  <textarea
-                    id="alerta-desc"
-                    class="form-textarea"
-                    rows="2"
-                    placeholder="Descripción adicional de la alerta..."
-                    [value]="alertaDesc()"
-                    (input)="alertaDesc.set($any($event.target).value)"
-                  ></textarea>
-                </div>
-              </div>
-            }
-
-            @if (submitResult(); as result) {
-              <div
-                class="event-result"
-                [class.event-result--ok]="result.success"
-                [class.event-result--fail]="!result.success"
-                role="status"
-                aria-live="polite"
-              >
-                <mat-icon aria-hidden="true">{{ result.success ? 'check_circle' : 'error' }}</mat-icon>
-                <div class="event-result-body">
-                  <span>{{ result.message }}</span>
-                  <div class="event-result-links">
-                    @if (result.eventId) {
-                      <a mat-stroked-button [routerLink]="['/events', result.eventId]" class="result-link">
-                        <mat-icon>event_note</mat-icon>
-                        Ver evento
-                      </a>
-                    }
-                    @if (result.alertId) {
-                      <a mat-flat-button [routerLink]="['/alerts', result.alertId]" class="result-link">
-                        <mat-icon>notifications</mat-icon>
-                        Ver alerta
-                      </a>
-                    }
-                  </div>
-                </div>
-              </div>
-            }
-
-            <div class="form-actions">
-              <button
-                mat-flat-button
-                type="button"
-                (click)="submitEvent()"
-                [disabled]="!formValid() || isSubmitting()"
-                aria-label="Guardar evento"
-              >
-                <mat-icon>{{ isSubmitting() ? 'sync' : 'save' }}</mat-icon>
-                {{ isSubmitting() ? 'Guardando...' : 'Guardar evento' }}
-              </button>
-              <button mat-stroked-button type="button" (click)="toggleEventForm()">
-                Cancelar
-              </button>
-            </div>
-
-          </form>
-        }
-      </section>
 
     </div>
 
@@ -389,22 +176,6 @@
 
           <div class="info-item">
             <dt class="info-label">
-              <mat-icon aria-hidden="true">lan</mat-icon>
-              Dirección IP
-            </dt>
-            <dd class="info-value info-value--mono">{{ c.ipUrl }}</dd>
-          </div>
-
-          <div class="info-item">
-            <dt class="info-label">
-              <mat-icon aria-hidden="true">hd</mat-icon>
-              Resolución
-            </dt>
-            <dd class="info-value">{{ c.resolution }}</dd>
-          </div>
-
-          <div class="info-item">
-            <dt class="info-label">
               <mat-icon aria-hidden="true">circle</mat-icon>
               Estado
             </dt>
@@ -424,39 +195,20 @@
             <dd class="info-value">{{ c.createdAt }}</dd>
           </div>
 
-          @if (c.notes) {
-            <div class="info-item info-item--full">
-              <dt class="info-label">
-                <mat-icon aria-hidden="true">notes</mat-icon>
-                Notas
-              </dt>
-              <dd class="info-value info-value--notes">{{ c.notes }}</dd>
-            </div>
-          }
-
         </dl>
-      </div>
-
-      <!-- Capabilities -->
-      <div class="cap-card">
-        <div class="cap-card-header">
-          <h2 class="cap-card-title">Capacidades</h2>
-        </div>
-        <ul class="cap-list" role="list">
-          <li
-            class="cap-item"
-            [class.cap-item--active]="c.capabilities.recording"
-            [class.cap-item--inactive]="!c.capabilities.recording"
-            role="listitem"
-          >
-            <mat-icon aria-hidden="true">fiber_manual_record</mat-icon>
-            <span>Grabación continua</span>
-            <span class="cap-status">{{ c.capabilities.recording ? 'Activa' : 'Inactiva' }}</span>
-          </li>
-        </ul>
       </div>
 
     </aside>
   </div>
+
+  <app-confirm-dialog
+    [open]="confirmingDelete()"
+    title="¿Eliminar esta cámara?"
+    message="Se quitará la cámara del monitoreo de la tienda. Esta acción no se puede deshacer."
+    [busy]="isDeleting()"
+    [errorMessage]="deleteError()"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()"
+  />
 
 }

@@ -14,18 +14,18 @@
 
 .visora-dashboard-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr;
   gap: var(--visora-space-md);
   align-items: start;
-
-  @media (max-width: 960px) { grid-template-columns: 1fr; }
 }
 
-.dash-col-main,
-.dash-col-side {
-  display: flex;
-  flex-direction: column;
+// Recent panels fill the available width: side-by-side on tablet/desktop,
+// stacked on phones.
+.dash-col-main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--visora-space-md);
+  align-items: start;
 }
 
 // ── Panel cards ───────────────────────────────────────────────────────────────
@@ -130,54 +130,290 @@
   flex-shrink: 0;
 }
 
-// ── System status ─────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  PROPIETARIO — premium camera monitor
+// ════════════════════════════════════════════════════════════════════════════
 
-.dash-status-list { list-style: none; margin: 0; padding: var(--visora-space-xs) 0; }
+$owner-blue: #1652a3;
+$owner-accent: #2f88f5;
+$font-title: 'Lora', Georgia, serif;
 
-.dash-status-item {
+.owner { display: block; }
+
+// ── Header CTA ───────────────────────────────────────────────────────────────
+.owner-cta {
+  gap: 6px;
+  font-weight: 600;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+// ── Filters bar ─────────────────────────────────────────────────────────────
+.owner-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--visora-space-sm);
+  margin-bottom: var(--visora-space-md);
+}
+
+.owner-filter {
+  flex: 0 1 240px;
+  min-width: 200px;
+
+  // Outlined select keeps its own height; drop the reserved subscript space
+  // so the field sits flush in the row instead of looking taller/misaligned.
+  .mat-mdc-form-field-subscript-wrapper { display: none; }
+
+  @media (max-width: 480px) { flex: 1 1 100%; min-width: 0; }
+}
+
+.owner-clear { flex-shrink: 0; align-self: center; margin-left: auto; }
+
+// ── Zones ───────────────────────────────────────────────────────────────────
+.zone {
+  margin-bottom: var(--visora-space-xl);
+  animation: owner-rise 0.5s ease both;
+  &:last-child { margin-bottom: 0; }
+}
+
+.zone-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px var(--visora-space-md);
-  &--sep { border-top: 1px solid var(--visora-border-color); margin-top: 4px; padding-top: 12px; }
+  margin-bottom: var(--visora-space-md);
 }
 
-.dash-status-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  &--online { background: var(--visora-status-normal); }
-  &--offline { background: var(--visora-status-inactive); }
-  &--maintenance { background: var(--visora-status-suspicious); }
-  &--critical { background: var(--visora-status-critical); }
-  &--suspicious { background: var(--visora-status-suspicious); }
+.zone-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, $owner-blue, $owner-accent);
+  box-shadow: 0 6px 14px -6px rgba(22, 82, 163, 0.6);
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
 }
 
-.dash-status-label { flex: 1; font-size: 13px; color: var(--visora-text-muted); }
-
-.dash-status-value {
-  font-size: 14px;
+.zone-title {
+  font-family: $font-title;
+  font-size: 20px;
   font-weight: 600;
   color: var(--visora-text);
-  &--critical { color: var(--visora-status-critical); }
+  margin: 0;
 }
 
-// ── Quick access ──────────────────────────────────────────────────────────────
+.zone-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: $owner-accent;
+  background: rgba(47, 136, 245, 0.12);
+  border-radius: 999px;
+  padding: 2px 11px;
+}
 
-.dash-quick-grid {
+.zone-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--visora-border-color), transparent);
+}
+
+// ── Camera grid + cards ─────────────────────────────────────────────────────
+.owner-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--visora-space-sm);
-  padding: var(--visora-space-md);
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: var(--visora-space-lg);
+
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
 
-.dash-quick-btn {
+.cam-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--visora-space-sm);
+  background: var(--visora-bg-surface);
+  border: 1px solid var(--visora-border-color);
+  border-radius: var(--visora-radius-lg);
+  box-shadow: var(--visora-shadow-sm);
+  padding: 12px;
+  overflow: hidden;
+  animation: owner-rise 0.5s ease both;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+
+  // top accent strip by status
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--visora-border-color);
+    transition: background 0.2s ease;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px -16px rgba(22, 82, 163, 0.4);
+    border-color: rgba(47, 136, 245, 0.5);
+  }
+  &:hover .cam-preview-img { transform: scale(1.06); }
+
+  &--online::before { background: linear-gradient(90deg, var(--visora-status-normal), #5dffa0); }
+  &--offline::before { background: var(--visora-status-inactive); }
+  &--error::before { background: var(--visora-status-critical); }
+  &--maintenance::before { background: var(--visora-status-suspicious); }
+
+  // staggered entrance within a grid
+  @for $i from 1 through 8 {
+    &:nth-child(#{$i}) { animation-delay: #{$i * 0.05}s; }
+  }
+}
+
+.cam-preview {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: var(--visora-radius-md);
+  overflow: hidden;
+  background: #0f141b;
+  text-decoration: none;
+}
+
+.cam-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.cam-preview-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+
+.cam-preview-live {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 999px;
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.cam-preview-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  animation: cam-pulse 1.6s ease-out infinite;
+}
+
+.cam-preview-off {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 76px;
-  text-align: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.45);
   font-size: 12px;
-  line-height: 1.3;
-  mat-icon { font-size: 22px; width: 22px; height: 22px; }
+
+  mat-icon { font-size: 30px; width: 30px; height: 30px; }
+}
+
+.cam-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.cam-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--visora-text);
+  margin: 0;
+  word-break: break-word;
+}
+
+.cam-card-meta {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--visora-text-muted);
+    min-width: 0;
+
+    mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--visora-accent); flex-shrink: 0; }
+    span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  }
+}
+
+.cam-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cam-card-btn {
+  flex: 1;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.cam-card-edit {
+  flex-shrink: 0;
+  color: var(--visora-text-muted);
+  &:hover { color: var(--visora-accent); }
+}
+
+.owner-empty { padding: var(--visora-space-xl) 0; }
+
+// ── Animations ──────────────────────────────────────────────────────────────
+@keyframes cam-pulse {
+  to { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
+}
+
+@keyframes cam-pulse-green {
+  to { box-shadow: 0 0 0 7px rgba(22, 163, 74, 0); }
+}
+
+@keyframes owner-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .owner-hero-body,
+  .owner-hero-cta,
+  .zone,
+  .cam-card { animation: none; }
+  .owner-hero-mesh,
+  .owner-pill-dot,
+  .cam-preview-dot { animation: none; }
+  .cam-card:hover .cam-preview-img { transform: none; }
 }

@@ -1,7 +1,10 @@
 import { Component, effect, inject, signal } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { AuthImagePipe } from '../../../shared/pipes/auth-image.pipe';
+import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { take } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,6 +15,7 @@ import type {
 } from '../../../core/models/event.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { EventService } from '../../../core/services/event.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge';
@@ -20,19 +24,23 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
   selector: 'app-event-detail',
   imports: [
     RouterLink,
+    AsyncPipe,
     DatePipe,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
+    ConfirmDialogComponent,
     EmptyStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
+    AuthImagePipe,
   ],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.scss',
 })
 export class EventDetailComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly eventService = inject(EventService);
 
   protected readonly eventId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -42,46 +50,63 @@ export class EventDetailComponent {
   });
 
   protected readonly currentStatus = signal<EventStatus>('pending');
-  protected readonly actionDone = signal<'reviewed' | 'dismissed' | null>(null);
 
   constructor() {
     effect(() => {
       const e = this.event();
-      if (e && this.actionDone() === null) {
-        this.currentStatus.set(e.status);
-      }
+      if (e) this.currentStatus.set(e.status);
     });
   }
 
   protected markReviewed(): void {
     this.eventService.updateStatus(this.eventId, 'reviewed').subscribe({
-      next: () => {
-        this.currentStatus.set('reviewed');
-        this.actionDone.set('reviewed');
-      },
+      next: () => this.currentStatus.set('reviewed'),
     });
   }
 
-  protected dismissEvent(): void {
-    this.eventService.updateStatus(this.eventId, 'dismissed').subscribe({
-      next: () => {
-        this.currentStatus.set('dismissed');
-        this.actionDone.set('dismissed');
-      },
-    });
+  // ── Descartar = soft-delete with confirmation ─────────────────────────────
+  protected readonly confirmingDiscard = signal(false);
+  protected readonly isDiscarding = signal(false);
+  protected readonly discardError = signal('');
+
+  protected requestDiscard(): void {
+    this.discardError.set('');
+    this.confirmingDiscard.set(true);
+  }
+
+  protected cancelDiscard(): void {
+    if (this.isDiscarding()) return;
+    this.confirmingDiscard.set(false);
+  }
+
+  protected confirmDiscard(): void {
+    if (this.isDiscarding()) return;
+    this.isDiscarding.set(true);
+    this.discardError.set('');
+    this.eventService
+      .delete(this.eventId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.isDiscarding.set(false);
+          this.confirmingDiscard.set(false);
+          void this.router.navigate(['/events']);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.isDiscarding.set(false);
+          this.discardError.set(
+            err.status === 403
+              ? 'No tienes permisos para descartar este evento.'
+              : err.status === 404
+                ? 'El evento ya no existe.'
+                : 'No se pudo descartar el evento. Intenta de nuevo.',
+          );
+        },
+      });
   }
 
   protected severityToBadge(s: EventSeverity): BadgeStatus {
     return s === 'normal' ? 'normal' : s === 'suspicious' ? 'suspicious' : 'critical';
-  }
-
-  protected severityLabel(s: EventSeverity): string {
-    const m: Record<EventSeverity, string> = {
-      normal: 'Normal',
-      suspicious: 'Sospechoso',
-      critical: 'Crítico',
-    };
-    return m[s];
   }
 
   protected typeLabel(t: EventType): string {
@@ -115,9 +140,5 @@ export class EventDetailComponent {
 
   protected statusBadge(s: EventStatus): BadgeStatus {
     return s === 'pending' ? 'suspicious' : s === 'reviewed' ? 'normal' : 'inactive';
-  }
-
-  protected confidencePct(c: number): string {
-    return `${Math.round(c * 100)}%`;
   }
 }

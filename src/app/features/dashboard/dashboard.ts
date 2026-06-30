@@ -1,25 +1,54 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs/operators';
+import { StoreContextService } from '../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import type { BadgeStatus } from '../../shared/components/status-badge/status-badge';
+import type { Camera, CameraStatus } from '../../core/models/camera.model';
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardService } from '../../core/services/dashboard.service';
+import { CameraService } from '../../core/services/camera.service';
+import { StoreService } from '../../core/services/store.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
+import { HlsPlayerComponent } from '../../shared/components/hls-player/hls-player';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge';
+import { environment } from '../../../environments/environment';
+
+const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0 };
+const EMPTY_STORE_LIST = { items: [], total: 0 };
+const NO_LOCATION = 'Sin ubicación';
+
+interface MonitorCamera extends Camera {
+  locationLabel: string;
+}
+
+interface CameraGroup {
+  location: string;
+  cameras: MonitorCamera[];
+}
 
 @Component({
   selector: 'app-dashboard',
   imports: [
     RouterLink,
     DatePipe,
+    FormsModule,
     MatButtonModule,
+    MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
+    MatSelectModule,
+    EmptyStateComponent,
+    HlsPlayerComponent,
     PageHeaderComponent,
-    StatCardComponent,
     StatusBadgeComponent,
   ],
   templateUrl: './dashboard.html',
@@ -28,32 +57,87 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
 export class DashboardComponent {
   private readonly service = inject(DashboardService);
   private readonly auth = inject(AuthService);
+  private readonly cameraService = inject(CameraService);
+  private readonly storeService = inject(StoreService);
 
+  private readonly storeCtx = inject(StoreContextService);
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
   protected readonly isAdmin = computed(() => this.auth.isAdminRole(this.currentUser()?.rol_tipo));
   protected readonly dashSubtitle = computed(() =>
     this.isAdmin()
       ? 'Resumen operativo del sistema de videovigilancia VISORA.'
-      : 'Vista general de tus tiendas y alertas asignadas.',
+      : 'Monitoreo en vivo de las cámaras de tus tiendas, organizadas por ubicación.',
   );
 
+  // ── Admin summary data ──────────────────────────────────────────────────
   private readonly data = toSignal(this.service.getAll(5), { initialValue: null });
 
   protected readonly recentAlerts = computed(() => this.data()?.recentAlerts ?? []);
   protected readonly recentEvents = computed(() => this.data()?.recentEvents ?? []);
 
-  // Stat cards
-  protected readonly activeStores = computed(() => this.data()?.metrics.activeStores ?? 0);
-  protected readonly onlineCameras = computed(() => this.data()?.metrics.onlineCameras ?? 0);
-  protected readonly openAlerts = computed(() => this.data()?.metrics.openAlerts ?? 0);
-  protected readonly totalEvents = computed(() => this.data()?.metrics.totalEvents ?? 0);
+  // ── Propietario camera monitor ──────────────────────────────────────────
+  private readonly camListRes = toSignal(
+    toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.cameraService.list(id))),
+    { initialValue: EMPTY_CAM_LIST },
+  );
+  private readonly storeListRes = toSignal(this.storeService.list(), { initialValue: EMPTY_STORE_LIST });
 
-  // System status
-  protected readonly offlineCameras = computed(() => this.data()?.metrics.offlineCameras ?? 0);
-  protected readonly maintenanceCameras = computed(() => this.data()?.metrics.maintenanceCameras ?? 0);
-  protected readonly criticalAlerts = computed(() => this.data()?.metrics.criticalAlerts ?? 0);
-  protected readonly suspiciousEvents = computed(() => this.data()?.metrics.suspiciousEvents ?? 0);
+  private readonly storeMap = computed(() => {
+    const m = new Map<string, string>();
+    this.storeListRes().items.forEach((s) => m.set(s.id, s.name));
+    return m;
+  });
 
+  protected readonly cameras = computed<MonitorCamera[]>(() =>
+    this.camListRes().items.map((c) => ({
+      ...c,
+      storeName: this.storeMap().get(c.storeId) ?? c.storeName,
+      locationLabel: c.location?.trim() ? c.location.trim() : NO_LOCATION,
+    })),
+  );
+
+  protected readonly camOnlineCount = computed(() => this.camListRes().onlineCount);
+  protected readonly camOfflineCount = computed(() => this.camListRes().offlineCount);
+
+  protected readonly locationFilter = signal<string>('all');
+
+  protected readonly locationOptions = computed(() =>
+    Array.from(new Set(this.cameras().map((c) => c.locationLabel))).sort((a, b) =>
+      a.localeCompare(b),
+    ),
+  );
+
+  private readonly filteredCameras = computed(() => {
+    const loc = this.locationFilter();
+    return this.cameras().filter((c) => {
+      if (loc !== 'all' && c.locationLabel !== loc) return false;
+      return true;
+    });
+  });
+
+  /** Cameras grouped by location/zone, each group sorted by name. */
+  protected readonly groupedCameras = computed<CameraGroup[]>(() => {
+    const groups = new Map<string, MonitorCamera[]>();
+    for (const cam of this.filteredCameras()) {
+      const key = cam.locationLabel;
+      const bucket = groups.get(key) ?? [];
+      bucket.push(cam);
+      groups.set(key, bucket);
+    }
+    return Array.from(groups.entries())
+      .map(([location, cams]) => ({
+        location,
+        cameras: [...cams].sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .sort((a, b) => a.location.localeCompare(b.location));
+  });
+
+  protected readonly isCamFiltered = computed(() => this.locationFilter() !== 'all');
+
+  protected readonly visibleCamCount = computed(() => this.filteredCameras().length);
+  protected readonly totalCamCount = computed(() => this.cameras().length);
+
+  // ── Shared helpers ──────────────────────────────────────────────────────
   protected severityBadge(severity: string): BadgeStatus {
     const map: Record<string, BadgeStatus> = {
       critical: 'critical',
@@ -61,5 +145,18 @@ export class DashboardComponent {
       normal: 'normal',
     };
     return map[severity] ?? 'normal';
+  }
+
+  /** HLS stream URL for a camera (MediaMTX path = cam<id>). */
+  protected hlsUrl(cameraId: string): string {
+    return `${environment.mediamtxHlsBase}/cam${cameraId}/index.m3u8`;
+  }
+
+  protected cameraStatusToBadge(status: CameraStatus): BadgeStatus {
+    return status === 'online' ? 'normal' : 'inactive';
+  }
+
+  protected cameraStatusLabel(status: CameraStatus): string {
+    return status === 'online' ? 'En línea' : 'Sin señal';
   }
 }

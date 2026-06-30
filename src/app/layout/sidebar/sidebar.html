@@ -1,6 +1,10 @@
 <nav class="sidebar" aria-label="Navegación principal">
   <div class="sidebar-logo" aria-hidden="true">
-    <span>VISORA</span>
+    <svg class="sidebar-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z"/>
+      <path d="m9 12 2 2 4-4"/>
+    </svg>
   </div>
 
   <ul class="nav-list" role="list">
@@ -9,14 +13,103 @@
         <a
           #rla="routerLinkActive"
           class="nav-item"
-          [routerLink]="item.route"
+          [routerLink]="item.route === '/stores' ? storeRoute() : item.route"
           routerLinkActive="active"
           [attr.aria-current]="rla.isActive ? 'page' : null"
+          [matTooltip]="item.route === '/alerts' && unreadAlerts() > 0 ? item.label + ' (' + unreadAlerts() + ' sin leer)' : item.label"
+          matTooltipPosition="right"
+          [matBadge]="item.route === '/alerts' && unreadAlerts() > 0 ? unreadAlerts() : null"
+          [matBadgeHidden]="item.route !== '/alerts' || unreadAlerts() === 0"
+          matBadgeColor="warn"
+          matBadgeSize="small"
         >
           <mat-icon class="nav-icon" aria-hidden="true">{{ item.icon }}</mat-icon>
-          <span class="nav-label">{{ item.label }}</span>
         </a>
       </li>
     }
   </ul>
+
+  <div class="sidebar-bottom">
+    @if (isAdmin()) {
+      <a
+        class="nav-item"
+        routerLink="/notifications"
+        matTooltip="Notificaciones"
+        matTooltipPosition="right"
+        [matBadge]="unreadNotifs()"
+        [matBadgeHidden]="unreadNotifs() === 0"
+        matBadgeColor="warn"
+        matBadgeSize="small"
+      >
+        <mat-icon class="nav-icon">notifications</mat-icon>
+      </a>
+    }
+
+    @if (!isAdmin() && storeCtx.showSwitcher()) {
+      <button
+        class="nav-item sidebar-store-switcher"
+        [matTooltip]="'Tienda: ' + activeStoreName()"
+        matTooltipPosition="right"
+        type="button"
+        (click)="togglePicker()"
+        aria-label="Cambiar tienda"
+      >
+        <mat-icon class="nav-icon">swap_horiz</mat-icon>
+      </button>
+    }
+
+    <button
+      class="nav-item sidebar-avatar"
+      [matTooltip]="userTooltip()"
+      matTooltipPosition="right"
+      type="button"
+      aria-label="Usuario actual"
+    >
+      {{ avatarInitials() }}
+    </button>
+
+    <button
+      class="nav-item sidebar-logout"
+      matTooltip="Cerrar sesión"
+      matTooltipPosition="right"
+      type="button"
+      (click)="logout()"
+      aria-label="Cerrar sesión"
+    >
+      <mat-icon class="nav-icon">logout</mat-icon>
+    </button>
+  </div>
 </nav>
+
+<!-- Store picker popup -->
+@if (showPicker()) {
+  <div class="store-picker-overlay" (click)="showPicker.set(false)" role="dialog" aria-modal="true" aria-label="Seleccionar tienda">
+    <div class="store-picker-card" (click)="$event.stopPropagation()">
+      <div class="store-picker-header">
+        <mat-icon aria-hidden="true">store</mat-icon>
+        <span>Seleccionar tienda</span>
+        <button class="store-picker-close" (click)="showPicker.set(false)" aria-label="Cerrar">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <ul class="store-picker-list" role="list">
+        @for (s of storeCtx.stores(); track s.id) {
+          <li>
+            <button
+              class="store-picker-item"
+              [class.store-picker-item--active]="s.id === storeCtx.activeStoreId()"
+              (click)="selectStore(s.id)"
+              type="button"
+            >
+              <mat-icon aria-hidden="true">{{ s.id === storeCtx.activeStoreId() ? 'check_circle' : 'storefront' }}</mat-icon>
+              <span class="store-picker-name">{{ s.name }}</span>
+              @if (s.id === storeCtx.activeStoreId()) {
+                <span class="store-picker-current">Activa</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+}

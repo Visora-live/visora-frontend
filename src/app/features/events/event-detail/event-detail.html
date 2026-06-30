@@ -30,196 +30,66 @@
     </button>
   </app-page-header>
 
-  <!-- Status bar -->
-  <div class="status-bar" [class]="'status-bar--' + e.severity" role="status">
-    <app-status-badge
-      [status]="severityToBadge(e.severity)"
-      [label]="severityLabel(e.severity)"
-    />
-    <span class="status-bar-sep" aria-hidden="true">·</span>
+  <!-- Status bar: only visible while pending or dismissed -->
+  @if (currentStatus() !== 'reviewed') {
+  <div class="status-bar" role="status">
     <app-status-badge
       [status]="statusBadge(currentStatus())"
       [label]="statusLabel(currentStatus())"
     />
-    @if (e.detection) {
-      <span class="status-bar-sep" aria-hidden="true">·</span>
-      <span class="status-bar-conf" aria-label="Confianza de detección">
-        <mat-icon aria-hidden="true">verified</mat-icon>
-        {{ confidencePct(e.detection.confidence) }} confianza
-      </span>
-    }
     <span class="status-bar-spacer"></span>
-    @if (actionDone() === 'reviewed') {
+    @if (currentStatus() === 'reviewed') {
       <span class="action-feedback action-feedback--ok" role="status">
         <mat-icon aria-hidden="true">check_circle</mat-icon>
         Marcado como revisado
       </span>
-    } @else if (actionDone() === 'dismissed') {
+    } @else if (currentStatus() === 'dismissed') {
       <span class="action-feedback action-feedback--muted" role="status">
         <mat-icon aria-hidden="true">do_not_disturb</mat-icon>
         Evento descartado
       </span>
-    } @else if (currentStatus() === 'pending') {
+    } @else {
       <button mat-flat-button class="action-btn action-btn--review" (click)="markReviewed()">
         <mat-icon>done</mat-icon>
-        Marcar revisado
+        Marcar como revisado
       </button>
-      <button mat-stroked-button class="action-btn" (click)="dismissEvent()">
+      <button mat-stroked-button class="action-btn" (click)="requestDiscard()">
         <mat-icon>close</mat-icon>
         Descartar
       </button>
     }
   </div>
+  } <!-- end @if currentStatus !== reviewed -->
 
-  <div class="visora-event-detail-layout">
+  <!-- Two-column layout: left = snapshot, right = detail panel -->
+  <div class="detail-grid" [class.detail-grid--no-snapshot]="!e.snapshotUrl">
 
-    <!-- Left column: evidence + detection + actions -->
-    <div class="col-main">
-
-      <!-- Evidence panel -->
-      <section class="ev-panel" aria-label="Evidencia del evento">
-        <div class="ev-panel-header">
-          <h2 class="ev-panel-title">
-            <mat-icon aria-hidden="true">photo_library</mat-icon>
-            Evidencia
-          </h2>
-          @if (e.evidence.length > 0) {
-            <span class="ev-count-badge">{{ e.evidence.length }}</span>
+    <!-- Left: frame del incidente -->
+    @if (e.snapshotUrl) {
+      <div class="snapshot-col">
+        <div class="snapshot-card">
+          <div class="snapshot-card-header">
+            <mat-icon aria-hidden="true">screenshot_monitor</mat-icon>
+            <h3 class="snapshot-card-title">Frame del incidente</h3>
+          </div>
+          @if (e.snapshotUrl | authImage | async; as snap) {
+            <img
+              [src]="snap"
+              alt="Frame capturado en el momento de la detección"
+              class="snapshot-img"
+              loading="lazy"
+            />
           }
         </div>
+      </div>
+    }
 
-        @if (e.evidence.length > 0) {
-          <div class="ev-grid">
-            @for (ev of e.evidence; track ev.id) {
-              <div
-                class="ev-thumb"
-                [class.ev-thumb--video]="ev.type === 'video'"
-                [attr.aria-label]="ev.label"
-              >
-                <div class="ev-thumb-inner">
-                  @if (ev.type === 'video') {
-                    <div class="ev-video-overlay" aria-hidden="true">
-                      <mat-icon class="ev-play-icon">play_circle</mat-icon>
-                      @if (ev.durationSeconds) {
-                        <span class="ev-duration">{{ ev.durationSeconds }}s</span>
-                      }
-                    </div>
-                  } @else {
-                    <mat-icon class="ev-img-icon" aria-hidden="true">image</mat-icon>
-                  }
-                  <div class="ev-scanlines" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--tl" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--tr" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--bl" aria-hidden="true"></div>
-                  <div class="ev-corner ev-corner--br" aria-hidden="true"></div>
-                </div>
-                <span class="ev-label">{{ ev.label }}</span>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="ev-empty" aria-label="Sin evidencia registrada">
-            <mat-icon aria-hidden="true">hide_image</mat-icon>
-            <span>Sin evidencia registrada</span>
-          </div>
-        }
-      </section>
-
-      <!-- Detection data -->
-      @if (e.detection) {
-        <section class="detect-card" aria-label="Datos de detección">
-          <div class="detect-header">
-            <h2 class="detect-title">
-              <mat-icon aria-hidden="true">{{ typeIcon(e.type) }}</mat-icon>
-              Datos de detección
-            </h2>
-          </div>
-          <div class="detect-body">
-
-            <div class="detect-row">
-              <span class="detect-label">Tipo de detección</span>
-              <span class="detect-value">{{ typeLabel(e.type) }}</span>
-            </div>
-
-            <div class="detect-row">
-              <span class="detect-label">Confianza</span>
-              <div class="detect-value">
-                <div class="conf-bar-wrap" aria-hidden="true">
-                  <div
-                    class="conf-bar"
-                    [class.conf-bar--high]="e.detection.confidence >= 0.8"
-                    [class.conf-bar--mid]="e.detection.confidence >= 0.5 && e.detection.confidence < 0.8"
-                    [class.conf-bar--low]="e.detection.confidence < 0.5"
-                    [style.width]="confidencePct(e.detection.confidence)"
-                  ></div>
-                </div>
-                <span class="conf-pct">{{ confidencePct(e.detection.confidence) }}</span>
-              </div>
-            </div>
-
-            @if (e.detection.personLabel) {
-              <div class="detect-row">
-                <span class="detect-label">Persona</span>
-                <span class="detect-value">{{ e.detection.personLabel }}</span>
-              </div>
-            }
-
-            @if (e.detection.personId) {
-              <div class="detect-row">
-                <span class="detect-label">ID de persona</span>
-                <span class="detect-value detect-value--mono">{{ e.detection.personId }}</span>
-              </div>
-            }
-
-            @if (e.detection.objectType) {
-              <div class="detect-row">
-                <span class="detect-label">Objeto detectado</span>
-                <span class="detect-value">{{ e.detection.objectType }}</span>
-              </div>
-            }
-
-            @if (e.detection.boundingBox) {
-              <div class="detect-row">
-                <span class="detect-label">Región detectada</span>
-                <span class="detect-value detect-value--mono">
-                  x:{{ e.detection.boundingBox.x }}
-                  y:{{ e.detection.boundingBox.y }}
-                  {{ e.detection.boundingBox.width }}×{{ e.detection.boundingBox.height }}px
-                </span>
-              </div>
-            }
-
-          </div>
-        </section>
-      }
-
-      <!-- Recommended actions -->
-      @if (e.recommendedActions.length > 0) {
-        <section class="actions-card" aria-label="Acciones recomendadas">
-          <div class="actions-header">
-            <h2 class="actions-title">
-              <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
-              Acciones recomendadas
-            </h2>
-          </div>
-          <ul class="actions-list" role="list">
-            @for (action of e.recommendedActions; track action.label) {
-              <li class="reco-action-item" [class]="'reco-action-item--' + action.severity" role="listitem">
-                <mat-icon class="reco-action-icon" aria-hidden="true">{{ action.icon }}</mat-icon>
-                <span>{{ action.label }}</span>
-              </li>
-            }
-          </ul>
-        </section>
-      }
-
-    </div>
-
-    <!-- Right column: event info -->
-    <aside class="col-side" aria-label="Información del evento">
+    <!-- Right: event details + person identification -->
+    <div class="info-col">
 
       <div class="info-panel">
         <div class="info-panel-header">
+          <mat-icon class="info-panel-icon" aria-hidden="true">event_note</mat-icon>
           <h2 class="info-panel-title">Detalles del evento</h2>
         </div>
         <dl class="info-dl">
@@ -250,34 +120,15 @@
             <dd class="info-dl-value">{{ e.cameraName }}</dd>
           </div>
 
-          <div class="info-dl-item">
-            <dt class="info-dl-label">
-              <mat-icon aria-hidden="true">location_on</mat-icon>
-              Ubicación
-            </dt>
-            <dd class="info-dl-value">{{ e.location }}</dd>
-          </div>
-
-          <div class="info-dl-item">
-            <dt class="info-dl-label">
-              <mat-icon aria-hidden="true">{{ typeIcon(e.type) }}</mat-icon>
-              Tipo de evento
-            </dt>
-            <dd class="info-dl-value">{{ typeLabel(e.type) }}</dd>
-          </div>
-
-          <div class="info-dl-item">
-            <dt class="info-dl-label">
-              <mat-icon aria-hidden="true">warning</mat-icon>
-              Severidad
-            </dt>
-            <dd class="info-dl-value">
-              <app-status-badge
-                [status]="severityToBadge(e.severity)"
-                [label]="severityLabel(e.severity)"
-              />
-            </dd>
-          </div>
+          @if (e.location) {
+            <div class="info-dl-item">
+              <dt class="info-dl-label">
+                <mat-icon aria-hidden="true">location_on</mat-icon>
+                Ubicación
+              </dt>
+              <dd class="info-dl-value">{{ e.location }}</dd>
+            </div>
+          }
 
           <div class="info-dl-item">
             <dt class="info-dl-label">
@@ -290,14 +141,6 @@
                 [label]="statusLabel(currentStatus())"
               />
             </dd>
-          </div>
-
-          <div class="info-dl-item info-dl-item--full">
-            <dt class="info-dl-label">
-              <mat-icon aria-hidden="true">description</mat-icon>
-              Descripción
-            </dt>
-            <dd class="info-dl-value info-dl-value--desc">{{ e.description }}</dd>
           </div>
 
           @if (e.notes) {
@@ -313,7 +156,113 @@
         </dl>
       </div>
 
-    </aside>
+      <!-- Person identification panel: always shown for weapon events -->
+      @if (e.type === 'weapon_detection') {
+        @let person = e.identifications[0];
+        <div class="info-panel person-panel">
+          <div class="info-panel-header">
+            <mat-icon class="info-panel-icon" aria-hidden="true">person_search</mat-icon>
+            <h2 class="info-panel-title">Persona identificada</h2>
+          </div>
+          <dl class="info-dl">
+
+            <div class="info-dl-item">
+              <dt class="info-dl-label">
+                <mat-icon aria-hidden="true">badge</mat-icon>
+                Número de DNI
+              </dt>
+              <dd class="info-dl-value info-dl-value--mono" [class.person-highlight]="!!person?.dni">
+                {{ person?.dni || '—' }}
+              </dd>
+            </div>
+
+            <div class="info-dl-item">
+              <dt class="info-dl-label">
+                <mat-icon aria-hidden="true">person</mat-icon>
+                Apellido Paterno
+              </dt>
+              <dd class="info-dl-value" [class.person-empty]="!person?.apellidoPaterno">
+                {{ person?.apellidoPaterno || '—' }}
+              </dd>
+            </div>
+
+            <div class="info-dl-item">
+              <dt class="info-dl-label">
+                <mat-icon aria-hidden="true">person</mat-icon>
+                Apellido Materno
+              </dt>
+              <dd class="info-dl-value" [class.person-empty]="!person?.apellidoMaterno">
+                {{ person?.apellidoMaterno || '—' }}
+              </dd>
+            </div>
+
+            <div class="info-dl-item">
+              <dt class="info-dl-label">
+                <mat-icon aria-hidden="true">account_circle</mat-icon>
+                Nombres
+              </dt>
+              <dd class="info-dl-value" [class.person-empty]="!person?.nombres">
+                {{ person?.nombres || '—' }}
+              </dd>
+            </div>
+
+            <div class="info-dl-item">
+              <dt class="info-dl-label">
+                <mat-icon aria-hidden="true">cake</mat-icon>
+                Edad
+              </dt>
+              <dd class="info-dl-value" [class.person-empty]="person?.edad == null">
+                {{ person?.edad != null ? person!.edad + ' años' : '—' }}
+              </dd>
+            </div>
+
+          </dl>
+        </div>
+      } @else if (e.identifications.length > 0) {
+        @for (person of e.identifications; track person.id) {
+          <div class="info-panel person-panel">
+            <div class="info-panel-header">
+              <mat-icon class="info-panel-icon" aria-hidden="true">person_search</mat-icon>
+              <h2 class="info-panel-title">Persona identificada</h2>
+            </div>
+            <dl class="info-dl">
+              <div class="info-dl-item">
+                <dt class="info-dl-label"><mat-icon aria-hidden="true">badge</mat-icon> Número de DNI </dt>
+                <dd class="info-dl-value info-dl-value--mono" [class.person-highlight]="!!person.dni">{{ person.dni || '—' }}</dd>
+              </div>
+              <div class="info-dl-item">
+                <dt class="info-dl-label"><mat-icon aria-hidden="true">person</mat-icon> Apellido Paterno </dt>
+                <dd class="info-dl-value" [class.person-empty]="!person.apellidoPaterno">{{ person.apellidoPaterno || '—' }}</dd>
+              </div>
+              <div class="info-dl-item">
+                <dt class="info-dl-label"><mat-icon aria-hidden="true">person</mat-icon> Apellido Materno </dt>
+                <dd class="info-dl-value" [class.person-empty]="!person.apellidoMaterno">{{ person.apellidoMaterno || '—' }}</dd>
+              </div>
+              <div class="info-dl-item">
+                <dt class="info-dl-label"><mat-icon aria-hidden="true">account_circle</mat-icon> Nombres </dt>
+                <dd class="info-dl-value" [class.person-empty]="!person.nombres">{{ person.nombres || '—' }}</dd>
+              </div>
+              <div class="info-dl-item">
+                <dt class="info-dl-label"><mat-icon aria-hidden="true">cake</mat-icon> Edad </dt>
+                <dd class="info-dl-value" [class.person-empty]="person.edad == null">{{ person.edad != null ? person.edad + ' años' : '—' }}</dd>
+              </div>
+            </dl>
+          </div>
+        }
+      }
+
+    </div>
   </div>
+
+  <app-confirm-dialog
+    [open]="confirmingDiscard()"
+    title="¿Descartar este evento?"
+    message="El evento será eliminado del sistema y no podrá recuperarse."
+    confirmLabel="Sí, descartar"
+    [busy]="isDiscarding()"
+    [errorMessage]="discardError()"
+    (confirm)="confirmDiscard()"
+    (cancel)="cancelDiscard()"
+  />
 
 }

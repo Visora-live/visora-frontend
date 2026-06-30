@@ -1,19 +1,24 @@
 <mat-sidenav-container class="shell-container">
   <mat-sidenav
     class="shell-sidenav"
-    [mode]="sidenavMode()"
-    [opened]="sidenavOpen()"
-    (closedStart)="onSidenavClose()"
+    mode="side"
+    [opened]="true"
   >
     <app-sidebar />
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <div class="shell-layout">
-      <app-topbar (menuToggle)="toggleSidenav()" />
-      <main id="main-content" class="shell-main" tabindex="-1">
-        <router-outlet />
-      </main>
-    </div>
+    <main id="main-content" class="shell-main" tabindex="-1">
+      <router-outlet />
+    </main>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+@if (storeCtx.isSwitching()) {
+  <div class="store-switch-loading" aria-live="polite" role="status">
+    <div class="store-switch-card">
+      <div class="store-switch-spinner"></div>
+      <p class="store-switch-text">Cambiando de tienda...</p>
+    </div>
+  </div>
+}

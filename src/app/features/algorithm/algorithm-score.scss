@@ -1,0 +1,261 @@
+:host { display: block; }
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+.state-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 0;
+  color: var(--visora-text-muted);
+  font-size: 14px;
+
+  mat-icon { opacity: 0.5; }
+}
+
+// ── Summary stats ─────────────────────────────────────────────────────────────
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--visora-space-md);
+  margin-bottom: var(--visora-space-xl);
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr 1fr; gap: var(--visora-space-sm); }
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  background: rgba(22, 82, 163, 0.05);
+  border: 1px solid rgba(22, 82, 163, 0.18);
+  border-top: 3px solid var(--visora-primary);
+  border-radius: var(--visora-radius-md);
+  box-shadow: var(--visora-shadow-sm);
+}
+
+.stat-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--visora-primary);
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 11px;
+  color: var(--visora-text-muted);
+  font-weight: 500;
+}
+
+// ── Camera block ──────────────────────────────────────────────────────────────
+
+.cam-block {
+  background: var(--visora-bg-surface);
+  border: 1px solid var(--visora-border-color);
+  border-radius: var(--visora-radius-md);
+  box-shadow: 0 4px 16px rgba(22, 82, 163, 0.12), var(--visora-shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--visora-space-lg);
+}
+
+.cam-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(22, 82, 163, 0.06);
+  border-bottom: 1px solid rgba(22, 82, 163, 0.14);
+  border-left: 3px solid var(--visora-primary);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cam-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cam-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(22, 82, 163, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon { color: var(--visora-primary); font-size: 20px; width: 20px; height: 20px; }
+}
+
+.cam-meta { display: flex; flex-direction: column; gap: 2px; }
+
+.cam-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--visora-primary);
+}
+
+.cam-sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--visora-text-muted);
+
+  mat-icon { font-size: 13px; width: 13px; height: 13px; color: var(--visora-accent); }
+}
+
+.cam-kpis {
+  display: flex;
+  gap: 0;
+  border: 1px solid rgba(22, 82, 163, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(22, 82, 163, 0.05);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 14px;
+  border-right: 1px solid rgba(22, 82, 163, 0.15);
+
+  &:last-child { border-right: none; }
+}
+
+.kpi-num {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--visora-primary);
+  line-height: 1;
+}
+
+.kpi-lbl {
+  font-size: 10px;
+  color: var(--visora-text-muted);
+  white-space: nowrap;
+}
+
+// ── Table — matches event-list pattern ────────────────────────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+
+  thead tr {
+    background: rgba(22, 82, 163, 0.06);
+  }
+
+  th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--visora-text-muted);
+    border-bottom: 1px solid var(--visora-border-color);
+    white-space: nowrap;
+
+    sub { text-transform: none; font-size: 0.75em; }
+
+    &.col-num   { text-align: center; }
+    &.col-score { text-align: center; }
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--visora-border-color);
+    vertical-align: middle;
+    white-space: nowrap;
+
+    &.col-num   { text-align: center; }
+    &.col-score { text-align: center; }
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+.report-row {
+  transition: background 0.1s ease;
+
+  &:hover { background: rgba(22, 82, 163, 0.03); }
+}
+
+// ── Cell styles — reuse event-list patterns ───────────────────────────────────
+
+.cell-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dt-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--visora-text);
+}
+
+.dt-time {
+  font-size: 11px;
+  color: var(--visora-text-muted);
+  font-family: monospace;
+}
+
+.cell-text {
+  font-size: 13px;
+  color: var(--visora-text);
+
+  &--muted { color: var(--visora-text-muted); font-size: 12px; }
+}
+
+.icon-yes {
+  color: var(--visora-status-normal);
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  display: block;
+  margin: 0 auto;
+}
+
+.icon-no {
+  color: var(--visora-status-inactive);
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  display: block;
+  margin: 0 auto;
+}
+
+.score-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.score-label {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}

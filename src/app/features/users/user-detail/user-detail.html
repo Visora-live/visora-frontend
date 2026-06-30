@@ -24,12 +24,6 @@
       <mat-icon>arrow_back</mat-icon>
       Volver
     </button>
-    @if (u.storeId) {
-      <button mat-stroked-button [routerLink]="['/stores', u.storeId]">
-        <mat-icon>store</mat-icon>
-        Ver tienda
-      </button>
-    }
     @if (isAdmin()) {
       <button mat-flat-button [routerLink]="['/users', u.id, 'edit']">
         <mat-icon>edit</mat-icon>
@@ -37,30 +31,6 @@
       </button>
     }
   </app-page-header>
-
-  <!-- Stat cards -->
-  <div class="stats-grid">
-    <app-stat-card
-      title="Rol"
-      [value]="roleLabel(u.role)"
-      [icon]="roleIcon(u.role)"
-    />
-    <app-stat-card
-      title="Estado"
-      [value]="u.status === 'active' ? 'Activo' : 'Inactivo'"
-      icon="circle"
-    />
-    <app-stat-card
-      title="Tienda asignada"
-      [value]="u.storeName || 'Sin tienda'"
-      icon="store"
-    />
-    <app-stat-card
-      title="Último acceso"
-      [value]="(u.lastAccess | date:'dd/MM/yyyy') ?? 'Sin registro'"
-      icon="login"
-    />
-  </div>
 
   <!-- Info + Activity layout -->
   <div class="visora-user-detail-layout">
@@ -96,14 +66,6 @@
 
         <div class="usr-info-item">
           <dt class="usr-info-label">
-            <mat-icon aria-hidden="true">phone</mat-icon>
-            Teléfono
-          </dt>
-          <dd class="usr-info-value">{{ u.phone || '—' }}</dd>
-        </div>
-
-        <div class="usr-info-item">
-          <dt class="usr-info-label">
             <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
             Rol en el sistema
           </dt>
@@ -113,9 +75,9 @@
         <div class="usr-info-item">
           <dt class="usr-info-label">
             <mat-icon aria-hidden="true">store</mat-icon>
-            Tienda asignada
+            Tiendas asignadas
           </dt>
-          <dd class="usr-info-value">{{ u.storeName || '—' }}</dd>
+          <dd class="usr-info-value">{{ (u.storeNames && u.storeNames.length) ? u.storeNames.join(', ') : '—' }}</dd>
         </div>
 
         <div class="usr-info-item">
@@ -126,17 +88,7 @@
           <dd class="usr-info-value">{{ u.createdAt | date:'dd/MM/yyyy' }}</dd>
         </div>
 
-        <div class="usr-info-item">
-          <dt class="usr-info-label">
-            <mat-icon aria-hidden="true">login</mat-icon>
-            Último acceso
-          </dt>
-          <dd class="usr-info-value">
-            {{ (u.lastAccess | date:'dd/MM/yyyy HH:mm') ?? 'Sin registro' }}
-          </dd>
-        </div>
-
-        @if (u.notes) {
+@if (u.notes) {
           <div class="usr-info-item usr-info-item--full">
             <dt class="usr-info-label">
               <mat-icon aria-hidden="true">notes</mat-icon>

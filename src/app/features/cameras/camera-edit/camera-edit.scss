@@ -160,3 +160,32 @@
 .btn-spinner {
   --mdc-circular-progress-active-indicator-color: #ffffff;
 }
+
+.rtmp-box {
+  margin-top: var(--visora-space-md);
+  padding: 12px 14px;
+  background: rgba(47, 136, 245, 0.06);
+  border: 1px solid rgba(47, 136, 245, 0.25);
+  border-radius: var(--visora-radius-md);
+}
+.rtmp-box-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--visora-text-muted);
+  margin-bottom: 6px;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--visora-accent); }
+}
+.rtmp-box-row { display: flex; align-items: center; gap: 6px; }
+.rtmp-box-url {
+  flex: 1;
+  min-width: 0;
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--visora-text);
+  word-break: break-all;
+}
