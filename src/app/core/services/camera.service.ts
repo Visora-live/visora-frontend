@@ -192,7 +192,7 @@ export class CameraService {
       .pipe(
         map((events) =>
           events
-            .filter((e) => e.estado !== 'descartado' && e.estado !== 'revisado')
+            .filter((e) => e.estado !== 'descartado')
             .slice(0, limit)
             .map(mapRecentEvent),
         ),

@@ -83,7 +83,9 @@ function mapAlert(
     evidence: [],
     timeline: [],
     recommendedActions: [],
-    snapshotUrl: isWeapon && b.camara_id ? `${apiBase}/cameras/${b.camara_id}/detect/snapshot` : undefined,
+    snapshotUrl: b.evento_id
+      ? `${apiBase}/event-images/by-event/${b.evento_id}/file`
+      : (isWeapon && b.camara_id ? `${apiBase}/cameras/${b.camara_id}/detect/snapshot` : undefined),
   };
 }
 
