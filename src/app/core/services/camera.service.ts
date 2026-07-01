@@ -29,6 +29,21 @@ interface BackendRecentEvent {
   camara_id: number;
 }
 
+function isWeaponTipo(tipo: string): boolean {
+  const t = tipo.toLowerCase();
+  return t === 'weapon_detection' || t.includes('weapon') || t.includes('arma');
+}
+
+function formatEventDescription(comentario: string | null, tipo: string): string {
+  if (!isWeaponTipo(tipo)) return comentario ?? tipo;
+  if (!comentario || comentario.toLowerCase().includes('analizando')) {
+    return 'Arma detectada | Analizando incidente...';
+  }
+  const m = comentario.match(/Portador identificado:\s*([^|]+?)\s*(?:\||$)/i);
+  if (m) return `Arma detectada | Portador identificado: ${m[1].trim()}`;
+  return 'Arma detectada | No se pudo identificar al infractor.';
+}
+
 function mapRecentEvent(b: BackendRecentEvent): VisoraEvent {
   const sev = b.severidad.toLowerCase();
   const severity: EventSeverity =
@@ -45,7 +60,7 @@ function mapRecentEvent(b: BackendRecentEvent): VisoraEvent {
     severity,
     type: 'suspicious_activity',
     status: 'pending',
-    description: b.comentario ?? b.tipo,
+    description: formatEventDescription(b.comentario, b.tipo),
     timestamp: b.fecha_hora,
     evidence: [],
     recommendedActions: [],

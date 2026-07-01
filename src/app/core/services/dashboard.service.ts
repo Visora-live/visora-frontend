@@ -112,7 +112,7 @@ function formatEventDescription(comentario: string | null, tipo: string): string
   if (comentario.includes('analizando')) return 'Arma detectada | Analizando incidente...';
   const m = comentario.match(/Portador identificado:\s*([^|]+?)\s*(?:\||$)/i);
   if (m) return `Arma detectada | Portador identificado: ${m[1].trim()}`;
-  return 'Arma detectada | Lo sentimos, no se pudo identificar al infractor.';
+  return 'Arma detectada | No se pudo identificar al infractor.';
 }
 
 @Injectable({ providedIn: 'root' })
