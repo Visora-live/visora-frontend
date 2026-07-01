@@ -6,7 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import type { EventSeverity, EventType } from '../../../core/models/event.model';
+import type { EventType } from '../../../core/models/event.model';
 import type { AlertStatus } from '../../../core/models/alert.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AlertService } from '../../../core/services/alert.service';
@@ -73,19 +73,6 @@ export class AlertDetailComponent implements OnInit {
         this.actionDone.set('resolved');
       },
     });
-  }
-
-  protected severityToBadge(s: EventSeverity): BadgeStatus {
-    return s === 'normal' ? 'normal' : s === 'suspicious' ? 'suspicious' : 'critical';
-  }
-
-  protected severityLabel(s: EventSeverity): string {
-    const m: Record<EventSeverity, string> = {
-      normal: 'Normal',
-      suspicious: 'Sospechosa',
-      critical: 'Crítica',
-    };
-    return m[s];
   }
 
   protected statusLabel(s: AlertStatus): string {

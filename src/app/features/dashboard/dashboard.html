@@ -26,7 +26,6 @@
                   [routerLink]="['/alerts', alert.id]"
                   [attr.aria-label]="'Ver alerta: ' + alert.title"
                 >
-                  <app-status-badge [status]="severityBadge(alert.severity)" />
                   <div class="dash-item-info">
                     <span class="dash-item-title">{{ alert.title }}</span>
                     <span class="dash-item-meta">

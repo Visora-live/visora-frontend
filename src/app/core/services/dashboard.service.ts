@@ -9,7 +9,6 @@ export interface DashboardMetrics {
   offlineCameras: number;
   maintenanceCameras: number;
   openAlerts: number;
-  criticalAlerts: number;
   suspiciousEvents: number;
   totalEvents: number;
 }
@@ -17,7 +16,6 @@ export interface DashboardMetrics {
 export interface DashboardRecentAlert {
   id: string;
   title: string;
-  severity: string;
   storeName: string;
   createdAt: string;
 }
@@ -63,7 +61,6 @@ interface BackendCamera {
 interface BackendAlert {
   id: number;
   titulo: string;
-  severidad: string;
   estado: string;
   camara_id: number | null;
   tienda_id: number | null;
@@ -82,7 +79,7 @@ interface BackendEvent {
 const EMPTY_DATA: DashboardData = {
   metrics: {
     activeStores: 0, onlineCameras: 0, offlineCameras: 0, maintenanceCameras: 0,
-    openAlerts: 0, criticalAlerts: 0, suspiciousEvents: 0, totalEvents: 0,
+    openAlerts: 0, suspiciousEvents: 0, totalEvents: 0,
   },
   recentAlerts: [],
   recentEvents: [],
@@ -93,11 +90,6 @@ function severityLabel(s: string): string {
   if (n === 'normal' || n === 'baja') return 'normal';
   if (n === 'alta' || n === 'critical' || n === 'critica') return 'critical';
   return 'suspicious';
-}
-
-function isCritical(s: string): boolean {
-  const n = s.toLowerCase();
-  return n === 'alta' || n === 'critical' || n === 'critica';
 }
 
 function isSuspicious(s: string): boolean {
@@ -145,7 +137,6 @@ export class DashboardService {
           offlineCameras: cameras.filter((c) => c.estado === false).length,
           maintenanceCameras: 0,
           openAlerts: alerts.filter((a) => a.estado === 'abierta').length,
-          criticalAlerts: alerts.filter((a) => a.estado === 'abierta' && isCritical(a.severidad)).length,
           suspiciousEvents: events.filter((e) => isSuspicious(e.severidad)).length,
           totalEvents: events.length,
         };
@@ -159,7 +150,6 @@ export class DashboardService {
             return {
               id: String(a.id),
               title: a.titulo,
-              severity: severityLabel(a.severidad),
               storeName: storeId ? (storeMap.get(storeId) ?? '') : '',
               createdAt: a.created_at,
             };

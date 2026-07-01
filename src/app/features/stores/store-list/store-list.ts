@@ -61,7 +61,7 @@ export class StoreListComponent {
     { initialValue: { items: [], total: 0 } },
   );
   private readonly alertListRes = toSignal(this.alertService.list(), {
-    initialValue: { items: [], total: 0, openCount: 0, criticalCount: 0, acknowledgedCount: 0, resolvedCount: 0 } as AlertListResponse,
+    initialValue: { items: [], total: 0, openCount: 0, acknowledgedCount: 0, resolvedCount: 0 } as AlertListResponse,
   });
   private readonly eventListRes = toSignal(this.eventService.list(), {
     initialValue: { items: [], total: 0, todayCount: 0, criticalCount: 0, suspiciousCount: 0, evidenceCount: 0 } as EventListResponse,

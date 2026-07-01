@@ -3,14 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Alert, AlertStatus } from '../models/alert.model';
-import type { EventSeverity, EventType } from '../models/event.model';
+import type { EventType } from '../models/event.model';
 
 interface BackendAlert {
   id: number;
   titulo: string;
   descripcion: string | null;
   tipo: string;
-  severidad: string;
   estado: string;
   evento_id: number | null;
   camara_id: number | null;
@@ -41,13 +40,6 @@ function mapTipoToEventType(t: string): EventType {
   return 'suspicious_activity';
 }
 
-function mapSeveridad(s: string): EventSeverity {
-  const n = s.toLowerCase();
-  if (n === 'normal' || n === 'baja') return 'normal';
-  if (n === 'critical' || n === 'critica' || n === 'alta') return 'critical';
-  return 'suspicious'; // 'media' → suspicious
-}
-
 function mapEstadoAlerta(s: string): AlertStatus {
   if (s === 'reconocida' || s === 'acknowledged') return 'acknowledged';
   if (s === 'resuelta' || s === 'resolved' || s === 'descartada') return 'resolved';
@@ -72,7 +64,6 @@ function mapAlert(
     storeId: b.tienda_id ? String(b.tienda_id) : '',
     storeName,
     location,
-    severity: mapSeveridad(b.severidad),
     status: mapEstadoAlerta(b.estado),
     title: b.titulo,
     description: b.descripcion ?? '',
@@ -93,7 +84,6 @@ export interface AlertListResponse {
   items: Alert[];
   total: number;
   openCount: number;
-  criticalCount: number;
   acknowledgedCount: number;
   resolvedCount: number;
 }
@@ -134,7 +124,6 @@ export class AlertService {
           items,
           total: items.length,
           openCount: items.filter((a) => a.status === 'open').length,
-          criticalCount: items.filter((a) => a.severity === 'critical').length,
           acknowledgedCount: items.filter((a) => a.status === 'acknowledged').length,
           resolvedCount: items.filter((a) => a.status === 'resolved').length,
         };
@@ -204,7 +193,6 @@ export class AlertService {
   create(payload: {
     titulo: string;
     tipo?: string;
-    severidad?: string;
     eventoId?: number;
     camaraId?: number;
     tiendaId?: number;
@@ -213,7 +201,6 @@ export class AlertService {
     const body = {
       titulo: payload.titulo,
       tipo: payload.tipo ?? 'manual',
-      severidad: payload.severidad ?? 'media',
       evento_id: payload.eventoId ?? null,
       camara_id: payload.camaraId ?? null,
       tienda_id: payload.tiendaId ?? null,

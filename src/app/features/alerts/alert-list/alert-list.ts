@@ -15,7 +15,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import type { EventSeverity, EventType } from '../../../core/models/event.model';
+import type { EventType } from '../../../core/models/event.model';
 import type { Alert, AlertStatus } from '../../../core/models/alert.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { AlertService } from '../../../core/services/alert.service';
@@ -155,7 +155,6 @@ export class AlertPreviewDialogComponent {
 
 // ── Alert list ────────────────────────────────────────────────────────────────
 
-type SeverityFilter = 'all' | EventSeverity;
 type StatusFilter   = 'all' | AlertStatus;
 
 @Component({
@@ -189,25 +188,21 @@ export class AlertListComponent {
 
   private readonly listRes = toSignal(
     toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.alertService.list(id))),
-    { initialValue: { items: [], total: 0, openCount: 0, criticalCount: 0, acknowledgedCount: 0, resolvedCount: 0 } },
+    { initialValue: { items: [], total: 0, openCount: 0, acknowledgedCount: 0, resolvedCount: 0 } },
   );
 
   protected readonly alerts       = computed(() => this.listRes().items);
   protected readonly searchQuery  = signal('');
-  protected readonly severityFilter = signal<SeverityFilter>('all');
   protected readonly statusFilter   = signal<StatusFilter>('all');
 
   protected readonly openCount         = computed(() => this.listRes().openCount);
-  protected readonly criticalCount     = computed(() => this.listRes().criticalCount);
   protected readonly acknowledgedCount = computed(() => this.listRes().acknowledgedCount);
   protected readonly resolvedCount     = computed(() => this.listRes().resolvedCount);
 
   protected readonly filteredAlerts = computed(() => {
     const q   = this.searchQuery().toLowerCase().trim();
-    const sev = this.severityFilter();
     const sta = this.statusFilter();
     return this.alerts().filter((a) => {
-      if (sev !== 'all' && a.severity !== sev) return false;
       if (sta !== 'all' && a.status !== sta) return false;
       if (
         q &&
@@ -224,7 +219,6 @@ export class AlertListComponent {
   protected readonly isFiltered = computed(
     () =>
       this.searchQuery().trim() !== '' ||
-      this.severityFilter() !== 'all' ||
       this.statusFilter() !== 'all',
   );
 

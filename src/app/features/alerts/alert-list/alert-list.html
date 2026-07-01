@@ -23,20 +23,6 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="filter filter--sm">
-    <mat-label>Severidad</mat-label>
-    <mat-select
-      [ngModel]="severityFilter()"
-      (ngModelChange)="severityFilter.set($event)"
-      aria-label="Filtrar por severidad"
-    >
-      <mat-option value="all">Todas</mat-option>
-      <mat-option value="normal">Normal</mat-option>
-      <mat-option value="suspicious">Sospechosa</mat-option>
-      <mat-option value="critical">Crítica</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="filter filter--sm">
     <mat-label>Estado</mat-label>
     <mat-select
       [ngModel]="statusFilter()"
@@ -132,8 +118,7 @@
         mat-row
         *matRowDef="let row; columns: displayedColumns()"
         class="alerts-row"
-        [class.alerts-row--critical]="row.severity === 'critical'"
-        [class.alerts-row--open]="row.status === 'open' && row.severity !== 'critical'"
+        [class.alerts-row--open]="row.status === 'open'"
         [class.alerts-row--unread]="!row.leida"
       ></tr>
     </table>

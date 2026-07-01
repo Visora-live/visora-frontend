@@ -1,4 +1,4 @@
-import type { EventSeverity, EventType, Evidence, RecommendedAction } from './event.model';
+import type { EventType, Evidence, RecommendedAction } from './event.model';
 
 export type AlertStatus = 'open' | 'acknowledged' | 'resolved';
 
@@ -18,7 +18,6 @@ export interface Alert {
   storeId: string;
   storeName: string;
   location: string;
-  severity: EventSeverity;
   status: AlertStatus;
   title: string;
   description: string;

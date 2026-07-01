@@ -39,17 +39,7 @@
   </app-page-header>
 
   <!-- Status bar -->
-  <div
-    class="alert-status-bar"
-    [class.alert-status-bar--critical]="a.severity === 'critical'"
-    [class.alert-status-bar--suspicious]="a.severity === 'suspicious'"
-    role="status"
-  >
-    <app-status-badge
-      [status]="severityToBadge(a.severity)"
-      [label]="severityLabel(a.severity)"
-    />
-    <span class="alert-status-sep" aria-hidden="true">·</span>
+  <div class="alert-status-bar" role="status">
     <app-status-badge
       [status]="statusBadge(currentStatus())"
       [label]="statusLabel(currentStatus())"
@@ -150,19 +140,6 @@
               Tipo de evento
             </dt>
             <dd class="alrt-info-value">{{ eventTypeLabel(a.eventType) }}</dd>
-          </div>
-
-          <div class="alrt-info-item">
-            <dt class="alrt-info-label">
-              <mat-icon aria-hidden="true">warning</mat-icon>
-              Severidad
-            </dt>
-            <dd class="alrt-info-value">
-              <app-status-badge
-                [status]="severityToBadge(a.severity)"
-                [label]="severityLabel(a.severity)"
-              />
-            </dd>
           </div>
 
           <div class="alrt-info-item">
