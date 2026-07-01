@@ -3,52 +3,17 @@
   subtitle="Gestiona las alertas generadas por eventos relevantes del sistema de videovigilancia."
 />
 
-<!-- Filters -->
-<div class="filters-row">
-  <mat-form-field appearance="outline" class="filter filter--search">
-    <mat-label>Buscar por tienda, cámara o descripción</mat-label>
-    <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-    <input
-      matInput
-      type="search"
-      [ngModel]="searchQuery()"
-      (ngModelChange)="searchQuery.set($event)"
-      aria-label="Buscar alertas"
-    />
-    @if (searchQuery()) {
-      <button matSuffix mat-icon-button aria-label="Limpiar búsqueda" (click)="searchQuery.set('')">
-        <mat-icon>close</mat-icon>
-      </button>
-    }
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="filter filter--sm">
-    <mat-label>Estado</mat-label>
-    <mat-select
-      [ngModel]="statusFilter()"
-      (ngModelChange)="statusFilter.set($event)"
-      aria-label="Filtrar por estado"
-    >
-      <mat-option value="all">Todos</mat-option>
-      <mat-option value="open">Abierta</mat-option>
-      <mat-option value="acknowledged">En revisión</mat-option>
-      <mat-option value="resolved">Resuelta</mat-option>
-    </mat-select>
-  </mat-form-field>
-</div>
-
 <!-- Results count -->
 <p class="alrt-results" aria-live="polite" aria-atomic="true">
-  {{ filteredAlerts().length }} de {{ alerts().length }} alertas
-  @if (isFiltered()) { <span class="alrt-results-tag">filtrado</span> }
+  {{ alerts().length }} alertas
 </p>
 
 <!-- Table -->
-@if (filteredAlerts().length > 0) {
+@if (alerts().length > 0) {
   <div class="table-wrap" role="region" aria-label="Tabla de alertas">
     <table
       mat-table
-      [dataSource]="filteredAlerts()"
+      [dataSource]="alerts()"
       class="alerts-table"
       aria-label="Alertas del sistema"
     >
@@ -125,18 +90,10 @@
   </div>
 } @else {
   <div class="empty-wrap">
-    @if (isFiltered()) {
-      <app-empty-state
-        icon="search_off"
-        title="Sin resultados"
-        description="No hay alertas que coincidan con los filtros aplicados."
-      />
-    } @else {
-      <app-empty-state
-        icon="notifications_off"
-        title="Sin alertas registradas"
-        description="El sistema no ha generado alertas aún. Las nuevas alertas aparecerán aquí automáticamente."
-      />
-    }
+    <app-empty-state
+      icon="notifications_off"
+      title="Sin alertas registradas"
+      description="El sistema no ha generado alertas aún. Las nuevas alertas aparecerán aquí automáticamente."
+    />
   </div>
 }

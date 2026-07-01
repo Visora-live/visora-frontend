@@ -1,18 +1,14 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { AuthImagePipe } from '../../../shared/pipes/auth-image.pipe';
-import { FormsModule } from '@angular/forms';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { map, switchMap } from 'rxjs/operators';
 import { StoreContextService } from '../../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { EventType } from '../../../core/models/event.model';
@@ -155,18 +151,12 @@ export class AlertPreviewDialogComponent {
 
 // ── Alert list ────────────────────────────────────────────────────────────────
 
-type StatusFilter   = 'all' | AlertStatus;
-
 @Component({
   selector: 'app-alert-list',
   imports: [
     DatePipe,
-    FormsModule,
     MatButtonModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
-    MatSelectModule,
     MatTableModule,
     MatTooltipModule,
     EmptyStateComponent,
@@ -192,35 +182,10 @@ export class AlertListComponent {
   );
 
   protected readonly alerts       = computed(() => this.listRes().items);
-  protected readonly searchQuery  = signal('');
-  protected readonly statusFilter   = signal<StatusFilter>('all');
 
   protected readonly openCount         = computed(() => this.listRes().openCount);
   protected readonly acknowledgedCount = computed(() => this.listRes().acknowledgedCount);
   protected readonly resolvedCount     = computed(() => this.listRes().resolvedCount);
-
-  protected readonly filteredAlerts = computed(() => {
-    const q   = this.searchQuery().toLowerCase().trim();
-    const sta = this.statusFilter();
-    return this.alerts().filter((a) => {
-      if (sta !== 'all' && a.status !== sta) return false;
-      if (
-        q &&
-        !a.storeName.toLowerCase().includes(q) &&
-        !a.cameraName.toLowerCase().includes(q) &&
-        !a.title.toLowerCase().includes(q) &&
-        !a.description.toLowerCase().includes(q)
-      )
-        return false;
-      return true;
-    });
-  });
-
-  protected readonly isFiltered = computed(
-    () =>
-      this.searchQuery().trim() !== '' ||
-      this.statusFilter() !== 'all',
-  );
 
   protected readonly displayedColumns = computed<string[]>(() =>
     this.isMobile()

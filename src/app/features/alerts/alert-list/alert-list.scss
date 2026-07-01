@@ -12,24 +12,6 @@
   @media (max-width: 480px) { gap: var(--visora-space-sm); margin-bottom: var(--visora-space-lg); }
 }
 
-// ── Filters ───────────────────────────────────────────────────────────────────
-
-.filters-row {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: var(--visora-space-sm);
-  margin-bottom: var(--visora-space-sm);
-}
-
-.filter {
-  &--search { flex: 1 1 260px; min-width: 200px; }
-  &--sm { flex: 0 0 150px; @media (max-width: 640px) { flex: 1 1 130px; } }
-  &--md { flex: 0 0 210px; @media (max-width: 640px) { flex: 1 1 160px; } }
-}
-
-.clear-btn { align-self: center; margin-top: 4px; }
-
 // ── Results count ─────────────────────────────────────────────────────────────
 
 .alrt-results {
@@ -39,15 +21,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.alrt-results-tag {
-  font-size: 11px;
-  font-weight: 700;
-  background: rgba(47, 136, 245, 0.1);
-  color: var(--visora-accent);
-  padding: 1px 8px;
-  border-radius: 10px;
 }
 
 // ── Table ─────────────────────────────────────────────────────────────────────
