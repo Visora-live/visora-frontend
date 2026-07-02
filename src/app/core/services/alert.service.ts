@@ -100,7 +100,11 @@ export class AlertService {
     const alertUrl = tiendaId ? `${this.base}/alerts?tienda_id=${tiendaId}` : `${this.base}/alerts`;
     const camUrl = tiendaId ? `${this.base}/cameras?tienda_id=${tiendaId}` : `${this.base}/cameras`;
     return forkJoin([
-      this.http.get<BackendAlert[]>(alertUrl),
+      // A transient failure here (401 blip, network hiccup) must not kill the
+      // whole observable — callers that poll on an interval (alert-list,
+      // dashboard) would otherwise have their polling loop die permanently
+      // on the very first error and never recover without a page reload.
+      this.http.get<BackendAlert[]>(alertUrl).pipe(catchError(() => of([] as BackendAlert[]))),
       this.http.get<BackendCameraMin[]>(camUrl).pipe(catchError(() => of([] as BackendCameraMin[]))),
       this.http.get<BackendStoreMin[]>(`${this.base}/stores`).pipe(catchError(() => of([] as BackendStoreMin[]))),
     ]).pipe(
@@ -128,6 +132,14 @@ export class AlertService {
           resolvedCount: items.filter((a) => a.status === 'resolved').length,
         };
       }),
+    );
+  }
+
+  /** Lightweight — no camera/store name join, used for polling a single camera's alerts. */
+  listByCamera(cameraId: string) {
+    return this.http.get<BackendAlert[]>(`${this.base}/alerts?camara_id=${cameraId}`).pipe(
+      map((alerts) => alerts.map((a) => mapAlert(a, '', '', '', this.base))),
+      catchError(() => of([] as Alert[])),
     );
   }
 

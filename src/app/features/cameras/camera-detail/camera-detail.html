@@ -211,4 +211,25 @@
     (cancel)="cancelDelete()"
   />
 
+  <!-- Alert toasts: slide in bottom-right whenever a new alert is created for this camera -->
+  <div class="alert-toast-stack" aria-live="polite">
+    @for (t of toasts(); track t.id) {
+      <div class="alert-toast" role="status">
+        <mat-icon class="alert-toast-icon" aria-hidden="true">warning_amber</mat-icon>
+        <div class="alert-toast-body">
+          <span class="alert-toast-msg">{{ t.message }}</span>
+          <span class="alert-toast-time">{{ t.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+        </div>
+        <button
+          mat-icon-button
+          class="alert-toast-close"
+          (click)="dismissToast(t.id)"
+          aria-label="Cerrar notificación"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+
 }
