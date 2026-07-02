@@ -97,8 +97,8 @@ export class SidebarComponent {
     { label: 'Inicio',   icon: 'dashboard',    route: '/dashboard', ownerOnly: true },
     { label: 'Tiendas',  icon: 'store',         route: '/stores' },
     { label: 'Cámaras',  icon: 'videocam',      route: '/cameras',  ownerOnly: true },
-    { label: 'Eventos',  icon: 'event_note',    route: '/events',   ownerOnly: true },
     { label: 'Alertas',  icon: 'notifications', route: '/alerts',   ownerOnly: true },
+    { label: 'Eventos',  icon: 'event_note',    route: '/events',   ownerOnly: true },
     { label: 'Usuarios',   icon: 'group',         route: '/users',     adminOnly: true },
     { label: 'Algoritmo', icon: 'functions',     route: '/algorithm', adminOnly: true },
   ];
