@@ -198,7 +198,11 @@ export class CameraDetailComponent implements OnInit, OnDestroy {
       // created a moment before the page loaded could still land in the very
       // first response if backend + polling timing race, and would otherwise
       // get silently swallowed into the baseline instead of toasting.
-      if (new Date(a.createdAt) > this._pageOpenedAt) this._pushToast(a);
+      // Only weapon alerts — the face worker also creates alerts (unknown
+      // face detected) and this toast is specifically the "Arma detectada" one.
+      if (a.eventType === 'weapon_detection' && new Date(a.createdAt) > this._pageOpenedAt) {
+        this._pushToast(a);
+      }
     }
   }
 
