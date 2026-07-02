@@ -183,6 +183,22 @@
   font-style: italic;
 }
 
+.person-unknown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: var(--visora-space-xl) var(--visora-space-md);
+  min-height: 180px;
+  color: var(--visora-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+
+  mat-icon { font-size: 36px; width: 36px; height: 36px; opacity: 0.35; }
+}
+
 .ev-count-badge {
   margin-left: auto;
   background: rgba(47, 136, 245, 0.1);
