@@ -163,11 +163,18 @@ export class HlsPlayerComponent implements OnDestroy {
         maxLiveSyncPlaybackRate: 1.5,
         maxBufferLength: 20,
         backBufferLength: 10,
-        manifestLoadingTimeOut: 10000,
-        manifestLoadingMaxRetry: 6,
+        // Kept short on purpose: the m3u8 legitimately doesn't exist yet while a
+        // camera is still starting up (ffmpeg transcode spinning up after the
+        // phone connects). Rather than have hls.js spend up to a minute retrying
+        // internally (10s x 6) before we get a chance to react, fail fast here
+        // and let our own fail()/re-attach loop below retry every 5s with a
+        // completely fresh Hls.js instance — more reliable than relying on this
+        // same instance's internal state to recover.
+        manifestLoadingTimeOut: 4000,
+        manifestLoadingMaxRetry: 2,
         manifestLoadingRetryDelay: 1000,
-        levelLoadingTimeOut: 10000,
-        levelLoadingMaxRetry: 6,
+        levelLoadingTimeOut: 6000,
+        levelLoadingMaxRetry: 2,
         fragLoadingTimeOut: 20000,
         fragLoadingMaxRetry: 6,
         fragLoadingRetryDelay: 1000,
@@ -175,24 +182,20 @@ export class HlsPlayerComponent implements OnDestroy {
       });
       this.hls = hls;
       let mediaRecoveries = 0;
-      let networkRetries = 0;
       hls.loadSource(url);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => void video.play().catch(() => {}));
-      hls.on(Hls.Events.FRAG_LOADED, () => { mediaRecoveries = 0; networkRetries = 0; });
+      hls.on(Hls.Events.FRAG_LOADED, () => { mediaRecoveries = 0; });
       hls.on(Hls.Events.ERROR, (_e, data) => {
         if (!data.fatal) return;
         if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 3) {
           mediaRecoveries++;
           hls.recoverMediaError();
-        } else if (data.type === Hls.ErrorTypes.NETWORK_ERROR && networkRetries < 3) {
-          // Common while the camera hasn't started publishing yet (m3u8 still 404).
-          // Cap retries on this same Hls instance — if it still can't load after a
-          // few tries, fall through to fail() below, which tears down and rebuilds
-          // the whole instance. Relying on startLoad() forever can get stuck.
-          networkRetries++;
-          hls.startLoad();
         } else {
+          // Covers NETWORK_ERROR too — go straight to a full teardown/rebuild
+          // instead of calling startLoad() on this same instance. startLoad()
+          // retrying indefinitely on an instance that's already wedged is what
+          // required a manual page reload before.
           this.fail();
         }
       });
