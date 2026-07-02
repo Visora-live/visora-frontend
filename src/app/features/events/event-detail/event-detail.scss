@@ -37,9 +37,8 @@
 .snapshot-img {
   display: block;
   width: 100%;
-  flex: 1;
-  min-height: 220px;
-  object-fit: cover;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
   background: #1e2030;
 }
 
@@ -95,7 +94,7 @@
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: var(--visora-space-lg);
-  align-items: stretch;
+  align-items: start;
 
   &--no-snapshot { grid-template-columns: minmax(0, 560px); }
 
@@ -105,17 +104,12 @@
 .snapshot-col {
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .info-col {
   display: flex;
   flex-direction: column;
   gap: var(--visora-space-md);
-  height: 100%;
-
-  // first panel (Detalles del evento) absorbs extra height
-  .info-panel:first-child { flex: 1; }
 }
 
 // ── Not found ─────────────────────────────────────────────────────────────────
