@@ -45,7 +45,7 @@ export class CameraDetailComponent implements OnInit, OnDestroy {
 
   protected readonly cameraId = this.route.snapshot.paramMap.get('id') ?? '';
 
-  protected readonly hlsUrl      = `${environment.mediamtxHlsBase}/cam${this.cameraId}_low/index.m3u8`;
+  protected readonly hlsUrl      = `${environment.mediamtxHlsBase}/cam${this.cameraId}/index.m3u8`;
   protected readonly rtmpPushUrl = `${environment.mediamtxRtmpUrl}/cam${this.cameraId}`;
 
   protected readonly camera = toSignal(this.cameraService.getById(this.cameraId), {
