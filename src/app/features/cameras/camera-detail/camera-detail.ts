@@ -203,12 +203,7 @@ export class CameraDetailComponent implements OnInit, OnDestroy {
   }
 
   private _pushToast(a: Alert): void {
-    const identified = a.description.includes('Portador:');
-    const toast = {
-      id: a.id,
-      createdAt: a.createdAt,
-      message: identified ? 'Arma e infractor detectado' : 'Arma detectada',
-    };
+    const toast = { id: a.id, createdAt: a.createdAt, message: 'Arma detectada' };
     this.toasts.update((list) => [...list, toast]);
     this._playAlertSound();
     setTimeout(() => this.dismissToast(toast.id), 8000);
