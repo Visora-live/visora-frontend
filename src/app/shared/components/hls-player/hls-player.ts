@@ -175,16 +175,22 @@ export class HlsPlayerComponent implements OnDestroy {
       });
       this.hls = hls;
       let mediaRecoveries = 0;
+      let networkRetries = 0;
       hls.loadSource(url);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => void video.play().catch(() => {}));
-      hls.on(Hls.Events.FRAG_LOADED, () => { mediaRecoveries = 0; });
+      hls.on(Hls.Events.FRAG_LOADED, () => { mediaRecoveries = 0; networkRetries = 0; });
       hls.on(Hls.Events.ERROR, (_e, data) => {
         if (!data.fatal) return;
         if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 3) {
           mediaRecoveries++;
           hls.recoverMediaError();
-        } else if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+        } else if (data.type === Hls.ErrorTypes.NETWORK_ERROR && networkRetries < 3) {
+          // Common while the camera hasn't started publishing yet (m3u8 still 404).
+          // Cap retries on this same Hls instance — if it still can't load after a
+          // few tries, fall through to fail() below, which tears down and rebuilds
+          // the whole instance. Relying on startLoad() forever can get stuck.
+          networkRetries++;
           hls.startLoad();
         } else {
           this.fail();
