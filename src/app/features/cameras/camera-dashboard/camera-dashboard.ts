@@ -56,9 +56,9 @@ export class CameraDashboardComponent {
   private readonly cameraService = inject(CameraService);
   private readonly storeService = inject(StoreService);
 
-  /** HLS stream URL for a camera (MediaMTX path = cam<id>_view — timestamp-fixed, full quality). */
+  /** HLS stream URL for a camera (MediaMTX path = cam<id>_low — 960x540, único encode compartido con los workers). */
   protected hlsUrl(cameraId: string): string {
-    return `${environment.mediamtxHlsBase}/cam${cameraId}_view/index.m3u8`;
+    return `${environment.mediamtxHlsBase}/cam${cameraId}_low/index.m3u8`;
   }
 
   private readonly currentUser = toSignal(this.auth.getCurrentUser(), { initialValue: null });
