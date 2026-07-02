@@ -4,6 +4,7 @@ import { AsyncPipe, DatePipe } from '@angular/common';
 import { AuthImagePipe } from '../../../shared/pipes/auth-image.pipe';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { StoreContextService } from '../../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
@@ -176,8 +177,11 @@ export class AlertListComponent {
     { initialValue: false },
   );
 
+  // Poll every 5s so a new alert shows up without navigating away and back.
   private readonly listRes = toSignal(
-    toObservable(this.storeCtx.activeStoreId).pipe(switchMap((id) => this.alertService.list(id))),
+    toObservable(this.storeCtx.activeStoreId).pipe(
+      switchMap((id) => timer(0, 5000).pipe(switchMap(() => this.alertService.list(id)))),
+    ),
     { initialValue: { items: [], total: 0, openCount: 0, acknowledgedCount: 0, resolvedCount: 0 } },
   );
 

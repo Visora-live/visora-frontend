@@ -50,11 +50,11 @@ export class SidebarComponent {
   );
   protected readonly unreadNotifs = this.recovery.unread;
 
-  // Poll every 30s + immediate refresh when an alert is marked read
+  // Poll every 10s + immediate refresh when an alert is marked read
   protected readonly unreadAlerts = toSignal(
     toObservable(this.storeCtx.activeStoreId).pipe(
       switchMap((id) =>
-        merge(timer(0, 30_000), this.alertSvc.refresh$).pipe(
+        merge(timer(0, 10_000), this.alertSvc.refresh$).pipe(
           switchMap(() => this.alertSvc.unreadCount(id)),
           startWith(0),
         ),

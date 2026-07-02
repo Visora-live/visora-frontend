@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { StoreContextService } from '../../core/services/store-context.service';
 import { MatButtonModule } from '@angular/material/button';
@@ -70,7 +71,11 @@ export class DashboardComponent {
   );
 
   // ── Admin summary data ──────────────────────────────────────────────────
-  private readonly data = toSignal(this.service.getAll(5), { initialValue: null });
+  // Poll every 5s so new alerts/events show up without a manual refresh.
+  private readonly data = toSignal(
+    timer(0, 5000).pipe(switchMap(() => this.service.getAll(5))),
+    { initialValue: null },
+  );
 
   protected readonly recentAlerts = computed(() => this.data()?.recentAlerts ?? []);
   protected readonly recentEvents = computed(() => this.data()?.recentEvents ?? []);
