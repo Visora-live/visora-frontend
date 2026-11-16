@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { fetchAllPages } from '../utils/fetch-all-pages';
 
 export interface DashboardMetrics {
   activeStores: number;
@@ -125,7 +126,7 @@ export class DashboardService {
       this.http.get<BackendStore[]>(`${this.base}/stores`).pipe(catchError(() => of([] as BackendStore[]))),
       this.http.get<BackendCamera[]>(`${this.base}/cameras`).pipe(catchError(() => of([] as BackendCamera[]))),
       this.http.get<BackendAlert[]>(`${this.base}/alerts`).pipe(catchError(() => of([] as BackendAlert[]))),
-      this.http.get<BackendEvent[]>(`${this.base}/events`).pipe(catchError(() => of([] as BackendEvent[]))),
+      fetchAllPages<BackendEvent>(this.http, `${this.base}/events`).pipe(catchError(() => of([] as BackendEvent[]))),
     ]).pipe(
       map(([stores, cameras, alerts, events]) => {
         const camMap = new Map(cameras.map((c) => [c.id, c]));

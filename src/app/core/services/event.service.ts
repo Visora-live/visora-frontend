@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { fetchAllPages } from '../utils/fetch-all-pages';
 import type { VisoraEvent, EventType, EventSeverity, EventStatus, PersonIdentification } from '../models/event.model';
 
 interface BackendEvent {
@@ -151,10 +152,9 @@ export class EventService {
   private readonly base = environment.apiBaseUrl;
 
   list(tiendaId?: string | null) {
-    const evtUrl = tiendaId ? `${this.base}/events?tienda_id=${tiendaId}` : `${this.base}/events`;
     const camUrl = tiendaId ? `${this.base}/cameras?tienda_id=${tiendaId}` : `${this.base}/cameras`;
     return forkJoin([
-      this.http.get<BackendEvent[]>(evtUrl),
+      fetchAllPages<BackendEvent>(this.http, `${this.base}/events`, tiendaId ? { tienda_id: tiendaId } : {}),
       this.http.get<BackendCameraMin[]>(camUrl).pipe(catchError(() => of([] as BackendCameraMin[]))),
       this.http.get<BackendStoreMin[]>(`${this.base}/stores`).pipe(catchError(() => of([] as BackendStoreMin[]))),
     ]).pipe(

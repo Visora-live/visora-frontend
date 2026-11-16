@@ -217,3 +217,8 @@
   transition: color 0.15s ease;
   &:hover { color: var(--visora-status-critical); }
 }
+
+.evt-paginator {
+  margin-top: 8px;
+  background: transparent;
+}

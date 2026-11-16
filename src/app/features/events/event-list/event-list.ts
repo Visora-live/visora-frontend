@@ -10,6 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorIntl, MatPaginatorModule, type PageEvent } from '@angular/material/paginator';
+import { PaginatorIntlEs } from '../../../shared/i18n/paginator-intl-es';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -33,6 +35,7 @@ const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0 };
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatPaginatorModule,
     MatSelectModule,
     MatTableModule,
     MatTooltipModule,
@@ -40,6 +43,7 @@ const EMPTY_CAM_LIST = { items: [], total: 0, onlineCount: 0, offlineCount: 0 };
     PageHeaderComponent,
     StatusBadgeComponent,
   ],
+  providers: [{ provide: MatPaginatorIntl, useClass: PaginatorIntlEs }],
   templateUrl: './event-list.html',
   styleUrl: './event-list.scss',
 })
@@ -93,6 +97,37 @@ export class EventListComponent {
       return true;
     });
   });
+
+  // ── Pagination (client-side over the full, already-filtered list) ─────────
+  protected readonly pageSizeOptions = [25, 50, 100];
+  protected readonly pageSize = signal(25);
+  private readonly requestedPage = signal(0);
+
+  /** Page index clamped to the current result set (filters can shrink it). */
+  protected readonly pageIndex = computed(() => {
+    const lastPage = Math.max(0, Math.ceil(this.filteredEvents().length / this.pageSize()) - 1);
+    return Math.min(this.requestedPage(), lastPage);
+  });
+
+  protected readonly pagedEvents = computed(() => {
+    const start = this.pageIndex() * this.pageSize();
+    return this.filteredEvents().slice(start, start + this.pageSize());
+  });
+
+  protected onPage(e: PageEvent): void {
+    this.pageSize.set(e.pageSize);
+    this.requestedPage.set(e.pageIndex);
+  }
+
+  protected setSearch(q: string): void {
+    this.searchQuery.set(q);
+    this.requestedPage.set(0);
+  }
+
+  protected setCamera(cam: string): void {
+    this.cameraFilter.set(cam);
+    this.requestedPage.set(0);
+  }
 
   protected readonly isFiltered = computed(
     () => this.searchQuery().trim() !== '' || this.cameraFilter() !== 'all',
