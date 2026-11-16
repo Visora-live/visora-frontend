@@ -158,8 +158,12 @@ export class HlsPlayerComponent implements OnDestroy {
       const hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
-        liveSyncDurationCount: 4,
-        liveMaxLatencyDurationCount: 10,
+        // Segments are 1 s (MediaMTX hlsSegmentDuration). Sit 2 segments behind
+        // live (~2-3 s glass-to-glass) and jump forward if we drift past 5. This
+        // was raised to 4/10 while the phone ingest was unstable; with a clean
+        // source (Larix, ~27 fps, no dropped frames) the shorter window holds.
+        liveSyncDurationCount: 2,
+        liveMaxLatencyDurationCount: 5,
         maxLiveSyncPlaybackRate: 1.5,
         maxBufferLength: 20,
         backBufferLength: 10,
