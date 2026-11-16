@@ -12,11 +12,11 @@
       matInput
       type="search"
       [ngModel]="searchQuery()"
-      (ngModelChange)="searchQuery.set($event)"
+      (ngModelChange)="setSearch($event)"
       aria-label="Buscar eventos"
     />
     @if (searchQuery()) {
-      <button matSuffix mat-icon-button aria-label="Limpiar búsqueda" (click)="searchQuery.set('')">
+      <button matSuffix mat-icon-button aria-label="Limpiar búsqueda" (click)="setSearch('')">
         <mat-icon>close</mat-icon>
       </button>
     }
@@ -24,7 +24,7 @@
 
   <mat-form-field appearance="outline" class="filter filter--md">
     <mat-label>Cámara</mat-label>
-    <mat-select [ngModel]="cameraFilter()" (ngModelChange)="cameraFilter.set($event)" aria-label="Filtrar por cámara">
+    <mat-select [ngModel]="cameraFilter()" (ngModelChange)="setCamera($event)" aria-label="Filtrar por cámara">
       <mat-option value="all">Todas las cámaras</mat-option>
       @for (cam of cameraOptions(); track cam.id) {
         <mat-option [value]="cam.id">{{ cam.name }}</mat-option>
@@ -45,7 +45,7 @@
   <div class="table-wrap" role="region" aria-label="Tabla de eventos">
     <table
       mat-table
-      [dataSource]="filteredEvents()"
+      [dataSource]="pagedEvents()"
       class="events-table"
       aria-label="Eventos detectados"
     >
@@ -134,6 +134,16 @@
       ></tr>
     </table>
   </div>
+  <mat-paginator
+    class="evt-paginator"
+    [length]="filteredEvents().length"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="pageSizeOptions"
+    [showFirstLastButtons]="true"
+    (page)="onPage($event)"
+    aria-label="Paginación de eventos"
+  />
 } @else {
   <div class="empty-wrap">
     @if (isFiltered()) {
