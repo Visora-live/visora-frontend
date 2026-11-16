@@ -13,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import type { EventStatus } from '../../../core/models/event.model';
+import type { EventStatus, VisoraEvent } from '../../../core/models/event.model';
 import type { BadgeStatus } from '../../../shared/components/status-badge/status-badge';
 import { EventService } from '../../../core/services/event.service';
 import { CameraService } from '../../../core/services/camera.service';
@@ -101,7 +101,7 @@ export class EventListComponent {
   protected readonly displayedColumns = computed(() =>
     this.isMobile()
       ? ['timestamp', 'description', 'actions']
-      : ['timestamp', 'store', 'camera', 'status', 'actions'],
+      : ['timestamp', 'store', 'camera', 'infractor', 'status', 'actions'],
   );
 
   protected statusLabel(s: EventStatus): string {
@@ -115,5 +115,11 @@ export class EventListComponent {
 
   protected statusBadge(s: EventStatus): BadgeStatus {
     return s === 'pending' ? 'suspicious' : s === 'reviewed' ? 'normal' : 'inactive';
+  }
+
+  protected infractorLabel(e: VisoraEvent): string {
+    const p = e.identifications[0];
+    if (!p?.nombres) return '-';
+    return [p.nombres, p.apellidoPaterno].filter(Boolean).join(' ');
   }
 }

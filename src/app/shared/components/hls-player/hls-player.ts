@@ -158,8 +158,8 @@ export class HlsPlayerComponent implements OnDestroy {
       const hls = new Hls({
         enableWorker: true,
         lowLatencyMode: false,
-        liveSyncDurationCount: 2,
-        liveMaxLatencyDurationCount: 5,
+        liveSyncDurationCount: 4,
+        liveMaxLatencyDurationCount: 10,
         maxLiveSyncPlaybackRate: 1.5,
         maxBufferLength: 20,
         backBufferLength: 10,

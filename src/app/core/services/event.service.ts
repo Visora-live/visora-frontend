@@ -15,6 +15,8 @@ interface BackendEvent {
   tienda_id: number | null;
   created_at: string;
   updated_at: string;
+  infractor_nombre: string | null;
+  infractor_apellido: string | null;
 }
 
 interface BackendIdentification {
@@ -79,7 +81,9 @@ function mapEvent(
   const tipo = b.tipo?.toLowerCase() ?? '';
   const isWeapon = tipo === 'weapon_detection' || tipo.includes('weapon') || tipo.includes('arma');
   let finalIdents = identifications;
-  if (isWeapon && finalIdents.length === 0 && b.comentario) {
+  if (finalIdents.length === 0 && b.infractor_nombre) {
+    finalIdents = [{ id: 'infractor', nombres: b.infractor_nombre, apellidoPaterno: b.infractor_apellido ?? undefined }];
+  } else if (isWeapon && finalIdents.length === 0 && b.comentario) {
     const parsed = parseWeaponPerson(b.comentario);
     if (parsed) finalIdents = [parsed];
   }
