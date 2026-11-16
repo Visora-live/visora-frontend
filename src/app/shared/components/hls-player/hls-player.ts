@@ -157,14 +157,15 @@ export class HlsPlayerComponent implements OnDestroy {
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: false,
-        // Segments are 1 s (MediaMTX hlsSegmentDuration). Sit 2 segments behind
-        // live (~2-3 s glass-to-glass) and jump forward if we drift past 5. This
-        // was raised to 4/10 while the phone ingest was unstable; with a clean
-        // source (Larix, ~27 fps, no dropped frames) the shorter window holds.
-        liveSyncDurationCount: 2,
-        liveMaxLatencyDurationCount: 5,
-        maxLiveSyncPlaybackRate: 1.5,
+        // MediaMTX serves Low-Latency HLS (1 s segments, 200 ms parts,
+        // PART-HOLD-BACK 0.5 s). We deliberately sit at 1.5 s instead of the
+        // 0.5 s minimum: the extra ~1 s of buffer absorbs phone/WiFi jitter so
+        // playback does not stall. If latency drifts, catch up by playing at
+        // most 1.1x (imperceptible) rather than jumping; only seek past 5 s.
+        lowLatencyMode: true,
+        liveSyncDuration: 1.5,
+        liveMaxLatencyDuration: 5,
+        maxLiveSyncPlaybackRate: 1.1,
         maxBufferLength: 20,
         backBufferLength: 10,
         // Kept short on purpose: the m3u8 legitimately doesn't exist yet while a
